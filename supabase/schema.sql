@@ -64,6 +64,7 @@ create table if not exists issues (
     reviewed_at_millis       bigint,
     rejection_reason         text,
     last_edit                jsonb,
+    resolution               text,
     notes_source             text not null default '',
     external_reference       jsonb,
     support_count            integer not null default 0,
@@ -75,6 +76,18 @@ create table if not exists issues (
     -- refuses to construct the pair, so a row breaking it could not be read back.
     constraint rejected_issues_carry_a_reason check (
         review_state <> 'rejected' or coalesce(btrim(rejection_reason), '') <> ''
+    ),
+
+    -- Mirrors IssueStatus: a report is in review until a manager decides, and
+    -- rejected exactly when they turn it down. This is also what stops a
+    -- submitter filing a report straight into "open".
+    constraint status_follows_review check (
+        (status = 'in_review') = (review_state = 'pending_review')
+        and (status = 'rejected') = (review_state = 'rejected')
+    ),
+
+    constraint complete_issues_carry_a_resolution check (
+        status <> 'complete' or coalesce(btrim(resolution), '') <> ''
     )
 );
 

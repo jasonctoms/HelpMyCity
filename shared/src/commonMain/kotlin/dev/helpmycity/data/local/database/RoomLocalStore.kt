@@ -69,8 +69,27 @@ internal class RoomIssueLocalDataSource(database: HelpMyCityDatabase) : IssueLoc
 
     override suspend fun delete(id: String) = dao.delete(id)
 
+    override suspend fun deleteSyncedExcept(keep: Set<String>) {
+        for (id in dao.syncedIds()) if (id !in keep) dao.delete(id)
+    }
+
     override suspend fun appendStatusChange(change: IssueStatusChange) =
         dao.upsertStatusChange(change.toEntity())
+
+    override suspend fun mergeRemoteStatusChanges(changes: List<IssueStatusChange>) {
+        for (change in changes) {
+            dao.mergeRemoteStatusChange(
+                id = change.id,
+                issueId = change.issueId,
+                fromStatus = change.fromStatus?.storageKey,
+                toStatus = change.toStatus.storageKey,
+                note = change.note,
+                changedByUserId = change.changedByUserId,
+                changedByDisplayName = change.changedByDisplayName,
+                changedAtMillis = change.changedAtMillis,
+            )
+        }
+    }
 
     override fun observePhotos(issueId: String): Flow<List<IssuePhoto>> =
         dao.observePhotos(issueId).map { rows -> rows.map(IssuePhotoEntity::toDomain) }

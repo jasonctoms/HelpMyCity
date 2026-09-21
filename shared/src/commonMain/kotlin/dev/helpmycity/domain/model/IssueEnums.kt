@@ -5,26 +5,35 @@ import kotlinx.serialization.Serializable
 /**
  * The stages an issue moves through, and the columns of the triage board.
  *
+ * [IN_REVIEW] and [REJECTED] follow [IssueReview]: an issue is in review until
+ * a manager decides, and rejected if they turn it down. The other three are the
+ * city's work. A rejected issue is kept, for its submitter and its managers, but
+ * off the list, board and map.
+ *
  * [storageKey] is the stable string persisted locally and remotely -- never
  * persist [Enum.name] or the ordinal, so renaming a constant stays a safe
  * refactor and exported CSVs stay stable.
  */
 @Serializable
 enum class IssueStatus(val storageKey: String) {
-    SUBMITTED("submitted"),
-    OPENED("opened"),
-    NEEDS_NEXT_STEPS("needs_next_steps"),
-    APPROVED_PENDING("approved_pending"),
-    CLOSED_COMPLETE("closed_complete"),
+    IN_REVIEW("in_review"),
+    OPEN("open"),
+    IN_PROGRESS("in_progress"),
+    /** Always carries [Issue.resolution]. */
+    COMPLETE("complete"),
+    /** Always carries [IssueReview.rejectionReason]. */
+    REJECTED("rejected"),
     ;
 
-    val isOpen: Boolean get() = this != CLOSED_COMPLETE
-
     companion object {
-        /** Left-to-right order of the manager kanban board. */
-        val boardOrder: List<IssueStatus> = entries
+        /** Left-to-right order of the manager kanban board, and the list's filters. */
+        val boardOrder: List<IssueStatus> = listOf(IN_REVIEW, OPEN, IN_PROGRESS, COMPLETE)
+
+        /** What a manager can move an approved issue between. */
+        val workflow: List<IssueStatus> = listOf(OPEN, IN_PROGRESS, COMPLETE)
+
         fun fromStorageKey(key: String): IssueStatus =
-            entries.firstOrNull { it.storageKey == key } ?: SUBMITTED
+            entries.firstOrNull { it.storageKey == key } ?: IN_REVIEW
     }
 }
 

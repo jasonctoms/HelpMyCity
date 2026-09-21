@@ -13,27 +13,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import dev.helpmycity.domain.model.IssueCategory
 import dev.helpmycity.domain.model.IssuePriority
-import dev.helpmycity.domain.model.IssueStatus
-import dev.helpmycity.domain.model.ReviewState
 import dev.helpmycity.ui.label
-import dev.helpmycity.ui.labelOrNull
 import dev.helpmycity.ui.theme.colorsFor
 import helpmycity.shared.generated.resources.Res
 import helpmycity.shared.generated.resources.edited_chip
 import helpmycity.shared.generated.resources.field_category
 import helpmycity.shared.generated.resources.field_priority
 import org.jetbrains.compose.resources.stringResource
-
-@Composable
-fun StatusChip(status: IssueStatus, modifier: Modifier = Modifier) {
-    val colors = colorsFor(status)
-    Chip(
-        text = status.label(),
-        background = colors.container,
-        foreground = colors.content,
-        modifier = modifier,
-    )
-}
 
 @Composable
 fun PriorityChip(priority: IssuePriority, modifier: Modifier = Modifier) {
@@ -46,33 +32,6 @@ fun PriorityChip(priority: IssuePriority, modifier: Modifier = Modifier) {
         modifier = modifier,
         // A screen reader should hear "Priority: High", not a bare "High".
         semanticLabel = "${stringResource(Res.string.field_priority)}: $text",
-    )
-}
-
-/**
- * Marks an issue that the public cannot see yet.
- *
- * Nothing is drawn for an approved issue: that is the ordinary case, and a chip
- * on every card would train people to ignore the one that matters. Rejected
- * borrows the error colors -- it is the one state that needs the submitter to
- * read something.
- */
-@Composable
-fun ReviewChip(state: ReviewState, modifier: Modifier = Modifier) {
-    val text = state.labelOrNull() ?: return
-    Chip(
-        text = text,
-        background = if (state == ReviewState.REJECTED) {
-            MaterialTheme.colorScheme.errorContainer
-        } else {
-            MaterialTheme.colorScheme.tertiaryContainer
-        },
-        foreground = if (state == ReviewState.REJECTED) {
-            MaterialTheme.colorScheme.onErrorContainer
-        } else {
-            MaterialTheme.colorScheme.onTertiaryContainer
-        },
-        modifier = modifier,
     )
 }
 

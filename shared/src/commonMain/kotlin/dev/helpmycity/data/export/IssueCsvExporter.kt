@@ -24,6 +24,7 @@ class IssueCsvExporter {
                     issue.requestedAction,
                     issue.category.storageKey,
                     issue.status.storageKey,
+                    issue.resolution.orEmpty(),
                     issue.priority.storageKey,
                     issue.location.description,
                     issue.location.point?.latitude?.toString().orEmpty(),
@@ -66,8 +67,9 @@ class IssueCsvExporter {
 
     private companion object {
         val HEADERS = listOf(
-            "id", "title", "description", "requested_action", "category", "status", "priority",
-            "location_description", "latitude", "longitude", "geocoded_address", "neighborhood",
+            "id", "title", "description", "requested_action", "category", "status",
+            "resolution", "priority", "location_description", "latitude", "longitude",
+            "geocoded_address", "neighborhood",
             "council_district", "census_tract", "police_precinct", "department_id",
             "reporter_name", "reporter_email", "reporter_phone", "submitted_by_user_id",
             "review_state", "reviewed_by", "reviewed_at", "rejection_reason",

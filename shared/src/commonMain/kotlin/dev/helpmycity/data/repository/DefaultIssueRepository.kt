@@ -23,6 +23,7 @@ import dev.helpmycity.domain.model.User
 import dev.helpmycity.domain.repository.EditOutcome
 import dev.helpmycity.domain.repository.IssueRepository
 import dev.helpmycity.domain.repository.ReviewOutcome
+import dev.helpmycity.domain.repository.StatusOutcome
 import dev.helpmycity.domain.util.IdGenerator
 import dev.helpmycity.domain.util.TimeProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,7 +59,11 @@ class DefaultIssueRepository(
 
     override fun observeIssues(filter: IssueFilter): Flow<List<Issue>> =
         combine(local.observeAll(), viewer) { issues, user ->
-            issues.filter { user.canSee(it) && (filter.isEmpty || filter.matches(it)) }
+            issues.filter {
+                user.canSee(it) &&
+                    (it.status != IssueStatus.REJECTED || IssueStatus.REJECTED in filter.statuses) &&
+                    (filter.isEmpty || filter.matches(it))
+            }
         }
 
     override fun observeIssue(id: String): Flow<Issue?> =
@@ -105,7 +110,7 @@ class DefaultIssueRepository(
             description = draft.description.trim(),
             requestedAction = draft.requestedAction.trim(),
             category = draft.category,
-            status = IssueStatus.SUBMITTED,
+            status = IssueStatus.IN_REVIEW,
             priority = draft.priority,
             location = IssueLocation(
                 description = draft.locationDescription.trim(),
@@ -134,7 +139,7 @@ class DefaultIssueRepository(
                 id = idGenerator.newId(),
                 issueId = issue.id,
                 fromStatus = null,
-                toStatus = IssueStatus.SUBMITTED,
+                toStatus = IssueStatus.IN_REVIEW,
                 note = null,
                 changedByUserId = submitter?.id,
                 changedByDisplayName = draft.reporter?.name ?: submitter?.displayName,
@@ -222,39 +227,46 @@ class DefaultIssueRepository(
         issueId: String,
         newStatus: IssueStatus,
         note: String?,
+        resolution: String?,
         changedByUserId: String?,
         changedByDisplayName: String?,
-    ) {
-        val existing = local.getById(issueId) ?: return
-        if (existing.status == newStatus && note.isNullOrBlank()) return
+    ): StatusOutcome {
+        val existing = local.getById(issueId) ?: return StatusOutcome.IssueNotFound
+        if (!existing.review.isPublic || newStatus !in IssueStatus.workflow) {
+            return StatusOutcome.NotAllowed
+        }
+        val newResolution = if (newStatus == IssueStatus.COMPLETE) {
+            resolution?.trim()?.takeUnless { it.isEmpty() } ?: return StatusOutcome.ResolutionRequired
+        } else {
+            null
+        }
+        val newNote = note?.trim()?.takeUnless { it.isEmpty() }
+        if (existing.status == newStatus && existing.resolution == newResolution && newNote == null) {
+            return StatusOutcome.NoChanges
+        }
 
         val now = time.nowMillis()
-        local.upsert(existing.copy(status = newStatus).touched(now))
+        local.upsert(existing.copy(status = newStatus, resolution = newResolution).touched(now))
         local.appendStatusChange(
             IssueStatusChange(
                 id = idGenerator.newId(),
                 issueId = issueId,
                 fromStatus = existing.status,
                 toStatus = newStatus,
-                note = note?.takeUnless { it.isBlank() },
+                note = newNote ?: newResolution,
                 changedByUserId = changedByUserId,
                 changedByDisplayName = changedByDisplayName,
                 changedAtMillis = now,
             )
         )
+        return StatusOutcome.Recorded
     }
 
     override suspend fun approveIssue(issueId: String, note: String?): ReviewOutcome =
         review(issueId) { issue, reviewer, now ->
             val approved = issue.copy(
                 review = IssueReview.approved(reviewer.id, reviewer.displayName, now),
-                // Triaging a report is what opens it; anything a manager has
-                // already moved along keeps the status they gave it.
-                status = if (issue.status == IssueStatus.SUBMITTED) {
-                    IssueStatus.OPENED
-                } else {
-                    issue.status
-                },
+                status = if (issue.status in IssueStatus.workflow) issue.status else IssueStatus.OPEN,
             )
             local.upsert(approved.touched(now))
             if (approved.status != issue.status) {
@@ -285,8 +297,24 @@ class DefaultIssueRepository(
                         atMillis = now,
                         reason = reason,
                     ),
+                    status = IssueStatus.REJECTED,
+                    resolution = null,
                 ).touched(now)
             )
+            if (issue.status != IssueStatus.REJECTED) {
+                local.appendStatusChange(
+                    IssueStatusChange(
+                        id = idGenerator.newId(),
+                        issueId = issueId,
+                        fromStatus = issue.status,
+                        toStatus = IssueStatus.REJECTED,
+                        note = reason.trim(),
+                        changedByUserId = reviewer.id,
+                        changedByDisplayName = reviewer.displayName,
+                        changedAtMillis = now,
+                    )
+                )
+            }
             ReviewOutcome.Recorded
         }
     }

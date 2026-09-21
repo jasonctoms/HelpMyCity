@@ -4,8 +4,8 @@ How HelpMyCity is put together, and why. This is the canonical technical record:
 the constraints below were paid for once, and are written down so they do not
 have to be rediscovered.
 
-For what the app does, see the [README](./README.md). For standing up your own
-city, see [GETTING_STARTED.md](./GETTING_STARTED.md).
+For what the app does, see the [README](./README.md). For setting up your own
+city, see [CITY_CONFIG.md](./CITY_CONFIG.md).
 
 **Contents** — [Design rules](#design-rules) · [Repository layout](#repository-layout) ·
 [The two seams](#the-two-seams) · [Object graph](#object-graph) ·
@@ -194,11 +194,16 @@ the same, since a photo never changes once taken.
   `ByteArray` is a first-class Coil model, so the fallback needs no per-platform
   decoding. The filing device keeps its bytes after upload; other devices hold
   only the URL.
-- **Review is not a status.** A report is not public until a manager approves it,
-  and that lives in `IssueReview` on the issue, beside `IssueStatus` rather than
-  inside it. Status is the work — the kanban columns — and review is whether the
-  work is ours to show. Folding them together would mean a rejected issue needing
-  a column, and an approved issue losing its place on the board. `IssueReview`'s
+- **Review sits beside status.** A report is not public until a manager
+  approves it. Until then its status is In Review; a rejected report is
+  Rejected; an approved one moves between Open, In Progress and Complete. The
+  decision itself lives in `IssueReview`, because a status cannot carry who
+  decided or why. `observeIssues` leaves Rejected out unless asked for it by
+  name, which keeps rejected reports off the list, board and map without every
+  screen remembering to filter them. The repository refuses to change the
+  status of an unapproved issue, to set In Review or Rejected by hand, or to
+  complete an issue without a resolution, and `schema.sql` has matching CHECK
+  constraints. `IssueReview`'s
   constructor refuses a rejection with no reason, so the "a manager cannot reject
   without saying why" rule cannot be bypassed by a caller; the entity mapper
   reads a bad row back as *pending* rather than throwing on one malformed record.
@@ -322,9 +327,10 @@ in the Supabase example, `app_metadata`, which only a trusted server can write.
   Material top bar is a title and two icon slots at a fixed height: right on a
   phone, and a phone app everywhere else. It draws the city's photograph, its
   mark, the tabs and the primary action, all from `CityBranding`.
-- **Status color lives in one place** (`ui/theme/StatusColors.kt`) and is shared
-  by chips, cards and map markers, so a status means the same color wherever it
-  appears.
+- **Status is its own line on a card**, a colored dot and a label above the
+  title, not one more chip among the priority and category tags. Its color comes
+  from `ui/theme/StatusColors.kt`, which the map markers share, so a status means
+  the same color wherever it appears.
 
 ## Maps
 
@@ -393,7 +399,7 @@ reverses it:
 Every user-visible string is a Compose resource in
 `shared/src/commonMain/composeResources/values/strings.xml`, with a Spanish
 translation beside it in `values-es/`. The two files hold the same keys, and
-`ui/Labels.kt` routes every enum — status, priority, category, review state — to
+`ui/Labels.kt` routes every enum — status, priority, category, role — to
 a resource, so nothing can leak a `storageKey` onto the screen. Adding a language
 is a new `values-<code>/strings.xml` and no code change.
 
@@ -454,8 +460,6 @@ check. `:shared:jsTest` needs a Chrome binary for ChromeHeadless;
   whatever hosts the built app must send
   `Cross-Origin-Opener-Policy: same-origin` and
   `Cross-Origin-Embedder-Policy: require-corp` too.
-- **Board is read-only.** Status changes happen on the detail screen, not by
-  dragging cards.
 - **People and roles is only as full as its source.** The screen lists everyone
   whose account this deployment has seen. With a real identity provider that is
   the deployment's list; with the mock it is whoever has signed in on this

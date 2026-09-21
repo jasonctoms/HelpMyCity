@@ -47,8 +47,6 @@ class IssueListViewModel(private val repository: IssueRepository) : ViewModel() 
         )
     }
 
-    fun toggleOpenOnly() = _filter.update { it.copy(openOnly = !it.openOnly) }
-
     fun clearFilters() {
         _filter.value = IssueFilter.None
     }

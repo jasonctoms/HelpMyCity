@@ -43,6 +43,16 @@ internal class SupabaseIssueBackendApi(
                 .map(IssueRow::toIssue)
         }
 
+    override suspend fun fetchStatusChanges(issueIds: Set<String>?): RemoteResult<List<IssueStatusChange>> =
+        remote(client) { supabase ->
+            suspend fun select(ids: List<String>?) = supabase.from(STATUS_CHANGES)
+                .select { if (ids != null) filter { isIn("issue_id", ids) } }
+                .decodeList<StatusChangeRow>()
+            // Chunked so the id list stays well inside a URL.
+            val rows = issueIds?.chunked(ID_CHUNK)?.flatMap { select(it) } ?: select(null)
+            rows.map(StatusChangeRow::toIssueStatusChange)
+        }
+
     override suspend fun pushIssue(issue: Issue): RemoteResult<RemoteAck> =
         remote(client) { supabase ->
             val stored = supabase.from(ISSUES)
@@ -103,6 +113,7 @@ internal class SupabaseIssueBackendApi(
         const val ISSUES = "issues"
         const val STATUS_CHANGES = "issue_status_changes"
         const val SUPPORTS = "issue_supports"
+        const val ID_CHUNK = 100
     }
 }
 

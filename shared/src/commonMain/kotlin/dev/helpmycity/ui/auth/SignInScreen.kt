@@ -60,6 +60,7 @@ import helpmycity.shared.generated.resources.sign_in_display_name
 import helpmycity.shared.generated.resources.sign_in_email
 import helpmycity.shared.generated.resources.sign_in_password
 import helpmycity.shared.generated.resources.sign_in_subtitle
+import helpmycity.shared.generated.resources.sign_in_subtitle_demo
 import helpmycity.shared.generated.resources.sign_in_switch_to_sign_in
 import helpmycity.shared.generated.resources.sign_in_switch_to_sign_up
 import helpmycity.shared.generated.resources.sign_in_title
@@ -144,7 +145,14 @@ fun SignInScreen(viewModel: SignInViewModel = koinViewModel()) {
                         modifier = Modifier.semantics { heading() },
                     )
                     Text(
-                        text = stringResource(Res.string.sign_in_subtitle, viewModel.cityName),
+                        text = stringResource(
+                            if (viewModel.demoLogins.isEmpty()) {
+                                Res.string.sign_in_subtitle
+                            } else {
+                                Res.string.sign_in_subtitle_demo
+                            },
+                            viewModel.cityName,
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -215,8 +223,9 @@ fun SignInScreen(viewModel: SignInViewModel = koinViewModel()) {
                     }
 
                     // A demo deployment publishes shared accounts and wipes
-                    // its data nightly; letting visitors mint more accounts
-                    // would leave real ones behind that the reset never clears.
+                    // its data nightly; letting visitors mint more accounts,
+                    // named or anonymous, would leave real ones behind that the
+                    // reset never clears. The published roles cover a resident.
                     if (viewModel.demoLogins.isEmpty()) {
                         TextButton(
                             onClick = viewModel::toggleMode,
@@ -232,14 +241,14 @@ fun SignInScreen(viewModel: SignInViewModel = koinViewModel()) {
                                 )
                             )
                         }
-                    }
 
-                    TextButton(
-                        onClick = viewModel::continueAsGuest,
-                        enabled = !state.isSubmitting,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(Res.string.continue_as_guest))
+                        TextButton(
+                            onClick = viewModel::continueAsGuest,
+                            enabled = !state.isSubmitting,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(Res.string.continue_as_guest))
+                        }
                     }
 
                 }
@@ -310,10 +319,7 @@ fun SignInScreen(viewModel: SignInViewModel = koinViewModel()) {
     }
 }
 
-/**
- * Shown under a demo deployment's published sign-ins. A fork that is itself a
- * demo points this at its own repository.
- */
+/** Shown under the demo's published sign-ins. */
 private const val SOURCE_URL = "https://github.com/jasonctoms/HelpMyCity"
 
 private fun AuthFailureReason.messageResource() = when (this) {

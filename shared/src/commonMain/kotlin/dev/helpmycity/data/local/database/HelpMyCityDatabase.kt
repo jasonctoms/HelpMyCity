@@ -27,7 +27,7 @@ abstract class HelpMyCityDatabase : RoomDatabase() {
 
     companion object {
         /** Bump on any schema change; `shared/schemas` holds the exported schema. */
-        const val VERSION: Int = 6
+        const val VERSION: Int = 7
         const val FILE_NAME: String = "helpmycity.db"
     }
 }

@@ -36,6 +36,8 @@ import helpmycity.shared.generated.resources.profile_areas_citywide
 import helpmycity.shared.generated.resources.profile_areas_none
 import helpmycity.shared.generated.resources.profile_edit
 import helpmycity.shared.generated.resources.profile_export_csv
+import helpmycity.shared.generated.resources.profile_rejected_body
+import helpmycity.shared.generated.resources.rejected_title
 import helpmycity.shared.generated.resources.profile_export_csv_body
 import helpmycity.shared.generated.resources.profile_export_csv_failed
 import helpmycity.shared.generated.resources.profile_guest_body
@@ -60,6 +62,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     onEditProfile: () -> Unit,
     onManageUsers: () -> Unit,
+    onRejectedClick: () -> Unit,
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -148,6 +151,23 @@ fun ProfileScreen(
             if (state.canEditProfile) {
                 OutlinedButton(onClick = onEditProfile, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(Res.string.profile_edit))
+                }
+            }
+
+            Card(onClick = onRejectedClick, modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.rejected_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(
+                        text = stringResource(Res.string.profile_rejected_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
 

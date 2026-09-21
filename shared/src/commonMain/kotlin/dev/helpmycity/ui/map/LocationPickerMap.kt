@@ -90,7 +90,7 @@ fun LocationPickerMap(
         CircleLayer(
             id = PICKED_LAYER_ID,
             source = source,
-            color = const(markerColorFor(IssueStatus.SUBMITTED)),
+            color = const(markerColorFor(IssueStatus.IN_REVIEW)),
             radius = const(9.dp),
             strokeWidth = const(3.dp),
             strokeColor = const(Color.White),
@@ -131,14 +131,15 @@ fun LocationPickerMap(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        MaplibreMap(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(PICKER_HEIGHT)
-                .clip(RoundedCornerShape(12.dp)),
-            state = mapState,
-            interactions = interactions,
-        )
+        val mapModifier = Modifier
+            .fillMaxWidth()
+            .height(PICKER_HEIGHT)
+            .clip(RoundedCornerShape(12.dp))
+        if (isScreenSettled()) {
+            MaplibreMap(modifier = mapModifier, state = mapState, interactions = interactions)
+        } else {
+            MapPlaceholder(mapModifier)
+        }
 
         if (point == null) {
             Text(

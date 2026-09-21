@@ -29,6 +29,13 @@ interface IssueBackendApi {
      */
     suspend fun fetchIssuesChangedSince(sinceMillis: Long?): RemoteResult<List<Issue>>
 
+    /**
+     * History for [issueIds] (null = every issue the caller can read). Keyed on
+     * issues rather than time, because an issue can become readable long after
+     * its earlier entries were written.
+     */
+    suspend fun fetchStatusChanges(issueIds: Set<String>?): RemoteResult<List<IssueStatusChange>>
+
     suspend fun pushIssue(issue: Issue): RemoteResult<RemoteAck>
 
     suspend fun pushStatusChange(change: IssueStatusChange): RemoteResult<RemoteAck>

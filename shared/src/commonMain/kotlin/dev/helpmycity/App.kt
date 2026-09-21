@@ -1,5 +1,19 @@
 package dev.helpmycity
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -23,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -30,6 +45,7 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.scene.Scene
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import coil3.ImageLoader
@@ -48,6 +64,7 @@ import dev.helpmycity.ui.issues.IssueDetailScreen
 import dev.helpmycity.ui.issues.IssueListScreen
 import dev.helpmycity.ui.issues.IssueWorkspaceScreen
 import dev.helpmycity.ui.issues.NewIssueScreen
+import dev.helpmycity.ui.issues.RejectedIssuesScreen
 import dev.helpmycity.ui.issues.ReviewQueueScreen
 import dev.helpmycity.ui.map.IssueMapScreen
 import dev.helpmycity.ui.profile.EditProfileScreen
@@ -62,6 +79,7 @@ import dev.helpmycity.ui.navigation.IssueListRoute
 import dev.helpmycity.ui.navigation.IssueMapRoute
 import dev.helpmycity.ui.navigation.NewIssueRoute
 import dev.helpmycity.ui.navigation.ProfileRoute
+import dev.helpmycity.ui.navigation.RejectedIssuesRoute
 import dev.helpmycity.ui.navigation.ReviewQueueRoute
 import dev.helpmycity.ui.navigation.TopLevelRoute
 import dev.helpmycity.ui.navigation.navigationSavedStateConfiguration
@@ -81,6 +99,7 @@ import helpmycity.shared.generated.resources.issues_title
 import helpmycity.shared.generated.resources.map_title
 import helpmycity.shared.generated.resources.new_issue_title
 import helpmycity.shared.generated.resources.profile_title
+import helpmycity.shared.generated.resources.rejected_title
 import helpmycity.shared.generated.resources.review_queue_title
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -178,7 +197,13 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                 )
             },
             bottomBar = {
-                if (topLevelRoute != null && !inHeader) {
+                // Grown and shrunk rather than switched, so the content above it
+                // resizes smoothly instead of jumping on the frame a screen opens.
+                AnimatedVisibility(
+                    visible = topLevelRoute != null && !inHeader,
+                    enter = expandVertically(expandFrom = Alignment.Top),
+                    exit = shrinkVertically(shrinkTowards = Alignment.Top),
+                ) {
                     NavigationBar {
                         tabs.forEach { route ->
                             NavigationBarItem(
@@ -197,7 +222,11 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                 }
             },
             floatingActionButton = {
-                if (topLevelRoute != null && !inHeader) {
+                AnimatedVisibility(
+                    visible = topLevelRoute != null && !inHeader,
+                    enter = scaleIn() + fadeIn(),
+                    exit = scaleOut() + fadeOut(),
+                ) {
                     ExtendedFloatingActionButton(
                         onClick = { backStack.add(NewIssueRoute) },
                         icon = {
@@ -216,6 +245,9 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                     NavDisplay(
                         backStack = backStack,
                         onBack = { backStack.removeLastOrNull() },
+                        transitionSpec = { navigateTransition() },
+                        popTransitionSpec = { sharedAxisTransition(forward = false) },
+                        predictivePopTransitionSpec = { sharedAxisTransition(forward = false) },
                         entryDecorators = listOf(
                             rememberSaveableStateHolderNavEntryDecorator(),
                             // Scopes each screen's ViewModel to its back stack entry, so
@@ -264,7 +296,16 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                                 ReviewQueueScreen(
                                     viewModel = koinViewModel(),
                                     onIssueClick = { backStack.add(IssueDetailRoute(it)) },
+                                    onRejectedClick = { backStack.add(RejectedIssuesRoute) },
                                 )
+                            }
+                            entry<RejectedIssuesRoute> {
+                                ReadingPane {
+                                    RejectedIssuesScreen(
+                                        viewModel = koinViewModel(),
+                                        onIssueClick = { backStack.add(IssueDetailRoute(it)) },
+                                    )
+                                }
                             }
                             entry<IssueDetailRoute> { route ->
                                 ReadingPane {
@@ -291,6 +332,7 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                                         viewModel = koinViewModel(),
                                         onEditProfile = { backStack.add(EditProfileRoute) },
                                         onManageUsers = { backStack.add(AdminUsersRoute) },
+                                        onRejectedClick = { backStack.add(RejectedIssuesRoute) },
                                         // Back to the issue list before the session ends, so
                                         // signing in again does not reopen a stale profile.
                                         onSignOut = {
@@ -390,6 +432,41 @@ private fun ReportButton(onClick: () -> Unit) {
  * Tabs replace the stack rather than pushing onto it: with three peer
  * destinations, per-tab history would surprise more than it helps.
  */
+/**
+ * A tab switch clears the stack, so a destination with nothing behind it is a
+ * tab and fades in place; anything else was pushed and slides in.
+ */
+private fun <T : Any> AnimatedContentTransitionScope<Scene<T>>.navigateTransition(): ContentTransform =
+    if (targetState.previousEntries.isEmpty()) {
+        fadeIn(tween(TabFadeMillis)) togetherWith fadeOut(tween(TabFadeMillis))
+    } else {
+        sharedAxisTransition(forward = true)
+    }
+
+/**
+ * Material's shared-axis pattern: the new screen slides a short way in from the
+ * side it belongs on while the old one fades out quickly ahead of it, so the two
+ * are never both fully visible at once.
+ */
+private fun sharedAxisTransition(forward: Boolean): ContentTransform {
+    val direction = if (forward) 1 else -1
+    val slide = tween<IntOffset>(SlideMillis, easing = FastOutSlowInEasing)
+    return (
+        slideInHorizontally(slide) { direction * it / SlideFraction } +
+            fadeIn(tween(SlideMillis - OutgoingFadeMillis, delayMillis = OutgoingFadeMillis))
+        ) togetherWith (
+        slideOutHorizontally(slide) { -direction * it / SlideFraction } +
+            fadeOut(tween(OutgoingFadeMillis))
+        )
+}
+
+private const val SlideMillis = 300
+private const val OutgoingFadeMillis = 90
+private const val TabFadeMillis = 150
+
+/** How far a screen travels, as a fraction of the window's width. */
+private const val SlideFraction = 8
+
 private fun NavBackStack<NavKey>.switchTopLevelTo(route: TopLevelRoute) {
     clear()
     add(route)
@@ -401,6 +478,7 @@ private fun titleFor(route: NavKey?): String = when (route) {
     IssueMapRoute -> stringResource(Res.string.map_title)
     ReviewQueueRoute -> stringResource(Res.string.review_queue_title)
     NewIssueRoute -> stringResource(Res.string.new_issue_title)
+    RejectedIssuesRoute -> stringResource(Res.string.rejected_title)
     is IssueDetailRoute -> stringResource(Res.string.detail_title)
     is EditIssueRoute -> stringResource(Res.string.edit_issue_title)
     ProfileRoute -> stringResource(Res.string.profile_title)

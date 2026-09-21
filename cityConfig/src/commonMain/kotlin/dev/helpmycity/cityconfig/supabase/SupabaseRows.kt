@@ -51,6 +51,7 @@ internal data class IssueRow(
     @SerialName("reviewed_at_millis") val reviewedAtMillis: Long? = null,
     @SerialName("rejection_reason") val rejectionReason: String? = null,
     @SerialName("last_edit") val lastEdit: EditRow? = null,
+    val resolution: String? = null,
     @SerialName("notes_source") val notesSource: String,
     @SerialName("external_reference") val externalReference: ExternalReference? = null,
     @SerialName("support_count") val supportCount: Int,
@@ -152,6 +153,7 @@ internal fun Issue.toRow(): IssueRow = IssueRow(
     reviewedAtMillis = review.reviewedAtMillis,
     rejectionReason = review.rejectionReason,
     lastEdit = lastEdit?.toRow(),
+    resolution = resolution,
     notesSource = notesSource,
     externalReference = externalReference,
     supportCount = supportCount,
@@ -213,6 +215,7 @@ internal fun IssueRow.toIssue(): Issue = Issue(
         rejectionReason = rejectionReason,
     ),
     lastEdit = lastEdit?.toIssueEdit(),
+    resolution = resolution,
     notesSource = notesSource,
     externalReference = externalReference,
     supportCount = supportCount,
@@ -232,6 +235,18 @@ internal fun EditRow.toIssueEdit(): IssueEdit = IssueEdit(
     revision = revision,
     // An unknown key is a row written by a newer build; drop it rather than crash.
     fields = fields.mapNotNull { EditableField.fromStorageKeyOrNull(it) }.toSet(),
+)
+
+internal fun StatusChangeRow.toIssueStatusChange(): IssueStatusChange = IssueStatusChange(
+    id = id,
+    issueId = issueId,
+    fromStatus = fromStatus?.let(IssueStatus::fromStorageKey),
+    toStatus = IssueStatus.fromStorageKey(toStatus),
+    note = note,
+    changedByUserId = changedByUserId,
+    changedByDisplayName = changedByDisplayName,
+    changedAtMillis = changedAtMillis,
+    sync = SyncMetadata(state = SyncState.SYNCED),
 )
 
 internal fun SupportRow.toIssueSupport(): IssueSupport = IssueSupport(

@@ -1,5 +1,13 @@
 package dev.helpmycity.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +18,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,12 +31,15 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.helpmycity.deployment.CityBranding
 import dev.helpmycity.ui.navigation.TopLevelRoute
@@ -42,33 +52,33 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-private val HeroHeight = 216.dp
-private val CompactHeight = 132.dp
+private val BarHeight = 56.dp
 private val EdgePadding = 16.dp
+private val LogoHeight = 30.dp
 
 /**
- * Dark at the top so the buttons read, darkest at the bottom where the wordmark
- * and the tabs sit, and lightest across the middle so the photograph survives.
+ * Dark enough all the way across for the buttons, the mark, and the tabs to
+ * read over whatever the photograph has in it.
  */
 private val HeaderScrim = Brush.verticalGradient(
-    0f to Color.Black.copy(alpha = 0.45f),
-    0.4f to Color.Black.copy(alpha = 0.25f),
-    1f to Color.Black.copy(alpha = 0.85f),
+    0f to Color.Black.copy(alpha = 0.5f),
+    1f to Color.Black.copy(alpha = 0.75f),
 )
 
 /**
  * The band across the top of every screen: the city's photograph, its mark, and
  * -- where there is room for them -- the top-level tabs and the report button.
  *
- * This replaces `TopAppBar` rather than configuring one. A Material top bar is
- * a title and two icon slots at a fixed height, which is the right answer on a
- * phone and reads as a phone app everywhere else; a city deserves to look like
- * itself on a laptop.
+ * This replaces `TopAppBar` rather than configuring one, so a city looks like
+ * itself on a laptop and not like a phone app stretched to fit. It stays one
+ * bar tall so the map beneath it keeps the room; the tabs add a second row only
+ * when they are drawn here.
  *
  * @param tabs the top-level destinations, drawn inside the header when
  *   [showTabs] is true and left to the bottom bar when it is not.
- * @param onBack non-null on a pushed screen, which gets the short header and
- *   its own title in place of the wordmark.
+ * @param showTabs also shows the tagline, since both need a wide window.
+ * @param onBack non-null on a pushed screen, which gets its own title in place
+ *   of the city's mark.
  * @param action the primary call to action, drawn beside the profile button on
  *   a wide window. Null leaves it to the floating action button.
  * @param status a small indicator drawn first among the header's buttons.
@@ -88,94 +98,120 @@ fun CityHeader(
     action: (@Composable () -> Unit)? = null,
     status: (@Composable () -> Unit)? = null,
 ) {
-    val nested = onBack != null
     // The photograph runs under the status bar; only the content is inset.
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    Box(modifier.fillMaxWidth().height((if (nested) CompactHeight else HeroHeight) + topInset)) {
-        CityPhotoBackground(imageUrl = branding.headerImageUrl, scrim = HeaderScrim)
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = topInset),
-        ) {
+    Box(modifier.fillMaxWidth()) {
+        CityPhotoBackground(
+            imageUrl = branding.headerImageUrl,
+            scrim = HeaderScrim,
+            modifier = Modifier.matchParentSize(),
+        )
+        Column(modifier = Modifier.fillMaxWidth().padding(top = topInset)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = EdgePadding, end = EdgePadding, top = 12.dp),
+                    .height(BarHeight)
+                    .padding(horizontal = EdgePadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (onBack != null) {
-                    HeaderIconButton(
-                        icon = Res.drawable.ic_back,
-                        description = stringResource(Res.string.nav_back),
-                        onClick = onBack,
-                    )
-                    Spacer(Modifier.width(8.dp))
+                // Keyed on the title alone, so the leaving side still draws
+                // whatever it showed while the new one fades in over it.
+                val currentOnBack by rememberUpdatedState(onBack)
+                AnimatedContent(
+                    targetState = if (onBack != null) screenTitle else null,
+                    transitionSpec = { HeaderFade },
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier.weight(1f),
+                ) { title ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (title != null) {
+                            HeaderIconButton(
+                                icon = Res.drawable.ic_back,
+                                description = stringResource(Res.string.nav_back),
+                                onClick = { currentOnBack?.invoke() },
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = OnCityPhoto,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        } else {
+                            CityMark(
+                                cityName = cityName,
+                                branding = branding,
+                                logoHeight = LogoHeight,
+                                nameStyle = MaterialTheme.typography.titleLarge,
+                            )
+                            val tagline = branding.tagline
+                            if (showTabs && tagline != null) {
+                                Text(
+                                    text = tagline,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = OnCityPhotoMuted,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(start = 16.dp),
+                                )
+                            }
+                        }
+                    }
                 }
-                Spacer(Modifier.weight(1f))
                 if (status != null) {
-                    status()
                     Spacer(Modifier.width(8.dp))
+                    status()
                 }
-                if (action != null) {
-                    action()
-                    Spacer(Modifier.width(12.dp))
+                // Keyed on presence alone, so the leaving side keeps the button
+                // it had while it fades, and a new lambda is not a new button.
+                AnimatedContent(
+                    targetState = action,
+                    contentKey = { it != null },
+                    transitionSpec = { HeaderFade },
+                ) { current ->
+                    if (current != null) {
+                        Row {
+                            Spacer(Modifier.width(12.dp))
+                            current()
+                        }
+                    }
                 }
-                if (onProfileClick != null) {
-                    HeaderIconButton(
-                        icon = Res.drawable.ic_person,
-                        description = stringResource(Res.string.profile_open),
-                        onClick = onProfileClick,
-                    )
+                AnimatedContent(
+                    targetState = onProfileClick,
+                    contentKey = { it != null },
+                    transitionSpec = { HeaderFade },
+                ) { onClick ->
+                    if (onClick != null) {
+                        Row {
+                            Spacer(Modifier.width(8.dp))
+                            HeaderIconButton(
+                                icon = Res.drawable.ic_person,
+                                description = stringResource(Res.string.profile_open),
+                                onClick = onClick,
+                            )
+                        }
+                    }
                 }
             }
-
-            Spacer(Modifier.weight(1f))
-
-            if (nested) {
-                Text(
-                    text = screenTitle,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = OnCityPhoto,
-                    modifier = Modifier.padding(
-                        start = EdgePadding,
-                        end = EdgePadding,
-                        bottom = 16.dp,
-                    ),
+            AnimatedVisibility(
+                visible = showTabs && onBack == null,
+                enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+            ) {
+                HeaderTabs(
+                    tabs = tabs,
+                    selected = selectedTab,
+                    onClick = onTabClick,
+                    modifier = Modifier.padding(start = EdgePadding - 4.dp),
                 )
-            } else {
-                Wordmark(cityName = cityName, branding = branding)
-                if (showTabs) {
-                    HeaderTabs(
-                        tabs = tabs,
-                        selected = selectedTab,
-                        onClick = onTabClick,
-                        modifier = Modifier.padding(start = EdgePadding - 4.dp, top = 14.dp),
-                    )
-                } else {
-                    Spacer(Modifier.height(20.dp))
-                }
             }
         }
     }
 }
 
-@Composable
-private fun Wordmark(cityName: String, branding: CityBranding) {
-    Column(modifier = Modifier.padding(horizontal = EdgePadding)) {
-        CityMark(cityName = cityName, branding = branding)
-        val tagline = branding.tagline
-        if (tagline != null) {
-            Text(
-                text = tagline,
-                style = MaterialTheme.typography.titleSmall,
-                color = OnCityPhotoMuted,
-                modifier = Modifier.padding(top = if (branding.logoUrl == null) 0.dp else 10.dp),
-            )
-        }
-    }
-}
+private val HeaderFade = fadeIn(tween(220, delayMillis = 60)) togetherWith fadeOut(tween(120))
 
 /**
  * The top-level destinations as a row of tabs along the bottom of the header,

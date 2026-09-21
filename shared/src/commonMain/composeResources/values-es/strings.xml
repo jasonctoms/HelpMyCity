@@ -12,6 +12,7 @@
     <string name="sign_in_title">Iniciar sesión</string>
     <string name="sign_up_title">Crear una cuenta</string>
     <string name="sign_in_subtitle">Los gestores comunitarios de %1$s inician sesión para revisar y dar seguimiento. Los residentes pueden reportar sin cuenta.</string>
+    <string name="sign_in_subtitle_demo">Los gestores comunitarios de %1$s inician sesión para revisar y dar seguimiento.</string>
     <string name="sign_in_email">Correo electrónico</string>
     <string name="sign_in_password">Contraseña</string>
     <string name="sign_in_display_name">Su nombre</string>
@@ -41,7 +42,6 @@
     <string name="issues_empty_body">Reporte el primero y aparecerá aquí.</string>
     <string name="issues_empty_filtered_title">Nada coincide con esos filtros</string>
     <string name="issues_empty_filtered_body">Quite un filtro o busque otra cosa.</string>
-    <string name="issues_filter_open_only">Solo abiertos</string>
     <string name="issues_filter_clear">Quitar filtros</string>
     <plurals name="issues_count">
         <item quantity="one">%1$d reporte</item>
@@ -64,7 +64,7 @@
     <string name="review_section_title">Revisión</string>
     <string name="review_pending_manager">Este reporte espera su revisión. Al aprobarlo, será visible para todos.</string>
     <string name="review_pending_submitter">Un gestor está revisando su reporte. Hasta que lo apruebe, solo usted y los gestores de esta zona pueden verlo.</string>
-    <string name="review_rejected_title">No aprobado</string>
+    <string name="review_rejected_title">Rechazado</string>
     <string name="review_rejected_submitter">Un gestor no pudo aceptar este reporte. Solo usted y los gestores de esta zona pueden verlo.</string>
     <string name="review_rejected_reason">Motivo: %1$s</string>
     <string name="review_reviewed_by">%1$s · %2$s</string>
@@ -77,8 +77,6 @@
     <string name="review_reject_confirm">Enviar el rechazo</string>
     <string name="review_not_permitted">Usted no gestiona esta zona, así que no puede revisar este reporte.</string>
     <string name="review_issue_gone">Ese reporte ya no está disponible.</string>
-    <string name="review_chip_pending">Pendiente de revisión</string>
-    <string name="review_chip_rejected">No aprobado</string>
 
     <!-- Mapa -->
     <string name="map_title">Mapa</string>
@@ -206,11 +204,23 @@
     </plurals>
 
     <!-- Estados -->
-    <string name="status_submitted">Enviado</string>
-    <string name="status_opened">Abierto</string>
-    <string name="status_needs_next_steps">Faltan próximos pasos</string>
-    <string name="status_approved_pending">Aprobado – pendiente</string>
-    <string name="status_closed_complete">Cerrado – completo</string>
+    <string name="status_in_review">En revisión</string>
+    <string name="status_open">Abierto</string>
+    <string name="status_in_progress">En curso</string>
+    <string name="status_complete">Completado</string>
+    <string name="status_rejected">Rechazado</string>
+    <string name="rejected_title">Reportes rechazados</string>
+    <string name="rejected_intro">Reportes que un gestor rechazó, con el motivo. Solo quien presentó cada uno y sus gestores pueden verlo.</string>
+    <string name="rejected_empty_title">No hay reportes rechazados</string>
+    <string name="rejected_empty_body">Aquí aparecen los reportes rechazados en tus áreas o los que tú presentaste.</string>
+    <string name="profile_rejected_body">Reportes que un gestor rechazó, con el motivo. Solo quien presentó cada uno y sus gestores pueden verlos.</string>
+    <string name="status_field">Estado: %1$s</string>
+    <string name="resolution_title">Resolución</string>
+    <string name="resolution_label">¿Cómo se resolvió?</string>
+    <string name="resolution_hint">Todos los que pueden ver este problema verán esto.</string>
+    <string name="resolution_required">Describe la resolución antes de marcarlo como completado.</string>
+    <string name="resolution_confirm">Marcar como completado</string>
+    <string name="resolution_edit">Editar resolución</string>
 
     <!-- Prioridad -->
     <string name="priority_high">Alta</string>

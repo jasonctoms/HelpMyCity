@@ -45,8 +45,7 @@ import dev.helpmycity.ui.components.CategoryChip
 import dev.helpmycity.ui.components.EditedChip
 import dev.helpmycity.ui.components.PriorityChip
 import dev.helpmycity.ui.components.IssuePhotoStrip
-import dev.helpmycity.ui.components.ReviewChip
-import dev.helpmycity.ui.components.StatusChip
+import dev.helpmycity.ui.components.StatusField
 import dev.helpmycity.ui.formatCoordinate
 import dev.helpmycity.ui.formatTimestamp
 import dev.helpmycity.ui.label
@@ -81,6 +80,12 @@ import helpmycity.shared.generated.resources.external_reference
 import helpmycity.shared.generated.resources.external_submitted_on
 import helpmycity.shared.generated.resources.external_title
 import helpmycity.shared.generated.resources.photo_section
+import helpmycity.shared.generated.resources.resolution_confirm
+import helpmycity.shared.generated.resources.resolution_edit
+import helpmycity.shared.generated.resources.resolution_hint
+import helpmycity.shared.generated.resources.resolution_label
+import helpmycity.shared.generated.resources.resolution_required
+import helpmycity.shared.generated.resources.resolution_title
 import helpmycity.shared.generated.resources.review_approve
 import helpmycity.shared.generated.resources.review_approved_note
 import helpmycity.shared.generated.resources.review_issue_gone
@@ -126,6 +131,7 @@ fun IssueDetailScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        StatusField(issue.status)
         Text(
             text = issue.title,
             style = MaterialTheme.typography.headlineSmall,
@@ -135,14 +141,15 @@ fun IssueDetailScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            ReviewChip(issue.review.state)
-            StatusChip(issue.status)
             PriorityChip(issue.priority)
             CategoryChip(issue.category)
             if (issue.lastEdit != null) EditedChip()
         }
 
         ReviewSection(state = state, viewModel = viewModel)
+        if (issue.status == IssueStatus.COMPLETE) {
+            issue.resolution?.let { ResolutionCard(it) }
+        }
         Text(
             text = stringResource(
                 Res.string.detail_reported_on,
@@ -212,19 +219,8 @@ fun IssueDetailScreen(
             OutlinedButton(onClick = { onEditClick(issue.id) }) {
                 Text(stringResource(Res.string.detail_edit))
             }
-            Section(title = stringResource(Res.string.detail_change_status)) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    IssueStatus.boardOrder.forEach { status ->
-                        FilterChip(
-                            selected = status == issue.status,
-                            onClick = { viewModel.changeStatus(status) },
-                            label = { Text(status.label()) },
-                        )
-                    }
-                }
+            if (issue.review.isPublic) {
+                StatusSection(issue = issue, viewModel = viewModel)
             }
             ExternalRequestSection(issue = issue, viewModel = viewModel)
         }
@@ -238,6 +234,85 @@ fun IssueDetailScreen(
         HorizontalDivider()
         Section(title = stringResource(Res.string.detail_history)) {
             state.history.forEach { entry -> HistoryRow(entry) }
+        }
+    }
+}
+
+@Composable
+private fun ResolutionCard(resolution: String) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(Res.string.resolution_title),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.semantics { heading() },
+            )
+            Text(resolution, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun StatusSection(issue: Issue, viewModel: IssueDetailViewModel) {
+    val completion by viewModel.completion.collectAsStateWithLifecycle()
+    Section(title = stringResource(Res.string.detail_change_status)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            IssueStatus.workflow.forEach { status ->
+                FilterChip(
+                    selected = status == issue.status,
+                    onClick = { viewModel.changeStatus(status) },
+                    label = { Text(status.label()) },
+                )
+            }
+        }
+        if (completion.isOpen) {
+            CompletionForm(completion = completion, viewModel = viewModel)
+        } else if (issue.status == IssueStatus.COMPLETE) {
+            TextButton(onClick = viewModel::onEditResolution) {
+                Text(stringResource(Res.string.resolution_edit))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CompletionForm(completion: CompletionState, viewModel: IssueDetailViewModel) {
+    OutlinedTextField(
+        value = completion.resolution,
+        onValueChange = viewModel::onResolutionChange,
+        label = { Text(stringResource(Res.string.resolution_label)) },
+        supportingText = {
+            Text(
+                stringResource(
+                    if (completion.showResolutionRequired) {
+                        Res.string.resolution_required
+                    } else {
+                        Res.string.resolution_hint
+                    }
+                )
+            )
+        },
+        isError = completion.showResolutionRequired,
+        minLines = 2,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(onClick = viewModel::confirmCompletion, enabled = completion.canSubmit) {
+            Text(stringResource(Res.string.resolution_confirm))
+        }
+        TextButton(onClick = viewModel::onCompletionCancel) {
+            Text(stringResource(Res.string.common_cancel))
         }
     }
 }

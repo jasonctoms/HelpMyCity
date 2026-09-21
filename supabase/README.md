@@ -5,14 +5,14 @@ happen. All of it is done in the Supabase dashboard in a browser — no CLI, no
 Docker, no local Deno. Budget about twenty minutes, most of it waiting for the
 project to provision.
 
-> **This documents one deployment: the public demo.** Supabase is the
+> **This documents one deployment: the HelpMyCity demo.** Supabase is the
 > repository's worked backend example, not a requirement — the app talks to four
 > small interfaces and any provider can implement them
-> ([GETTING_STARTED.md § Choose a backend](../GETTING_STARTED.md#5-choose-a-backend)).
-> Read the steps below as a sample rather than as general instructions. A real
-> city wants steps 1–3 and 8; the rest — published sign-ins, a seeded dataset,
-> and a function that wipes everything nightly — exist to keep a public demo
-> honest and would be wrong in a deployment holding residents' reports.
+> ([CITY_CONFIG.md § The backend](../CITY_CONFIG.md#8-the-backend)).
+> Read the steps below as a sample rather than as general instructions. A city's
+> project takes steps 1–3 and 8; the rest — published sign-ins, a seeded
+> dataset, and a function that wipes everything nightly — keep the demo honest
+> and would be wrong in a deployment holding residents' reports.
 
 ```
 schema.sql      tables, row-level security, the photo bucket
@@ -22,7 +22,7 @@ functions/
   reset-demo/   empties the photo bucket, then calls reset_demo_data()
 ```
 
-| Step | A real deployment |
+| Step | A city's project |
 | --- | --- |
 | 1–3 create the project, keys and schema | yes — this is the backend |
 | 4 load the demo dataset | no. Its `departments` and `neighborhoods` inserts are worth keeping in step with your `CityProfile`; the example issues and `reset_demo_data()` are not |
@@ -94,11 +94,12 @@ project set up before stars were per-user can take the section from the
 **SQL Editor → New query**, paste all of [`seed.sql`](./seed.sql), **Run**.
 
 This inserts Oceanside's five departments and five neighborhoods, defines
-`reset_demo_data()`, and calls it once to create the five example issues.
+`reset_demo_data()`, and calls it once to create the six example issues.
 
-Check: `select count(*) from issues;` returns **5**. One of them
+Check: `select count(*) from issues;` returns **6**. One of them
 (`demo-issue-crosswalk`) is `pending_review` on purpose, so the manager's review
-queue has something in it.
+queue has something in it, and one (`demo-issue-rejected`) is rejected, so the
+Rejected reports page does too.
 
 > The departments are not decorative. `issues.department_id` is a foreign key to
 > `departments`, so if those rows are missing, every report a visitor files with
@@ -137,8 +138,10 @@ Finally, put the three passwords you chose into `ConfiguredCityProfile.demoLogin
 so the sign-in screen advertises them. They are published to every visitor by
 design, so pick throwaway ones.
 
-**Also turn on anonymous sign-in** — the app's "continue as guest" button uses
-it: **Authentication → Sign In / Providers → Anonymous sign-ins → enable**.
+With `demoLogins` set, the sign-in screen hides both sign-up and "continue
+without an account", so anonymous sign-ins can stay off. A city's project needs
+them on for that button: **Authentication → Sign In /
+Providers → Anonymous sign-ins → enable**.
 
 ## 6. Deploy the reset function
 
@@ -276,8 +279,8 @@ secret does not match; **401** means Verify JWT is still on.
 ```
 
 Sign in as the manager, approve the pending crosswalk report, and confirm it
-appears on the public map. Then file a report as a guest and confirm it lands in
-the review queue rather than on the map.
+appears on the public map. Then file a report as the resident and confirm it
+lands in the review queue rather than on the map.
 
 ---
 

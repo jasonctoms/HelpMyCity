@@ -39,6 +39,8 @@ data class Issue(
      * who can see the issue, not only to managers -- see [IssueEdit].
      */
     val lastEdit: IssueEdit? = null,
+    /** What the city did about it. Set exactly when [status] is [IssueStatus.COMPLETE]. */
+    val resolution: String? = null,
     /** "resident request", "walk audit", "ownership unclear", ... */
     val notesSource: String,
     /** Set once the issue has been filed with the city's own request system. */

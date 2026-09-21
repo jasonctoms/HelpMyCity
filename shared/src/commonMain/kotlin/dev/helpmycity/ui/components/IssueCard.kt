@@ -70,6 +70,7 @@ fun IssueCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            StatusField(issue.status)
             Text(
                 text = issue.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -83,15 +84,11 @@ fun IssueCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            // Wraps instead of clipping: three chips do not fit on a narrow phone in Spanish.
+            // Wraps instead of clipping: the chips do not all fit on a narrow phone in Spanish.
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                // Review first: whether anyone else can see this outranks what
-                // state the work is in.
-                ReviewChip(issue.review.state)
-                StatusChip(issue.status)
                 PriorityChip(issue.priority)
                 CategoryChip(issue.category)
                 if (issue.lastEdit != null) EditedChip()

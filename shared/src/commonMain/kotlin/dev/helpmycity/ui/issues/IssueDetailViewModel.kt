@@ -15,6 +15,7 @@ import dev.helpmycity.domain.repository.DepartmentRepository
 import dev.helpmycity.domain.repository.IssueRepository
 import dev.helpmycity.domain.repository.NeighborhoodRepository
 import dev.helpmycity.domain.repository.ReviewOutcome
+import dev.helpmycity.domain.repository.StatusOutcome
 import dev.helpmycity.domain.util.TimeProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -53,6 +54,16 @@ data class RejectionState(
     val showReasonRequired: Boolean = false,
 ) {
     val canSubmit: Boolean get() = reason.isNotBlank()
+}
+
+/** What the resolution box is doing right now. */
+data class CompletionState(
+    val isOpen: Boolean = false,
+    val resolution: String = "",
+    /** Set after a completion attempt with a blank resolution. */
+    val showResolutionRequired: Boolean = false,
+) {
+    val canSubmit: Boolean get() = resolution.isNotBlank()
 }
 
 @KoinViewModel
@@ -116,17 +127,57 @@ class IssueDetailViewModel(
 
     fun externalSubmissionUrl(issue: Issue): String? = externalRequests.submissionUrl(issue)
 
-    fun changeStatus(newStatus: IssueStatus, note: String? = null) {
-        val actor = session.currentUser.value
-        viewModelScope.launch {
-            issueRepository.changeStatus(
-                issueId = issueId,
-                newStatus = newStatus,
-                note = note,
-                changedByUserId = actor?.id,
-                changedByDisplayName = actor?.displayName,
-            )
+    private val _completion = MutableStateFlow(CompletionState())
+    val completion: StateFlow<CompletionState> = _completion.asStateFlow()
+
+    /** Complete opens the resolution box instead, since it cannot be set without one. */
+    fun changeStatus(newStatus: IssueStatus) {
+        if (newStatus == IssueStatus.COMPLETE) {
+            onEditResolution()
+            return
         }
+        _completion.value = CompletionState()
+        viewModelScope.launch { recordStatus(newStatus, resolution = null) }
+    }
+
+    fun onEditResolution() {
+        _completion.value = CompletionState(
+            isOpen = true,
+            resolution = uiState.value.issue?.resolution.orEmpty(),
+        )
+    }
+
+    fun onResolutionChange(value: String) =
+        _completion.update { it.copy(resolution = value, showResolutionRequired = false) }
+
+    fun onCompletionCancel() {
+        _completion.value = CompletionState()
+    }
+
+    fun confirmCompletion() {
+        val resolution = _completion.value.resolution
+        if (resolution.isBlank()) {
+            _completion.update { it.copy(showResolutionRequired = true) }
+            return
+        }
+        viewModelScope.launch {
+            when (recordStatus(IssueStatus.COMPLETE, resolution)) {
+                StatusOutcome.ResolutionRequired ->
+                    _completion.update { it.copy(showResolutionRequired = true) }
+                else -> _completion.value = CompletionState()
+            }
+        }
+    }
+
+    private suspend fun recordStatus(newStatus: IssueStatus, resolution: String?): StatusOutcome {
+        val actor = session.currentUser.value
+        return issueRepository.changeStatus(
+            issueId = issueId,
+            newStatus = newStatus,
+            resolution = resolution,
+            changedByUserId = actor?.id,
+            changedByDisplayName = actor?.displayName,
+        )
     }
 
     fun addSupport() {

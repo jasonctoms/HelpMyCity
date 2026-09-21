@@ -143,7 +143,7 @@ object ConfiguredCityProfile : CityProfile {
      * from each account's `app_metadata`, not from the address -- step 5 of
      * `supabase/README.md` is how this demo granted them.
      *
-     * A fork that is not a public demo deletes this override.
+     * A city's own profile has no override: these belong to the demo.
      */
     override val demoLogins: List<DemoLogin> = listOf(
         DemoLogin(label = "Admin", email = "admin@helpmycity.dev", password = "demo-admin-pass"),

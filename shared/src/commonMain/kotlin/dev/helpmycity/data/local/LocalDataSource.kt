@@ -32,7 +32,13 @@ interface IssueLocalDataSource {
     suspend fun upsertAll(issues: List<Issue>)
     suspend fun delete(id: String)
 
+    /** Drops issues the backend has acknowledged but no longer returns. Unsent work is kept. */
+    suspend fun deleteSyncedExcept(keep: Set<String>)
+
     suspend fun appendStatusChange(change: IssueStatusChange)
+
+    /** Stores history the backend holds as synced, skipping entries whose issue is not stored here. */
+    suspend fun mergeRemoteStatusChanges(changes: List<IssueStatusChange>)
 
     suspend fun upsertPhoto(photo: IssuePhoto)
     suspend fun deletePhoto(photoId: String)

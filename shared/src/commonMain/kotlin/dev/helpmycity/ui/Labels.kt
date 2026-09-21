@@ -5,7 +5,6 @@ import dev.helpmycity.domain.model.EditableField
 import dev.helpmycity.domain.model.IssueCategory
 import dev.helpmycity.domain.model.IssuePriority
 import dev.helpmycity.domain.model.IssueStatus
-import dev.helpmycity.domain.model.ReviewState
 import dev.helpmycity.domain.model.UserRole
 import helpmycity.shared.generated.resources.Res
 import helpmycity.shared.generated.resources.category_ada_access
@@ -32,16 +31,14 @@ import helpmycity.shared.generated.resources.field_title
 import helpmycity.shared.generated.resources.priority_high
 import helpmycity.shared.generated.resources.priority_low
 import helpmycity.shared.generated.resources.priority_medium
-import helpmycity.shared.generated.resources.review_chip_pending
-import helpmycity.shared.generated.resources.review_chip_rejected
-import helpmycity.shared.generated.resources.status_approved_pending
-import helpmycity.shared.generated.resources.status_closed_complete
-import helpmycity.shared.generated.resources.status_needs_next_steps
-import helpmycity.shared.generated.resources.status_opened
 import helpmycity.shared.generated.resources.role_admin
 import helpmycity.shared.generated.resources.role_manager
 import helpmycity.shared.generated.resources.role_resident
-import helpmycity.shared.generated.resources.status_submitted
+import helpmycity.shared.generated.resources.status_complete
+import helpmycity.shared.generated.resources.status_in_progress
+import helpmycity.shared.generated.resources.status_in_review
+import helpmycity.shared.generated.resources.status_open
+import helpmycity.shared.generated.resources.status_rejected
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -51,24 +48,13 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun IssueStatus.label(): String = stringResource(
     when (this) {
-        IssueStatus.SUBMITTED -> Res.string.status_submitted
-        IssueStatus.OPENED -> Res.string.status_opened
-        IssueStatus.NEEDS_NEXT_STEPS -> Res.string.status_needs_next_steps
-        IssueStatus.APPROVED_PENDING -> Res.string.status_approved_pending
-        IssueStatus.CLOSED_COMPLETE -> Res.string.status_closed_complete
+        IssueStatus.IN_REVIEW -> Res.string.status_in_review
+        IssueStatus.OPEN -> Res.string.status_open
+        IssueStatus.IN_PROGRESS -> Res.string.status_in_progress
+        IssueStatus.COMPLETE -> Res.string.status_complete
+        IssueStatus.REJECTED -> Res.string.status_rejected
     }
 )
-
-/**
- * Only the two states worth announcing have a label: "approved" is the normal
- * case and saying so on every card would be noise.
- */
-@Composable
-fun ReviewState.labelOrNull(): String? = when (this) {
-    ReviewState.PENDING -> stringResource(Res.string.review_chip_pending)
-    ReviewState.REJECTED -> stringResource(Res.string.review_chip_rejected)
-    ReviewState.APPROVED -> null
-}
 
 @Composable
 fun IssuePriority.label(): String = stringResource(

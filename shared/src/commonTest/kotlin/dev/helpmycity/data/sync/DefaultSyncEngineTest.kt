@@ -7,6 +7,7 @@ import dev.helpmycity.data.remote.NoopPhotoBackendApi
 import dev.helpmycity.data.remote.PhotoBackendApi
 import dev.helpmycity.data.remote.RemoteAck
 import dev.helpmycity.data.remote.RemoteResult
+import dev.helpmycity.data.session.UserSession
 import dev.helpmycity.domain.model.Issue
 import dev.helpmycity.domain.model.IssueLocation
 import dev.helpmycity.domain.model.IssuePhoto
@@ -18,7 +19,11 @@ import dev.helpmycity.domain.model.SyncState
 import dev.helpmycity.domain.model.IssueCategory
 import dev.helpmycity.domain.model.IssuePriority
 import dev.helpmycity.domain.model.IssueStatus
+import dev.helpmycity.domain.model.ReviewState
+import dev.helpmycity.domain.model.User
+import dev.helpmycity.domain.model.UserRole
 import dev.helpmycity.domain.util.TimeProvider
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -30,6 +35,7 @@ import kotlin.test.assertTrue
 class DefaultSyncEngineTest {
 
     private val time = TimeProvider { 5_000L }
+    private val session = FakeSession()
 
     private fun issue(id: String) = Issue(
         id = id,
@@ -37,7 +43,7 @@ class DefaultSyncEngineTest {
         description = "Deep one",
         requestedAction = "",
         category = IssueCategory.ROAD_SURFACE,
-        status = IssueStatus.SUBMITTED,
+        status = IssueStatus.IN_REVIEW,
         priority = IssuePriority.MEDIUM,
         location = IssueLocation(description = "Main St"),
         departmentId = null,
@@ -67,7 +73,7 @@ class DefaultSyncEngineTest {
         val onTheBackend = issue("already-there")
             .copy(sync = SyncMetadata(state = SyncState.SYNCED))
         val backend = PopulatedBackend(onTheBackend)
-        val engine = DefaultSyncEngine(local, backend, AcceptingPhotoBackend(), time)
+        val engine = DefaultSyncEngine(local, backend, AcceptingPhotoBackend(), time, session)
 
         engine.start(this)
         testScheduler.advanceUntilIdle()
@@ -78,10 +84,44 @@ class DefaultSyncEngineTest {
     }
 
     @Test
+    fun aChangeOfUserPullsEverythingThatUserMaySeeAndDropsWhatTheyMayNot() = runTest {
+        val local = InMemoryIssueLocalDataSource()
+        val synced = SyncMetadata(state = SyncState.SYNCED)
+        val approved = issue("approved").copy(review = IssueReview(state = ReviewState.APPROVED), sync = synced)
+        val pending = issue("pending").copy(sync = synced)
+        val submitted = IssueStatusChange(
+            id = "h",
+            issueId = "pending",
+            fromStatus = null,
+            toStatus = IssueStatus.IN_REVIEW,
+            changedAtMillis = 1L,
+        )
+        val backend = RowSecurityBackend(session, listOf(approved, pending), listOf(submitted))
+        val engine = DefaultSyncEngine(local, backend, AcceptingPhotoBackend(), time, session)
+
+        engine.start(this)
+        testScheduler.advanceUntilIdle()
+        assertEquals(listOf("approved"), local.observeAll().first().map { it.id })
+
+        // Both rows were last touched before the anonymous pull finished.
+        session.currentUser.value = User("admin", "Admin", "admin@example.com", UserRole.ADMIN)
+        testScheduler.advanceUntilIdle()
+        assertEquals(setOf("approved", "pending"), local.observeAll().first().map { it.id }.toSet())
+        assertEquals(listOf("h"), local.observeHistory("pending").first().map { it.id })
+
+        session.currentUser.value = null
+        testScheduler.advanceUntilIdle()
+        engine.stop()
+
+        assertEquals(listOf("approved"), local.observeAll().first().map { it.id })
+        assertTrue(local.observeHistory("pending").first().isEmpty())
+    }
+
+    @Test
     fun withNoBackendTheQueueIsLeftIntact() = runTest {
         val local = InMemoryIssueLocalDataSource()
         local.upsert(issue("a"))
-        val engine = DefaultSyncEngine(local, NoopIssueBackendApi(), NoopPhotoBackendApi(), time)
+        val engine = DefaultSyncEngine(local, NoopIssueBackendApi(), NoopPhotoBackendApi(), time, session)
 
         val status = engine.syncNow()
 
@@ -95,7 +135,7 @@ class DefaultSyncEngineTest {
     fun acknowledgedIssuesAreMarkedSynced() = runTest {
         val local = InMemoryIssueLocalDataSource()
         local.upsert(issue("a"))
-        val engine = DefaultSyncEngine(local, AcceptingBackend(), AcceptingPhotoBackend(), time)
+        val engine = DefaultSyncEngine(local, AcceptingBackend(), AcceptingPhotoBackend(), time, session)
 
         val status = engine.syncNow()
 
@@ -109,7 +149,7 @@ class DefaultSyncEngineTest {
     fun aNonRetryableFailureIsRecordedOnTheRow() = runTest {
         val local = InMemoryIssueLocalDataSource()
         local.upsert(issue("a"))
-        val engine = DefaultSyncEngine(local, RejectingBackend(retryable = false), AcceptingPhotoBackend(), time)
+        val engine = DefaultSyncEngine(local, RejectingBackend(retryable = false), AcceptingPhotoBackend(), time, session)
 
         val status = engine.syncNow()
 
@@ -121,7 +161,7 @@ class DefaultSyncEngineTest {
     fun aRetryableFailureLeavesTheRowQueuedForAnotherAttempt() = runTest {
         val local = InMemoryIssueLocalDataSource()
         local.upsert(issue("a"))
-        val engine = DefaultSyncEngine(local, RejectingBackend(retryable = true), AcceptingPhotoBackend(), time)
+        val engine = DefaultSyncEngine(local, RejectingBackend(retryable = true), AcceptingPhotoBackend(), time, session)
 
         engine.syncNow()
 
@@ -142,7 +182,7 @@ class DefaultSyncEngineTest {
         local.upsert(issue("a"))
         local.upsertPhoto(photo("p", issueId = "a"))
         val photos = AcceptingPhotoBackend()
-        val engine = DefaultSyncEngine(local, AcceptingBackend(), photos, time)
+        val engine = DefaultSyncEngine(local, AcceptingBackend(), photos, time, session)
 
         assertIs<SyncStatus.Synced>(engine.syncNow())
 
@@ -163,7 +203,7 @@ class DefaultSyncEngineTest {
             // Its issue is not readable here, so there is nowhere to put it.
             IssuePhoto(id = "q", issueId = "hidden", remoteUrl = "https://photos.example/hidden/q"),
         )
-        val engine = DefaultSyncEngine(local, PopulatedBackend(onTheBackend), photos, time)
+        val engine = DefaultSyncEngine(local, PopulatedBackend(onTheBackend), photos, time, session)
 
         engine.syncNow()
 
@@ -178,7 +218,7 @@ class DefaultSyncEngineTest {
         val local = InMemoryIssueLocalDataSource()
         local.upsert(issue("a").copy(sync = SyncMetadata(state = SyncState.SYNCED)))
         val photos = AcceptingPhotoBackend()
-        val engine = DefaultSyncEngine(local, AcceptingBackend(), photos, time)
+        val engine = DefaultSyncEngine(local, AcceptingBackend(), photos, time, session)
         engine.start(this)
         testScheduler.advanceUntilIdle()
 
@@ -195,7 +235,7 @@ class DefaultSyncEngineTest {
         local.upsert(issue("a"))
         local.upsertPhoto(photo("p", issueId = "a"))
         val photos = AcceptingPhotoBackend()
-        val engine = DefaultSyncEngine(local, RejectingBackend(retryable = true), photos, time)
+        val engine = DefaultSyncEngine(local, RejectingBackend(retryable = true), photos, time, session)
 
         engine.syncNow()
 
@@ -210,7 +250,7 @@ class DefaultSyncEngineTest {
         local.addSupport(IssueSupport("starred", "user-1", createdAtMillis = 2L))
         val fromElsewhere = IssueSupport("elsewhere", "user-1", createdAtMillis = 3L)
         val backend = StarBackend(fromElsewhere)
-        val engine = DefaultSyncEngine(local, backend, AcceptingPhotoBackend(), time)
+        val engine = DefaultSyncEngine(local, backend, AcceptingPhotoBackend(), time, session)
 
         assertIs<SyncStatus.Synced>(engine.syncNow())
 
@@ -226,6 +266,11 @@ class DefaultSyncEngineTest {
         val pushedSupports = mutableListOf<IssueSupport>()
 
         override suspend fun fetchIssuesChangedSince(sinceMillis: Long?): RemoteResult<List<Issue>> =
+            RemoteResult.Success(emptyList())
+
+
+        override suspend fun fetchStatusChanges(issueIds: Set<String>?): RemoteResult<List<IssueStatusChange>> =
+
             RemoteResult.Success(emptyList())
 
         override suspend fun pushIssue(issue: Issue): RemoteResult<RemoteAck> {
@@ -248,6 +293,46 @@ class DefaultSyncEngineTest {
             RemoteResult.Success(remote.toList())
     }
 
+    private class FakeSession : UserSession {
+        override val currentUser = MutableStateFlow<User?>(null)
+    }
+
+    /** Shows approved rows to everyone and the rest only to reviewers, as `schema.sql` does. */
+    private class RowSecurityBackend(
+        private val session: UserSession,
+        private val issues: List<Issue>,
+        private val history: List<IssueStatusChange>,
+    ) : IssueBackendApi {
+        private fun visible() = issues.filter {
+            it.review.isPublic || session.currentUser.value?.role?.isReviewer == true
+        }
+
+        override suspend fun fetchIssuesChangedSince(sinceMillis: Long?): RemoteResult<List<Issue>> =
+            RemoteResult.Success(visible().filter { sinceMillis == null || it.updatedAtMillis > sinceMillis })
+
+        override suspend fun fetchStatusChanges(issueIds: Set<String>?): RemoteResult<List<IssueStatusChange>> {
+            val readable = visible().map { it.id }.toSet()
+            return RemoteResult.Success(
+                history.filter { it.issueId in readable && (issueIds == null || it.issueId in issueIds) },
+            )
+        }
+
+        override suspend fun pushIssue(issue: Issue): RemoteResult<RemoteAck> =
+            RemoteResult.Success(RemoteAck(issue.id, "v1", acknowledgedAtMillis = 5_000L))
+
+        override suspend fun pushStatusChange(change: IssueStatusChange): RemoteResult<RemoteAck> =
+            RemoteResult.Success(RemoteAck(change.id, "v1", acknowledgedAtMillis = 5_000L))
+
+        override suspend fun deleteIssue(issueId: String): RemoteResult<Unit> =
+            RemoteResult.Success(Unit)
+
+        override suspend fun pushSupport(support: IssueSupport): RemoteResult<Unit> =
+            RemoteResult.Success(Unit)
+
+        override suspend fun fetchOwnSupports(): RemoteResult<List<IssueSupport>> =
+            RemoteResult.Success(emptyList())
+    }
+
     /** A backend that already holds rows, and counts how often it is read. */
     private class PopulatedBackend(private vararg val remote: Issue) : IssueBackendApi {
         var fetchCount: Int = 0
@@ -257,6 +342,9 @@ class DefaultSyncEngineTest {
             fetchCount++
             return RemoteResult.Success(remote.toList())
         }
+
+        override suspend fun fetchStatusChanges(issueIds: Set<String>?): RemoteResult<List<IssueStatusChange>> =
+            RemoteResult.Success(emptyList())
 
         override suspend fun pushIssue(issue: Issue): RemoteResult<RemoteAck> =
             RemoteResult.Success(RemoteAck(issue.id, "v1", acknowledgedAtMillis = 5_000L))
@@ -276,6 +364,9 @@ class DefaultSyncEngineTest {
 
     private class AcceptingBackend : IssueBackendApi {
         override suspend fun fetchIssuesChangedSince(sinceMillis: Long?): RemoteResult<List<Issue>> =
+            RemoteResult.Success(emptyList())
+
+        override suspend fun fetchStatusChanges(issueIds: Set<String>?): RemoteResult<List<IssueStatusChange>> =
             RemoteResult.Success(emptyList())
 
         override suspend fun pushIssue(issue: Issue): RemoteResult<RemoteAck> =
@@ -299,6 +390,11 @@ class DefaultSyncEngineTest {
 
         override suspend fun fetchIssuesChangedSince(sinceMillis: Long?): RemoteResult<List<Issue>> =
             failure
+
+
+        override suspend fun fetchStatusChanges(issueIds: Set<String>?): RemoteResult<List<IssueStatusChange>> =
+
+            RemoteResult.Success(emptyList())
 
         override suspend fun pushIssue(issue: Issue): RemoteResult<RemoteAck> = failure
         override suspend fun pushStatusChange(change: IssueStatusChange): RemoteResult<RemoteAck> =

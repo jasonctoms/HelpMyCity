@@ -31,7 +31,6 @@ import helpmycity.shared.generated.resources.issues_empty_filtered_body
 import helpmycity.shared.generated.resources.issues_empty_filtered_title
 import helpmycity.shared.generated.resources.issues_empty_title
 import helpmycity.shared.generated.resources.issues_filter_clear
-import helpmycity.shared.generated.resources.issues_filter_open_only
 import helpmycity.shared.generated.resources.issues_search_hint
 import org.jetbrains.compose.resources.stringResource
 
@@ -59,8 +58,7 @@ fun IssueListScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         )
 
-        // Horizontally scrollable so the five status filters plus "open only"
-        // stay reachable on a narrow phone in either language.
+        // Scrolls rather than wraps, so the list keeps its height on a narrow phone.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -68,11 +66,6 @@ fun IssueListScreen(
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            FilterChip(
-                selected = filter.openOnly,
-                onClick = viewModel::toggleOpenOnly,
-                label = { Text(stringResource(Res.string.issues_filter_open_only)) },
-            )
             IssueStatus.boardOrder.forEach { status ->
                 FilterChip(
                     selected = status in filter.statuses,

@@ -19,6 +19,10 @@ import kotlinx.coroutines.flow.Flow
  * remember that an issue awaiting triage is not public yet.
  */
 interface IssueRepository {
+    /**
+     * Leaves out [IssueStatus.REJECTED] issues unless [filter] asks for that
+     * status by name, so they stay off the list, board and map.
+     */
     fun observeIssues(filter: IssueFilter = IssueFilter.None): Flow<List<Issue>>
 
     fun observeIssue(id: String): Flow<Issue?>
@@ -65,25 +69,33 @@ interface IssueRepository {
     /**
      * Moves an issue to [newStatus] and appends an audit entry in one step, so
      * the history can never drift from the current status.
+     *
+     * Only an approved issue has a status to change, and only to one of
+     * [IssueStatus.workflow]: review and rejection are triage's job. [IssueStatus.COMPLETE]
+     * needs a [resolution], which is shown to everyone and recorded as the
+     * history note when there is no other; leaving it clears the resolution.
      */
     suspend fun changeStatus(
         issueId: String,
         newStatus: IssueStatus,
         note: String? = null,
+        resolution: String? = null,
         changedByUserId: String? = null,
         changedByDisplayName: String? = null,
-    )
+    ): StatusOutcome
 
     /**
      * Publishes an issue: the manager reviewing it accepts the report, and it
-     * becomes visible to everyone. A still-[IssueStatus.SUBMITTED] issue also
-     * moves to [IssueStatus.OPENED], because triaging it *is* opening it.
+     * becomes visible to everyone. An issue in review or rejected moves to
+     * [IssueStatus.OPEN].
      */
     suspend fun approveIssue(issueId: String, note: String? = null): ReviewOutcome
 
     /**
      * Turns an issue down. [reason] is required and is shown to the submitter:
      * a rejection with no explanation is not a rejection this app will record.
+     * The issue moves to [IssueStatus.REJECTED], losing any resolution, and
+     * stays visible only to its submitter and its managers.
      */
     suspend fun rejectIssue(issueId: String, reason: String): ReviewOutcome
 
@@ -118,6 +130,22 @@ sealed interface ReviewOutcome {
 
     /** A rejection arrived with a blank reason. */
     data object ReasonRequired : ReviewOutcome
+}
+
+/** Why a status change did or did not land. */
+sealed interface StatusOutcome {
+    data object Recorded : StatusOutcome
+
+    /** Already in that status, with the same resolution and no note to add. */
+    data object NoChanges : StatusOutcome
+
+    data object IssueNotFound : StatusOutcome
+
+    /** The issue has not been approved, or the target is not in [IssueStatus.workflow]. */
+    data object NotAllowed : StatusOutcome
+
+    /** [IssueStatus.COMPLETE] with a blank resolution. */
+    data object ResolutionRequired : StatusOutcome
 }
 
 /**

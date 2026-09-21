@@ -57,6 +57,10 @@ data class IssueDetailRoute(val issueId: String) : Route
 @Serializable
 data object NewIssueRoute : Route
 
+/** Rejected reports, kept out of the tabs. Reached from the profile and the review queue. */
+@Serializable
+data object RejectedIssuesRoute : Route
+
 /** The manager edit form for one issue. Reached from its detail screen. */
 @Serializable
 data class EditIssueRoute(val issueId: String) : Route
@@ -114,6 +118,7 @@ val navigationSavedStateConfiguration: SavedStateConfiguration = SavedStateConfi
             subclass(ReviewQueueRoute::class, ReviewQueueRoute.serializer())
             subclass(IssueDetailRoute::class, IssueDetailRoute.serializer())
             subclass(NewIssueRoute::class, NewIssueRoute.serializer())
+            subclass(RejectedIssuesRoute::class, RejectedIssuesRoute.serializer())
             subclass(EditIssueRoute::class, EditIssueRoute.serializer())
             subclass(ProfileRoute::class, ProfileRoute.serializer())
             subclass(EditProfileRoute::class, EditProfileRoute.serializer())

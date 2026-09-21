@@ -7,6 +7,7 @@ import dev.helpmycity.domain.model.EditableField
 import dev.helpmycity.domain.model.IssueCategory
 import dev.helpmycity.domain.model.IssueDraft
 import dev.helpmycity.domain.model.IssueEditDraft
+import dev.helpmycity.domain.model.IssueFilter
 import dev.helpmycity.domain.model.IssueStatus
 import dev.helpmycity.domain.model.ManagerScope
 import dev.helpmycity.domain.model.Neighborhood
@@ -16,6 +17,7 @@ import dev.helpmycity.domain.model.User
 import dev.helpmycity.domain.model.UserRole
 import dev.helpmycity.domain.repository.EditOutcome
 import dev.helpmycity.domain.repository.ReviewOutcome
+import dev.helpmycity.domain.repository.StatusOutcome
 import dev.helpmycity.domain.util.IdGenerator
 import dev.helpmycity.domain.util.TimeProvider
 import kotlinx.coroutines.flow.first
@@ -85,7 +87,7 @@ class DefaultIssueRepositoryTest {
         val issue = assertNotNull(repository.getIssue(id))
 
         assertEquals("Street light out", issue.title)
-        assertEquals(IssueStatus.SUBMITTED, issue.status)
+        assertEquals(IssueStatus.IN_REVIEW, issue.status)
         assertEquals(SyncState.PENDING_UPLOAD, issue.sync.state)
         assertEquals(now, issue.createdAtMillis)
     }
@@ -99,37 +101,110 @@ class DefaultIssueRepositoryTest {
 
         assertEquals(1, history.size)
         assertNull(history.single().fromStatus)
-        assertEquals(IssueStatus.SUBMITTED, history.single().toStatus)
+        assertEquals(IssueStatus.IN_REVIEW, history.single().toStatus)
+    }
+
+    private suspend fun approvedIssue(repository: DefaultIssueRepository): String {
+        seedNeighborhoods()
+        session.signedInAs(resident)
+        val id = repository.submitIssue(libbyLakeDraft)
+        session.signedInAs(libbyLakeManager)
+        repository.approveIssue(id)
+        return id
     }
 
     @Test
     fun changingStatusUpdatesTheIssueAndAppendsOneHistoryEntry() = runTest {
         val (repository, _) = repository()
-        val id = repository.submitIssue(draft)
+        val id = approvedIssue(repository)
 
         now = 2_000L
-        repository.changeStatus(id, IssueStatus.OPENED, note = "Assigned to Public Works")
+        assertEquals(
+            StatusOutcome.Recorded,
+            repository.changeStatus(id, IssueStatus.IN_PROGRESS, note = "Assigned to Public Works"),
+        )
 
         val issue = assertNotNull(repository.getIssue(id))
-        assertEquals(IssueStatus.OPENED, issue.status)
+        assertEquals(IssueStatus.IN_PROGRESS, issue.status)
         assertEquals(2_000L, issue.updatedAtMillis)
 
         val history = repository.observeHistory(id).first()
-        assertEquals(2, history.size)
+        assertEquals(3, history.size)
         val latest = history.first()
-        assertEquals(IssueStatus.SUBMITTED, latest.fromStatus)
-        assertEquals(IssueStatus.OPENED, latest.toStatus)
+        assertEquals(IssueStatus.OPEN, latest.fromStatus)
+        assertEquals(IssueStatus.IN_PROGRESS, latest.toStatus)
         assertEquals("Assigned to Public Works", latest.note)
     }
 
     @Test
     fun changingToTheSameStatusWithoutANoteIsANoOp() = runTest {
         val (repository, _) = repository()
+        val id = approvedIssue(repository)
+
+        assertEquals(StatusOutcome.NoChanges, repository.changeStatus(id, IssueStatus.OPEN))
+
+        assertEquals(2, repository.observeHistory(id).first().size)
+    }
+
+    @Test
+    fun anIssueInReviewHasNoStatusToChange() = runTest {
+        val (repository, _) = repository()
         val id = repository.submitIssue(draft)
 
-        repository.changeStatus(id, IssueStatus.SUBMITTED)
+        assertEquals(StatusOutcome.NotAllowed, repository.changeStatus(id, IssueStatus.OPEN))
+        assertEquals(IssueStatus.IN_REVIEW, assertNotNull(repository.getIssue(id)).status)
+    }
 
-        assertEquals(1, repository.observeHistory(id).first().size)
+    @Test
+    fun anApprovedIssueCannotGoBackToReview() = runTest {
+        val (repository, _) = repository()
+        val id = approvedIssue(repository)
+
+        assertEquals(StatusOutcome.NotAllowed, repository.changeStatus(id, IssueStatus.IN_REVIEW))
+        assertEquals(StatusOutcome.NotAllowed, repository.changeStatus(id, IssueStatus.REJECTED))
+    }
+
+    @Test
+    fun completingRequiresAResolution() = runTest {
+        val (repository, _) = repository()
+        val id = approvedIssue(repository)
+
+        assertEquals(
+            StatusOutcome.ResolutionRequired,
+            repository.changeStatus(id, IssueStatus.COMPLETE, resolution = "  "),
+        )
+        assertEquals(IssueStatus.OPEN, assertNotNull(repository.getIssue(id)).status)
+    }
+
+    @Test
+    fun completingRecordsTheResolutionAndReopeningClearsIt() = runTest {
+        val (repository, _) = repository()
+        val id = approvedIssue(repository)
+
+        now = 2_000L
+        repository.changeStatus(id, IssueStatus.COMPLETE, resolution = " Replaced the bulbs ")
+        val completed = assertNotNull(repository.getIssue(id))
+        assertEquals(IssueStatus.COMPLETE, completed.status)
+        assertEquals("Replaced the bulbs", completed.resolution)
+        assertEquals("Replaced the bulbs", repository.observeHistory(id).first().first().note)
+
+        repository.changeStatus(id, IssueStatus.IN_PROGRESS)
+        assertNull(assertNotNull(repository.getIssue(id)).resolution)
+    }
+
+    @Test
+    fun rejectingAnApprovedIssueMarksItRejected() = runTest {
+        val (repository, _) = repository()
+        val id = approvedIssue(repository)
+        repository.changeStatus(id, IssueStatus.COMPLETE, resolution = "Fixed")
+
+        now = 2_000L
+        repository.rejectIssue(id, "Duplicate of another report")
+
+        val issue = assertNotNull(repository.getIssue(id))
+        assertEquals(IssueStatus.REJECTED, issue.status)
+        assertNull(issue.resolution)
+        assertEquals(IssueStatus.REJECTED, repository.observeHistory(id).first().first().toStatus)
     }
 
     @Test
@@ -308,8 +383,8 @@ class DefaultIssueRepositoryTest {
         assertEquals(libbyLakeManager.displayName, issue.review.reviewedByDisplayName)
         assertEquals(2_000L, issue.review.reviewedAtMillis)
         // Triaging a report is what opens it, and that is a real status change.
-        assertEquals(IssueStatus.OPENED, issue.status)
-        assertEquals(IssueStatus.OPENED, repository.observeHistory(id).first().first().toStatus)
+        assertEquals(IssueStatus.OPEN, issue.status)
+        assertEquals(IssueStatus.OPEN, repository.observeHistory(id).first().first().toStatus)
 
         session.signedInAs(otherResident)
         assertEquals(1, repository.observeIssues().first().size)
@@ -332,11 +407,33 @@ class DefaultIssueRepositoryTest {
         assertEquals(ReviewState.REJECTED, issue.review.state)
         assertEquals("Not a city street -- this is HOA property.", issue.review.rejectionReason)
         assertEquals(libbyLakeManager.displayName, issue.review.reviewedByDisplayName)
+        assertEquals(IssueStatus.REJECTED, issue.status)
+
+        val rejected = IssueFilter(statuses = setOf(IssueStatus.REJECTED))
+        assertTrue(repository.observeIssues().first().isEmpty())
+        assertEquals(1, repository.observeIssues(rejected).first().size)
 
         session.signedInAs(resident)
         assertNotNull(repository.observeIssue(id).first())
+        assertEquals(1, repository.observeIssues(rejected).first().size)
         session.signedInAs(otherResident)
         assertNull(repository.observeIssue(id).first())
+        assertTrue(repository.observeIssues(rejected).first().isEmpty())
+    }
+
+    @Test
+    fun approvingARejectedIssueOpensIt() = runTest {
+        val (repository, _) = repository()
+        seedNeighborhoods()
+        session.signedInAs(resident)
+        val id = repository.submitIssue(libbyLakeDraft)
+        session.signedInAs(libbyLakeManager)
+        repository.rejectIssue(id, "Needs a location")
+
+        now = 2_000L
+        repository.approveIssue(id)
+
+        assertEquals(IssueStatus.OPEN, assertNotNull(repository.getIssue(id)).status)
     }
 
     /** No rejection without a reason, enforced in the repository and in `IssueReview`. */

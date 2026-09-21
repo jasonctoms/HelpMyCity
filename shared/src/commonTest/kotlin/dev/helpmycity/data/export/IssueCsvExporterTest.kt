@@ -22,7 +22,7 @@ class IssueCsvExporterTest {
         description = "d",
         requestedAction = "",
         category = IssueCategory.DRAINAGE,
-        status = IssueStatus.OPENED,
+        status = IssueStatus.REJECTED,
         priority = IssuePriority.LOW,
         location = IssueLocation(description = location, point = GeoPoint(33.2, -117.3)),
         departmentId = null,
@@ -66,7 +66,7 @@ class IssueCsvExporterTest {
         val row = exporter.toCsv(listOf(issue("t", "l"))).trim().lines()[1]
 
         assertTrue(row.contains("drainage"), row)
-        assertTrue(row.contains("opened"), row)
+        assertTrue(row.contains("rejected"), row)
         assertTrue(row.contains("low"), row)
     }
 

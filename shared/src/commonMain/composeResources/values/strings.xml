@@ -12,6 +12,7 @@
     <string name="sign_in_title">Sign in</string>
     <string name="sign_up_title">Create an account</string>
     <string name="sign_in_subtitle">Community managers in %1$s sign in to review and track issues. Residents can report without an account.</string>
+    <string name="sign_in_subtitle_demo">Community managers in %1$s sign in to review and track issues.</string>
     <string name="sign_in_email">Email</string>
     <string name="sign_in_password">Password</string>
     <string name="sign_in_display_name">Your name</string>
@@ -41,7 +42,6 @@
     <string name="issues_empty_body">Report the first one and it will show up here.</string>
     <string name="issues_empty_filtered_title">Nothing matches those filters</string>
     <string name="issues_empty_filtered_body">Try clearing a filter or searching for something else.</string>
-    <string name="issues_filter_open_only">Open only</string>
     <string name="issues_filter_clear">Clear filters</string>
     <plurals name="issues_count">
         <item quantity="one">%1$d issue</item>
@@ -64,7 +64,7 @@
     <string name="review_section_title">Review</string>
     <string name="review_pending_manager">This report is waiting for your review. Approving it makes it visible to everyone.</string>
     <string name="review_pending_submitter">A manager is reviewing your report. Until they approve it, only you and the managers for this area can see it.</string>
-    <string name="review_rejected_title">Not approved</string>
+    <string name="review_rejected_title">Rejected</string>
     <string name="review_rejected_submitter">A manager could not accept this report. Only you and the managers for this area can see it.</string>
     <string name="review_rejected_reason">Reason: %1$s</string>
     <string name="review_reviewed_by">%1$s · %2$s</string>
@@ -77,8 +77,6 @@
     <string name="review_reject_confirm">Send rejection</string>
     <string name="review_not_permitted">You do not manage this area, so you cannot review this report.</string>
     <string name="review_issue_gone">That report is no longer available.</string>
-    <string name="review_chip_pending">Waiting for review</string>
-    <string name="review_chip_rejected">Not approved</string>
 
     <!-- Map -->
     <string name="map_title">Map</string>
@@ -206,11 +204,23 @@
     </plurals>
 
     <!-- Status -->
-    <string name="status_submitted">Submitted</string>
-    <string name="status_opened">Opened</string>
-    <string name="status_needs_next_steps">Needs next steps</string>
-    <string name="status_approved_pending">Approved – pending</string>
-    <string name="status_closed_complete">Closed – complete</string>
+    <string name="status_in_review">In review</string>
+    <string name="status_open">Open</string>
+    <string name="status_in_progress">In progress</string>
+    <string name="status_complete">Complete</string>
+    <string name="status_rejected">Rejected</string>
+    <string name="rejected_title">Rejected reports</string>
+    <string name="rejected_intro">Reports a manager turned down, with the reason. Only the person who filed each one and its managers can see it.</string>
+    <string name="rejected_empty_title">No rejected reports</string>
+    <string name="rejected_empty_body">Reports turned down in your areas, or ones you filed, show up here.</string>
+    <string name="profile_rejected_body">Reports a manager turned down, with the reason. Only whoever filed each one and its managers can see them.</string>
+    <string name="status_field">Status: %1$s</string>
+    <string name="resolution_title">Resolution</string>
+    <string name="resolution_label">How was it resolved?</string>
+    <string name="resolution_hint">Everyone who can see this issue will see this.</string>
+    <string name="resolution_required">Describe the resolution before marking this complete.</string>
+    <string name="resolution_confirm">Mark complete</string>
+    <string name="resolution_edit">Edit resolution</string>
 
     <!-- Priority -->
     <string name="priority_high">High</string>

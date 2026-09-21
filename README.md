@@ -16,14 +16,15 @@ and the web**, stores everything locally first so it works with no signal, and
 keeps every city-specific and backend-specific decision in one replaceable
 module. Forking it for your own town means editing that module and nothing else.
 
-- [**GETTING_STARTED.md**](./GETTING_STARTED.md) — fork it, configure your city,
-  pick a backend, ship it.
+- [**CITY_CONFIG.md**](./CITY_CONFIG.md) — everything a city configures: its
+  profile, map, request system, backend and app identity.
 - [**ARCHITECTURE.md**](./ARCHITECTURE.md) — how it is built and why, including
   the constraints worth knowing before changing any of it.
 
-The module in this repo is a real configuration — Oceanside, CA, on Supabase —
-set up as a public demo: shared sign-ins on the sign-in screen, and a dataset
-that resets nightly. [supabase/](./supabase) is how that was stood up.
+The module in this repo configures the HelpMyCity demo at
+[helpmycity.dev](https://helpmycity.dev): Oceanside, CA, on Supabase, with shared
+sign-ins on the sign-in screen and a dataset that resets nightly.
+[supabase/](./supabase) is how its backend was set up.
 
 **Contents** — [Three roles](#three-roles) · [The life of a report](#the-life-of-a-report) ·
 [Features](#features) · [Running it](#running-it) · [Status](#status)
@@ -42,18 +43,19 @@ that resets nightly. [supabase/](./supabase) is how that was stood up.
    priority, department, optional photos and optional contact details. Before
    they submit, the form nudges them about near-duplicates in the same category
    and place, which they can support instead of re-reporting.
-2. **Waiting for review.** It is *not* public yet. Only the submitter and the
+2. **In review.** It is *not* public yet. Only the submitter and the
    managers responsible for that area can see it. That is the point of the
    triage step: a public map of unverified reports is worth less than a short
    queue.
-3. **Approved or rejected.** A responsible manager approves it — which also
-   moves a still-"Submitted" issue to "Opened", because triaging it is opening
-   it — or rejects it *with a reason*, which the submitter sees. The decision,
+3. **Approved or rejected.** A responsible manager approves it, which moves it
+   to Open, or rejects it *with a reason*. A rejected report stays visible to
+   its submitter and its managers, on a separate Rejected reports page reached
+   from the profile and the Review tab, and never on the list, board or map. The decision,
    who made it and when are recorded on the issue and exported with it.
 4. **Tracked.** Approved issues appear in the list, on the kanban board and on
-   the map. Managers move them across the board's statuses (Submitted → Opened →
-   Need ID Next Steps → Approved – Pending → Closed – Complete); every change is
-   kept as history on the issue.
+   the map. Managers move them from Open to In Progress to Complete, and
+   completing one takes a note of how it was resolved, which everyone can see.
+   Every change is kept as history on the issue.
 5. **Handed off to the city.** When an issue needs official action, a manager
    files it in the city's own request system and records the reference number
    here, so this app stays the reliable system of record even when the city's
@@ -100,8 +102,7 @@ that resets nightly. [supabase/](./supabase) is how that was stood up.
 
 ### Browsing
 
-- **List** with a search box over an issue's text, the five status filters and
-  an "open only" toggle.
+- **List** with a search box over an issue's text and the four status filters.
 - **Kanban board** grouped by status, using the same query and the same filters
   as the list.
 - **Map** of every located issue, markers colored by status, filterable by
@@ -121,7 +122,8 @@ that resets nightly. [supabase/](./supabase) is how that was stood up.
   a role picker and the four area pickers that make up a manager's scope. Nobody
   can change their own role, so the last admin cannot lock everyone out.
 - **Continue as a guest**, for a resident who wants to report and browse without
-  an account at all.
+  an account at all. The demo hides it, along with sign-up, and offers its
+  shared accounts instead.
 
 ### Under the hood
 
@@ -137,8 +139,8 @@ that resets nightly. [supabase/](./supabase) is how that was stood up.
   the city's request system) and a `BackendProvider`. Nothing else in the repo
   names a city or a cloud.
 - **A worked backend example.** Supabase — Postgres, auth and photo storage —
-  with schema, row-level security, seed data and a daily reset function in
-  [supabase/](./supabase). Any other backend is four small interfaces.
+  with schema and row-level security in [supabase/](./supabase), beside the
+  demo's seed data and daily reset. Any other backend is four small interfaces.
 - **English and Spanish throughout**, with every user-visible string a Compose
   resource, including every enum label.
 - **A city's own face:** a header photograph, its logo and a tagline come from
@@ -178,12 +180,11 @@ The tests:
 Sign in as `admin@example.com`, with any password of eight characters or more,
 to try the admin screens. The mock provider reads a role from the address's
 local part: `resident@…` is a resident, and anything else is a citywide
-manager. The three accounts the sign-in screen offers are the hosted demo's own,
-published deliberately; a deployment that is not a demo deletes that list and
-the notice goes with it.
+manager. The three accounts the sign-in screen offers are the demo's own,
+published deliberately, and belong to its configuration rather than to the app.
 
-See [GETTING_STARTED.md](./GETTING_STARTED.md) for configuring your own city and
-standing up a backend.
+See [CITY_CONFIG.md](./CITY_CONFIG.md) for configuring your own city and
+setting up a backend.
 
 ## Status
 

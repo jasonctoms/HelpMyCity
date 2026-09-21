@@ -1,5 +1,6 @@
 package dev.helpmycity.ui.map
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -28,8 +29,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.helpmycity.deployment.MapSettings
@@ -57,9 +59,11 @@ import org.maplibre.compose.expressions.dsl.asString
 import org.maplibre.compose.expressions.dsl.case
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.feature
+import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.switch
 import org.maplibre.compose.interaction.ClickResult
 import org.maplibre.compose.layers.CircleLayer
+import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.map.rememberMapState
 import org.maplibre.compose.sources.GeoJsonData
@@ -78,6 +82,10 @@ private const val PROP_ISSUE_ID = "issueId"
 private const val PROP_STATUS = "status"
 
 private const val MARKER_LAYER_ID = "issue-markers"
+private const val GLYPH_LAYER_ID = "issue-marker-glyphs"
+
+private val MARKER_RADIUS = 10.dp
+private val GLYPH_SIZE = DpSize(12.dp, 12.dp)
 
 /** Zoomed all the way out, for a deployment with no center and no located issues. */
 private const val WORLD_ZOOM = 1.0
@@ -92,8 +100,8 @@ private val FAB_INSET = 180.dp
  *
  * Issues go to MapLibre as one GeoJSON source rather than as per-issue
  * composables, so redrawing after a sync is a single `setData` however many
- * rows moved, and color comes from a style expression over the feature's status
- * property so the renderer recolors without recomposition.
+ * rows moved, and color and glyph come from style expressions over the feature's
+ * status property so the renderer restyles without recomposition.
  *
  * Rows with no point are reported as a count rather than hidden: an empty map
  * and a map of a city with no reports look identical otherwise.
@@ -193,7 +201,16 @@ private fun IssueMap(
             *IssueStatus.entries
                 .map { case(it.storageKey, const(markerColorFor(it))) }
                 .toTypedArray(),
-            fallback = const(markerColorFor(IssueStatus.SUBMITTED)),
+            fallback = const(markerColorFor(IssueStatus.IN_REVIEW)),
+        )
+    }
+    val markerGlyph = remember {
+        switch(
+            feature[PROP_STATUS].asString(),
+            *IssueStatus.entries
+                .map { case(it.storageKey, image(StatusGlyphPainter(it), GLYPH_SIZE)) }
+                .toTypedArray(),
+            fallback = image(StatusGlyphPainter(IssueStatus.IN_REVIEW), GLYPH_SIZE),
         )
     }
 
@@ -209,7 +226,7 @@ private fun IssueMap(
             id = MARKER_LAYER_ID,
             source = source,
             color = markerColor,
-            radius = const(8.dp),
+            radius = const(MARKER_RADIUS),
             strokeWidth = const(2.dp),
             strokeColor = const(Color.White),
             onClick = { clicked ->
@@ -221,6 +238,15 @@ private fun IssueMap(
                     ClickResult.Consume
                 }
             },
+        )
+        // Always drawn, even where markers pile up: a hidden glyph would leave
+        // that marker distinguishable by color alone.
+        SymbolLayer(
+            id = GLYPH_LAYER_ID,
+            source = source,
+            iconImage = markerGlyph,
+            iconAllowOverlap = const(true),
+            iconIgnorePlacement = const(true),
         )
     }
 
@@ -235,15 +261,19 @@ private fun IssueMap(
         mapState.fitCameraToBounds(boundingBox = box, padding = FRAMING_PADDING)
     }
 
-    MaplibreMap(modifier = modifier, state = mapState)
+    if (isScreenSettled()) {
+        MaplibreMap(modifier = modifier, state = mapState)
+    } else {
+        MapPlaceholder(modifier)
+    }
 }
 
 /**
  * How many issues made it onto the map, and what the marker colors mean.
  *
- * The markers differ only by color, which is not a signal every resident can
- * use, so the same information is spelled out in text -- the rule the chip
- * colors in `ui/theme/StatusColors.kt` follow too.
+ * Each swatch repeats its marker's color and glyph, and the status is spelled
+ * out in text too -- the rule the chip colors in `ui/theme/StatusColors.kt`
+ * follow as well.
  */
 @Composable
 private fun MapLegend(
@@ -253,10 +283,11 @@ private fun MapLegend(
     isFiltered: Boolean,
     clearsFloatingActionButton: Boolean,
 ) {
+    val legendTitle = stringResource(Res.string.map_legend_title)
     Surface(tonalElevation = 2.dp) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 text = when {
@@ -283,22 +314,19 @@ private fun MapLegend(
                         totalCount,
                     )
                 },
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(Res.string.map_legend_title),
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.semantics { heading() },
             )
             // Inset on the end where there is a FAB: it floats over this corner
             // and nothing here scrolls out from under it.
             FlowRow(
-                modifier = Modifier.padding(end = if (clearsFloatingActionButton) FAB_INSET else 0.dp),
+                modifier = Modifier
+                    .padding(end = if (clearsFloatingActionButton) FAB_INSET else 0.dp)
+                    .semantics { contentDescription = legendTitle },
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                IssueStatus.entries.forEach { LegendItem(it) }
+                IssueStatus.boardOrder.forEach { LegendItem(it) }
             }
         }
     }
@@ -312,10 +340,17 @@ private fun LegendItem(status: IssueStatus) {
     ) {
         Box(
             modifier = Modifier
-                .size(12.dp)
+                .size(16.dp)
                 .clip(CircleShape)
-                .background(markerColorFor(status))
-        )
+                .background(markerColorFor(status)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                painter = remember(status) { StatusGlyphPainter(status) },
+                contentDescription = null,
+                modifier = Modifier.size(10.dp),
+            )
+        }
         Text(text = status.label(), style = MaterialTheme.typography.labelMedium)
     }
 }

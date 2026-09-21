@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.helpmycity.data.export.IssueCsvExporter
 import dev.helpmycity.data.session.UserSession
+import dev.helpmycity.domain.model.IssueFilter
+import dev.helpmycity.domain.model.IssueStatus
 import dev.helpmycity.domain.model.User
 import dev.helpmycity.domain.model.UserRole
 import dev.helpmycity.domain.repository.DepartmentRepository
@@ -67,6 +69,7 @@ class ProfileViewModel(
      */
     suspend fun exportCsv(): String? {
         if (session.currentUser.value?.role?.canManageConfiguration != true) return null
-        return csvExporter.toCsv(issueRepository.observeIssues().first())
+        val everything = IssueFilter(statuses = IssueStatus.entries.toSet())
+        return csvExporter.toCsv(issueRepository.observeIssues(everything).first())
     }
 }

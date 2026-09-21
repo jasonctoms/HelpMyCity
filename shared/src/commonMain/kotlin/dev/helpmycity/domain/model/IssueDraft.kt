@@ -27,21 +27,18 @@ data class IssueFilter(
     val priorities: Set<IssuePriority> = emptySet(),
     val neighborhoods: Set<String> = emptySet(),
     val searchQuery: String = "",
-    val openOnly: Boolean = false,
 ) {
     val isEmpty: Boolean
         get() = statuses.isEmpty() &&
             categories.isEmpty() &&
             priorities.isEmpty() &&
             neighborhoods.isEmpty() &&
-            searchQuery.isBlank() &&
-            !openOnly
+            searchQuery.isBlank()
 
     fun matches(issue: Issue): Boolean {
         if (statuses.isNotEmpty() && issue.status !in statuses) return false
         if (categories.isNotEmpty() && issue.category !in categories) return false
         if (priorities.isNotEmpty() && issue.priority !in priorities) return false
-        if (openOnly && !issue.status.isOpen) return false
         if (neighborhoods.isNotEmpty() && issue.location.neighborhood !in neighborhoods) return false
         if (searchQuery.isNotBlank()) {
             val needle = searchQuery.trim()

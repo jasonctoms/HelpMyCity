@@ -70,8 +70,8 @@ begin
     insert into public.issues (
         id, title, description, requested_action,
         category, status, priority,
-        location, department_id, notes_source,
-        review_state, reviewed_by_display_name, reviewed_at_millis,
+        location, department_id, notes_source, resolution,
+        review_state, reviewed_by_display_name, reviewed_at_millis, rejection_reason,
         support_count, created_at_millis, updated_at_millis
     ) values
     (
@@ -79,10 +79,10 @@ begin
         'Missing sidewalk along park frontage',
         'No continuous sidewalk on the park frontage, so people walk in the traffic lane to reach the community center.',
         'Install a continuous sidewalk or a striped walking lane.',
-        'sidewalk', 'opened', 'high',
+        'sidewalk', 'open', 'high',
         '{"description":"Libby Lake Park frontage","point":{"latitude":33.2385,"longitude":-117.3245},"neighborhood":"nbhd-libby-lake"}',
-        'dept-public-works', 'Walk audit',
-        'approved', 'Sample data', now_ms - 9 * day_ms,
+        'dept-public-works', 'Walk audit', null,
+        'approved', 'Sample data', now_ms - 9 * day_ms, null,
         7, now_ms - 9 * day_ms, now_ms - 9 * day_ms
     ),
     (
@@ -90,10 +90,10 @@ begin
         'Street lights out for three blocks',
         'Street lights have been out between Montecito and Redondo for weeks.',
         'Repair or replace the failed street lights.',
-        'street_lighting', 'approved_pending', 'high',
+        'street_lighting', 'in_progress', 'high',
         '{"description":"N. River Rd (Montecito -> Redondo)","point":{"latitude":33.2421,"longitude":-117.3312},"neighborhood":"nbhd-libby-lake"}',
-        'dept-street-lighting', 'Resident request',
-        'approved', 'Sample data', now_ms - 6 * day_ms,
+        'dept-street-lighting', 'Resident request', null,
+        'approved', 'Sample data', now_ms - 6 * day_ms, null,
         12, now_ms - 6 * day_ms, now_ms - 2 * day_ms
     ),
     (
@@ -101,10 +101,10 @@ begin
         'Standing water after every rain',
         'The corner floods and stays flooded for days; the storm drain looks blocked.',
         'Clear the storm drain and check the grade.',
-        'drainage', 'needs_next_steps', 'medium',
+        'drainage', 'in_progress', 'medium',
         '{"description":"Calle Solimar & Calle Los Santos","point":{"latitude":33.2298,"longitude":-117.3187},"neighborhood":"nbhd-mesa-margarita"}',
-        'dept-water-utilities', 'Resident request; ownership unclear',
-        'approved', 'Sample data', now_ms - 4 * day_ms,
+        'dept-water-utilities', 'Resident request; ownership unclear', null,
+        'approved', 'Sample data', now_ms - 4 * day_ms, null,
         3, now_ms - 4 * day_ms, now_ms - 1 * day_ms
     ),
     (
@@ -114,10 +114,10 @@ begin
         'Crosswalk faded at school crossing',
         'Crosswalk paint is nearly gone where kids cross to the school.',
         'Repaint the crosswalk and add advance warning signage.',
-        'traffic_safety', 'submitted', 'high',
+        'traffic_safety', 'in_review', 'high',
         '{"description":"Douglas Dr at the elementary school crossing","point":{"latitude":33.2456,"longitude":-117.3402},"neighborhood":"nbhd-crown-heights"}',
-        'dept-traffic-calming', 'Walk audit',
-        'pending_review', null, null,
+        'dept-traffic-calming', 'Walk audit', null,
+        'pending_review', null, null, null,
         1, now_ms - 2 * 3600000, now_ms - 2 * 3600000
     ),
     (
@@ -125,11 +125,25 @@ begin
         'Illegal dumping behind the ballfields',
         'Mattresses and construction debris dumped along the fence line.',
         'Schedule a pickup and consider a camera or better lighting.',
-        'trash_dumping', 'closed_complete', 'low',
+        'trash_dumping', 'complete', 'low',
         '{"description":"Behind the ballfields, north fence line","point":{"latitude":33.2371,"longitude":-117.3268},"neighborhood":"nbhd-libby-lake"}',
         'dept-public-works', 'Resident request',
-        'approved', 'Sample data', now_ms - 21 * day_ms,
+        'Debris hauled away and a motion-activated light installed on the fence line.',
+        'approved', 'Sample data', now_ms - 21 * day_ms, null,
         5, now_ms - 21 * day_ms, now_ms - 14 * day_ms
+    ),
+    (
+        -- Turned down, so the rejected page has something in it for a manager.
+        'demo-issue-rejected',
+        'Neighbor''s hedge blocks the view',
+        'The hedge next door has grown over six feet and blocks my view of the street.',
+        'Make them trim it.',
+        'other', 'rejected', 'low',
+        '{"description":"Private yard off Mesa Dr","neighborhood":"nbhd-mesa-margarita"}',
+        null, 'Resident request', null,
+        'rejected', 'Sample data', now_ms - 3 * day_ms,
+        'A hedge on private property is between neighbors; the city only acts when it blocks a sidewalk or a sight line at a corner.',
+        0, now_ms - 5 * day_ms, now_ms - 3 * day_ms
     );
 
     -- History, so the detail screen's timeline is not empty. The unreviewed
@@ -138,14 +152,17 @@ begin
         id, issue_id, from_status, to_status, note,
         changed_by_display_name, changed_at_millis
     ) values
-    ('demo-change-sidewalk', 'demo-issue-sidewalk', 'submitted', 'opened',
+    ('demo-change-sidewalk', 'demo-issue-sidewalk', 'in_review', 'open',
      'Imported from the Libby Lake walk audit.', 'Sample data', now_ms - 9 * day_ms),
-    ('demo-change-lighting', 'demo-issue-lighting', 'submitted', 'approved_pending',
+    ('demo-change-lighting', 'demo-issue-lighting', 'in_review', 'in_progress',
      'Imported from the Libby Lake walk audit.', 'Sample data', now_ms - 2 * day_ms),
-    ('demo-change-drainage', 'demo-issue-drainage', 'submitted', 'needs_next_steps',
+    ('demo-change-drainage', 'demo-issue-drainage', 'in_review', 'in_progress',
      'Imported from the Libby Lake walk audit.', 'Sample data', now_ms - 1 * day_ms),
-    ('demo-change-dumping', 'demo-issue-dumping', 'submitted', 'closed_complete',
-     'Imported from the Libby Lake walk audit.', 'Sample data', now_ms - 14 * day_ms);
+    ('demo-change-dumping', 'demo-issue-dumping', 'in_review', 'complete',
+     'Debris hauled away and a motion-activated light installed on the fence line.', 'Sample data', now_ms - 14 * day_ms),
+    ('demo-change-rejected', 'demo-issue-rejected', 'in_review', 'rejected',
+     'A hedge on private property is between neighbors; the city only acts when it blocks a sidewalk or a sight line at a corner.',
+     'Sample data', now_ms - 3 * day_ms);
 end;
 $$;
 

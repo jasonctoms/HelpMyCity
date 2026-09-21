@@ -13,7 +13,7 @@ import dev.helpmycity.deployment.BackendProvider
  * this file is the repository's worked example of a [BackendProvider] rather
  * than the shape every fork has to take -- a fork on another provider returns
  * its own implementation from here and deletes that package. `supabase/README.md`
- * documents standing up the project behind *this* build, the public demo.
+ * documents setting up the project behind *this* build, the public demo.
  *
  * The project details are supplied by the build rather than written here, so
  * the same source produces a local-only build and a hosted one -- see

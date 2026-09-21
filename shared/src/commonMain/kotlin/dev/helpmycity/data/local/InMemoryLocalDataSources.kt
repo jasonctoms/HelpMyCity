@@ -48,8 +48,25 @@ class InMemoryIssueLocalDataSource : IssueLocalDataSource {
         history.update { entries -> entries.filterNot { it.issueId == id } }
     }
 
+    override suspend fun deleteSyncedExcept(keep: Set<String>) = writeLock.withLock {
+        val dropped = issues.value.values
+            .filter { it.sync.state == SyncState.SYNCED && it.id !in keep }
+            .mapTo(mutableSetOf(), Issue::id)
+        issues.update { it - dropped }
+        history.update { entries -> entries.filterNot { it.issueId in dropped } }
+        photos.update { all -> all.filterValues { it.issueId !in dropped } }
+    }
+
     override suspend fun appendStatusChange(change: IssueStatusChange) = writeLock.withLock {
         history.update { entries -> entries.filterNot { it.id == change.id } + change }
+    }
+
+    override suspend fun mergeRemoteStatusChanges(changes: List<IssueStatusChange>) = writeLock.withLock {
+        val merged = changes
+            .filter { it.issueId in issues.value }
+            .map { it.copy(sync = it.sync.copy(state = SyncState.SYNCED)) }
+        val ids = merged.mapTo(mutableSetOf(), IssueStatusChange::id)
+        history.update { entries -> entries.filterNot { it.id in ids } + merged }
     }
 
     override fun observePhotos(issueId: String): Flow<List<IssuePhoto>> =

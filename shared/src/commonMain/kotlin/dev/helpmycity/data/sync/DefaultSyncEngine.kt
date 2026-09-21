@@ -4,6 +4,7 @@ import dev.helpmycity.data.local.IssueLocalDataSource
 import dev.helpmycity.data.remote.IssueBackendApi
 import dev.helpmycity.data.remote.PhotoBackendApi
 import dev.helpmycity.data.remote.RemoteResult
+import dev.helpmycity.data.session.UserSession
 import dev.helpmycity.domain.model.SyncState
 import dev.helpmycity.domain.util.TimeProvider
 import kotlinx.coroutines.CoroutineScope
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -30,6 +32,9 @@ import org.koin.core.annotation.Single
  * refuse a photo for an issue it has not seen, and a pulled photo has nowhere to
  * land locally until its issue has.
  *
+ * What a pull returns depends on who is asking, so a change of user or role
+ * starts again from a full pull and drops synced rows the new caller cannot see.
+ *
  * With [dev.helpmycity.data.remote.NoopIssueBackendApi] wired in, every
  * push comes back [RemoteResult.NotConfigured] and nothing is marked synced --
  * so the queue keeps building correctly and will drain on the first run against
@@ -41,6 +46,7 @@ class DefaultSyncEngine(
     private val backend: IssueBackendApi,
     private val photoBackend: PhotoBackendApi,
     private val time: TimeProvider,
+    private val session: UserSession,
 ) : SyncEngine {
 
     private val _status = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
@@ -50,18 +56,21 @@ class DefaultSyncEngine(
     private val syncLock = Mutex()
     private var watchJob: Job? = null
     private var lastSuccessfulSyncMillis: Long? = null
+    private var pruneOnNextPull = false
 
     @OptIn(FlowPreview::class)
     override fun start(scope: CoroutineScope) {
         if (watchJob != null) return
         watchJob = scope.launch {
-            // Pull once before watching anything. The watcher below only fires
-            // when there is something queued to push, so without this a device
-            // with an empty store -- a fresh install, or any first run against
-            // an already-populated backend -- would never learn what the
-            // backend already has, and would sit on an empty list until its
-            // owner happened to file something.
-            syncNow()
+            // The first value doubles as the startup pull. The outbox watcher
+            // below only fires when something is queued, so without it a fresh
+            // install would never learn what the backend already has.
+            launch {
+                session.currentUser
+                    .map { user -> user?.id to user?.role }
+                    .distinctUntilChanged()
+                    .collect { sync(newCaller = true) }
+            }
 
             combine(
                 localDataSource.observeAll(),
@@ -82,7 +91,13 @@ class DefaultSyncEngine(
         watchJob = null
     }
 
-    override suspend fun syncNow(): SyncStatus = syncLock.withLock {
+    override suspend fun syncNow(): SyncStatus = sync(newCaller = false)
+
+    private suspend fun sync(newCaller: Boolean): SyncStatus = syncLock.withLock {
+        if (newCaller) {
+            lastSuccessfulSyncMillis = null
+            pruneOnNextPull = true
+        }
         _status.value = SyncStatus.Syncing
         val result = runSync()
         _status.value = result
@@ -154,14 +169,27 @@ class DefaultSyncEngine(
             }
         }
 
-        val pulled = when (val remote = backend.fetchIssuesChangedSince(lastSuccessfulSyncMillis)) {
+        val since = lastSuccessfulSyncMillis
+        val pulledIds = when (val remote = backend.fetchIssuesChangedSince(since)) {
             is RemoteResult.Success -> {
                 localDataSource.upsertAll(remote.value)
-                remote.value.size
+                remote.value.mapTo(mutableSetOf()) { it.id }
             }
 
             RemoteResult.NotConfigured -> return SyncStatus.NoBackend
             is RemoteResult.Failure -> return SyncStatus.Failed(remote.message, 0)
+        }
+        if (pruneOnNextPull) {
+            localDataSource.deleteSyncedExcept(pulledIds)
+            pruneOnNextPull = false
+        }
+
+        if (since == null || pulledIds.isNotEmpty()) {
+            when (val remote = backend.fetchStatusChanges(if (since == null) null else pulledIds)) {
+                is RemoteResult.Success -> localDataSource.mergeRemoteStatusChanges(remote.value)
+                RemoteResult.NotConfigured -> return SyncStatus.NoBackend
+                is RemoteResult.Failure -> return SyncStatus.Failed(remote.message, 0)
+            }
         }
 
         when (val remote = backend.fetchOwnSupports()) {
@@ -170,7 +198,7 @@ class DefaultSyncEngine(
             is RemoteResult.Failure -> return SyncStatus.Failed(remote.message, 0)
         }
 
-        when (val remote = photoBackend.fetchPhotosUploadedSince(lastSuccessfulSyncMillis)) {
+        when (val remote = photoBackend.fetchPhotosUploadedSince(since)) {
             is RemoteResult.Success -> localDataSource.mergeRemotePhotos(remote.value)
             RemoteResult.NotConfigured -> return SyncStatus.NoBackend
             is RemoteResult.Failure -> return SyncStatus.Failed(remote.message, 0)
@@ -178,7 +206,7 @@ class DefaultSyncEngine(
 
         val now = time.nowMillis()
         lastSuccessfulSyncMillis = now
-        return SyncStatus.Synced(syncedAtMillis = now, pushedCount = pushed, pulledCount = pulled)
+        return SyncStatus.Synced(syncedAtMillis = now, pushedCount = pushed, pulledCount = pulledIds.size)
     }
 
     private companion object {

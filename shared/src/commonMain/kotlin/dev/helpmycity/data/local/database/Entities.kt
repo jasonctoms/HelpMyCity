@@ -70,6 +70,8 @@ data class IssueEntity(
     @ColumnInfo(name = "edit_revision") val editRevision: Int?,
     @ColumnInfo(name = "edited_fields") val editedFields: String?,
 
+    val resolution: String?,
+
     @ColumnInfo(name = "external_system") val externalSystem: String?,
     @ColumnInfo(name = "external_reference_number") val externalReferenceNumber: String?,
     @ColumnInfo(name = "external_submitted_at") val externalSubmittedAtMillis: Long?,

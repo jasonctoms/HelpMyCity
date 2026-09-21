@@ -10,9 +10,9 @@ import kotlinx.serialization.Serializable
  * those managers can see it, which is what keeps the public map trustworthy
  * without making residents jump through hoops to report something.
  *
- * Separate from [IssueStatus]: status is the *work*, review is *whether the
- * work is ours to show*. Folding one into the other would leave a rejected
- * issue needing a status and an approved issue without a board column.
+ * [PENDING] is [IssueStatus.IN_REVIEW] and [REJECTED] is
+ * [IssueStatus.REJECTED]. The review still lives here rather than in the
+ * status, because a status cannot carry who decided or why.
  */
 @Serializable
 enum class ReviewState(val storageKey: String) {

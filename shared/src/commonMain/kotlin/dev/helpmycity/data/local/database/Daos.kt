@@ -27,6 +27,9 @@ interface IssueDao {
     @Query("DELETE FROM issues WHERE id = :id")
     suspend fun delete(id: String)
 
+    @Query("SELECT id FROM issues WHERE sync_state = 'synced'")
+    suspend fun syncedIds(): List<String>
+
     @Query("SELECT COUNT(*) FROM issues")
     suspend fun count(): Int
 
@@ -103,6 +106,28 @@ interface IssueDao {
 
     @Query("SELECT * FROM issue_status_changes WHERE sync_state != 'synced' ORDER BY changed_at ASC")
     suspend fun pendingStatusChanges(): List<IssueStatusChangeEntity>
+
+    @Query(
+        """
+        INSERT INTO issue_status_changes
+            (id, issue_id, from_status, to_status, note, changed_by_user_id, changed_by_display_name,
+             changed_at, sync_state, last_synced_at, remote_version)
+        SELECT :id, :issueId, :fromStatus, :toStatus, :note, :changedByUserId, :changedByDisplayName,
+               :changedAtMillis, 'synced', NULL, NULL
+        WHERE EXISTS (SELECT 1 FROM issues WHERE id = :issueId)
+        ON CONFLICT(id) DO UPDATE SET sync_state = 'synced'
+        """
+    )
+    suspend fun mergeRemoteStatusChange(
+        id: String,
+        issueId: String,
+        fromStatus: String?,
+        toStatus: String,
+        note: String?,
+        changedByUserId: String?,
+        changedByDisplayName: String?,
+        changedAtMillis: Long,
+    )
 
     @Query("SELECT issue_id FROM issue_supports WHERE user_id = :userId")
     fun observeSupportedIssueIds(userId: String): Flow<List<String>>

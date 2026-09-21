@@ -20,6 +20,9 @@ class NoopIssueBackendApi : IssueBackendApi {
     override suspend fun fetchIssuesChangedSince(sinceMillis: Long?): RemoteResult<List<Issue>> =
         RemoteResult.NotConfigured
 
+    override suspend fun fetchStatusChanges(issueIds: Set<String>?): RemoteResult<List<IssueStatusChange>> =
+        RemoteResult.NotConfigured
+
     override suspend fun pushIssue(issue: Issue): RemoteResult<RemoteAck> =
         RemoteResult.NotConfigured
 

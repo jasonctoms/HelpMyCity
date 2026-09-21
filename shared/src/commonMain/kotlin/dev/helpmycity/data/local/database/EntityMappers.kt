@@ -47,6 +47,7 @@ internal fun IssueEntity.toDomain(): Issue = Issue(
     submittedByUserId = submittedByUserId,
     review = toReview(),
     lastEdit = toLastEdit(),
+    resolution = resolution,
     notesSource = notesSource,
     externalReference = externalSystem?.let {
         ExternalReference(
@@ -134,6 +135,7 @@ internal fun Issue.toEntity(): IssueEntity = IssueEntity(
     editedAtMillis = lastEdit?.editedAtMillis,
     editRevision = lastEdit?.revision,
     editedFields = lastEdit?.fields?.joinToString(",") { it.storageKey },
+    resolution = resolution,
     externalSystem = externalReference?.system,
     externalReferenceNumber = externalReference?.referenceNumber,
     externalSubmittedAtMillis = externalReference?.submittedAtMillis,
