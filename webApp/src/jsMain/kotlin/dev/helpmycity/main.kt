@@ -13,7 +13,8 @@ import org.maplibre.compose.browser.installMapLibreCompose
 fun main() {
     initKoin(city = ConfiguredCityProfile, backend = ConfiguredBackend)
     onWasmReady {
-        installMapLibreCompose()
+        // Emitted next to the bundle by webpack.config.d/maplibreWorker.js.
+        installMapLibreCompose(workerUrl = "maplibre-gl-worker.mjs")
         ComposeViewport(document.body!!) {
             App()
         }
