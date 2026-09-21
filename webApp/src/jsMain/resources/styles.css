@@ -1,7 +1,23 @@
+:root {
+    color-scheme: light dark;
+    --background: #fff;
+    --spinner-track: #ccc;
+    --spinner-arc: #333;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #000;
+        --spinner-track: #333;
+        --spinner-arc: #ccc;
+    }
+}
+
 html, body {
     width: 100%;
     height: 100%;
     margin: 0;
     padding: 0;
     overflow: hidden;
+    background: var(--background);
 }

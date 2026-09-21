@@ -1,0 +1,5 @@
+# Cloudflare's header rules. SQLite WASM keeps the database in OPFS, which only
+# opens on a cross-origin-isolated page; see webpack.config.d for the dev server.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp

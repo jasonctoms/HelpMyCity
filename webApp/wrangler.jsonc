@@ -1,0 +1,10 @@
+{
+  "name": "helpmycity",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "build/dist/js/productionExecutable"
+  },
+  "routes": [
+    { "pattern": "helpmycity.dev", "custom_domain": true }
+  ]
+}
