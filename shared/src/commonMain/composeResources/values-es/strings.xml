@@ -1,0 +1,302 @@
+<resources>
+    <string name="app_name">HelpMyCity</string>
+
+    <!-- Navegación -->
+    <string name="nav_list">Reportes</string>
+    <string name="nav_board">Tablero</string>
+    <string name="nav_map">Mapa</string>
+    <string name="nav_review">Revisión</string>
+    <string name="nav_back">Regresar</string>
+
+    <!-- Inicio de sesión -->
+    <string name="sign_in_title">Iniciar sesión</string>
+    <string name="sign_up_title">Crear una cuenta</string>
+    <string name="sign_in_subtitle">Los gestores comunitarios de %1$s inician sesión para revisar y dar seguimiento. Los residentes pueden reportar sin cuenta.</string>
+    <string name="sign_in_email">Correo electrónico</string>
+    <string name="sign_in_password">Contraseña</string>
+    <string name="sign_in_display_name">Su nombre</string>
+    <string name="sign_in_action">Iniciar sesión</string>
+    <string name="sign_up_action">Crear cuenta</string>
+    <string name="sign_in_switch_to_sign_up">¿Es nuevo? Cree una cuenta</string>
+    <string name="sign_in_switch_to_sign_in">¿Ya tiene cuenta? Inicie sesión</string>
+    <string name="continue_as_guest">Continuar sin cuenta</string>
+    <string name="sign_out">Cerrar sesión</string>
+    <string name="signed_in_as">Sesión iniciada como %1$s</string>
+    <string name="demo_logins_notice">Esta es una demostración pública. Toque una cuenta para rellenar el formulario: son compartidas, así que no guarde nada privado en ellas. Los reportes y las fotos se borran una vez al día.</string>
+    <string name="demo_repo_footer">HelpMyCity es de código abierto: bifúrquelo en GitHub</string>
+
+    <!-- Errores -->
+    <string name="error_invalid_email">Escriba un correo electrónico válido.</string>
+    <string name="error_weak_password">Use al menos 8 caracteres.</string>
+    <string name="error_invalid_credentials">Ese correo y contraseña no coinciden.</string>
+    <string name="error_email_taken">Ya existe una cuenta con ese correo.</string>
+    <string name="error_network">No se pudo conectar con el servidor. Inténtelo de nuevo.</string>
+    <string name="error_unknown">Algo salió mal. Inténtelo de nuevo.</string>
+
+    <!-- Lista de reportes -->
+    <string name="issues_title">Problemas del vecindario</string>
+    <string name="issues_search_hint">Buscar reportes</string>
+    <string name="issues_search_clear">Borrar la búsqueda</string>
+    <string name="issues_empty_title">Todavía no hay reportes</string>
+    <string name="issues_empty_body">Reporte el primero y aparecerá aquí.</string>
+    <string name="issues_empty_filtered_title">Nada coincide con esos filtros</string>
+    <string name="issues_empty_filtered_body">Quite un filtro o busque otra cosa.</string>
+    <string name="issues_filter_open_only">Solo abiertos</string>
+    <string name="issues_filter_clear">Quitar filtros</string>
+    <plurals name="issues_count">
+        <item quantity="one">%1$d reporte</item>
+        <item quantity="other">%1$d reportes</item>
+    </plurals>
+    <string name="issues_add">Reportar un problema</string>
+
+    <!-- Tablero -->
+    <string name="board_title">Tablero de seguimiento</string>
+    <string name="board_column_count">%1$d</string>
+    <string name="board_column_empty">Nada aquí</string>
+
+    <!-- Revisión de reportes nuevos -->
+    <string name="review_queue_title">Pendientes de revisión</string>
+    <string name="review_queue_empty_title">Nada por revisar</string>
+    <string name="review_queue_empty_body">Aquí aparecen los reportes nuevos de las zonas que usted gestiona.</string>
+    <string name="review_queue_no_scope_title">Todavía no tiene zonas asignadas</string>
+    <string name="review_queue_no_scope_body">Un administrador debe asignarle un distrito o un vecindario para que le lleguen reportes.</string>
+    <string name="review_queue_count">%1$d pendiente(s) de revisión</string>
+    <string name="review_section_title">Revisión</string>
+    <string name="review_pending_manager">Este reporte espera su revisión. Al aprobarlo, será visible para todos.</string>
+    <string name="review_pending_submitter">Un gestor está revisando su reporte. Hasta que lo apruebe, solo usted y los gestores de esta zona pueden verlo.</string>
+    <string name="review_rejected_title">No aprobado</string>
+    <string name="review_rejected_submitter">Un gestor no pudo aceptar este reporte. Solo usted y los gestores de esta zona pueden verlo.</string>
+    <string name="review_rejected_reason">Motivo: %1$s</string>
+    <string name="review_reviewed_by">%1$s · %2$s</string>
+    <string name="review_approved_note">Aprobado y visible para todos.</string>
+    <string name="review_approve">Aprobar</string>
+    <string name="review_reject">Rechazar</string>
+    <string name="review_reject_reason_label">Motivo del rechazo</string>
+    <string name="review_reject_reason_hint">Explique qué falta o por qué no se puede aceptar. La persona que lo reportó verá este mensaje.</string>
+    <string name="review_reject_reason_required">Escriba un motivo antes de rechazar.</string>
+    <string name="review_reject_confirm">Enviar el rechazo</string>
+    <string name="review_not_permitted">Usted no gestiona esta zona, así que no puede revisar este reporte.</string>
+    <string name="review_issue_gone">Ese reporte ya no está disponible.</string>
+    <string name="review_chip_pending">Pendiente de revisión</string>
+    <string name="review_chip_rejected">No aprobado</string>
+
+    <!-- Mapa -->
+    <string name="map_title">Mapa</string>
+    <string name="map_no_located_issues">Ningún reporte tiene coordenadas todavía, así que no hay nada que mostrar.</string>
+    <plurals name="map_located_count">
+        <item quantity="one">%1$d de %2$d reporte tiene coordenadas</item>
+        <item quantity="other">%1$d de %2$d reportes tienen coordenadas</item>
+    </plurals>
+    <string name="map_legend_title">Color del marcador</string>
+    <plurals name="map_located_count_filtered">
+        <item quantity="one">%1$d de %2$d reporte filtrado tiene coordenadas</item>
+        <item quantity="other">%1$d de %2$d reportes filtrados tienen coordenadas</item>
+    </plurals>
+    <string name="map_no_matching_issues">Ningún reporte con coordenadas en esa selección.</string>
+    <string name="map_filter_all_neighborhoods">Todos los vecindarios</string>
+
+    <!-- Selector de ubicacion -->
+    <string name="location_pin_add">Marcar en el mapa</string>
+    <string name="location_pin_edit">Mover el marcador</string>
+    <string name="location_pin_hide">Ocultar el mapa</string>
+    <string name="location_pin_hint">Toque el mapa para marcar dónde está el problema. Es opcional, pero así el reporte aparece en el mapa.</string>
+    <string name="location_pin_coordinates">Marcador en %1$s, %2$s</string>
+    <string name="location_pin_clear">Quitar el marcador</string>
+    <string name="location_pin_approximate">Marcador aproximado, puesto desde la dirección. Toque el mapa para moverlo.</string>
+
+    <!-- Búsqueda de direcciones -->
+    <string name="geocode_searching">Buscando esta ubicación…</string>
+    <string name="geocode_resolved">Coincide con %1$s</string>
+    <string name="geocode_no_match">No se encontró esa ubicación. Aún puede marcarla en el mapa.</string>
+    <string name="geocode_unavailable">La búsqueda de direcciones no está disponible. Marque el punto en el mapa — su reporte se envía igual.</string>
+
+    <!-- Fotos -->
+    <string name="photo_add">Agregar fotos</string>
+    <string name="photo_remove">Quitar</string>
+    <string name="photo_alt">Foto del problema reportado</string>
+    <string name="photo_section">Fotos</string>
+
+    <!-- Formulario -->
+    <string name="new_issue_title">Reportar un problema</string>
+    <string name="new_issue_submit">Enviar</string>
+    <string name="new_issue_submitted">Reporte enviado</string>
+    <string name="field_title">¿Cuál es el problema?</string>
+    <string name="field_title_hint">Resumen corto, por ejemplo «Luz de la calle apagada»</string>
+    <string name="field_description">Descríbalo</string>
+    <string name="field_description_hint">¿Qué vio? ¿Cuánto tiempo lleva así?</string>
+    <string name="field_requested_action">¿Qué se debería hacer?</string>
+    <string name="field_location">¿Dónde está?</string>
+    <string name="field_location_hint">Cruce de calles, dirección o punto de referencia</string>
+    <string name="field_category">Categoría</string>
+    <string name="field_priority">Prioridad</string>
+    <string name="field_department">Departamento</string>
+    <string name="field_neighborhood">Vecindario</string>
+    <string name="field_notes_source">Notas / origen</string>
+    <string name="field_reporter_section">Sus datos de contacto (opcional)</string>
+    <string name="field_reporter_hint">Complete esto solo si quiere que alguien le dé seguimiento.</string>
+    <string name="field_reporter_name">Nombre</string>
+    <string name="field_reporter_email">Correo electrónico</string>
+    <string name="field_reporter_phone">Teléfono</string>
+    <string name="field_required">Obligatorio</string>
+    <string name="form_error_title_required">Agregue un resumen corto.</string>
+    <string name="form_error_description_required">Describa lo que vio.</string>
+    <string name="form_error_location_required">Díganos dónde está.</string>
+    <plurals name="duplicate_warning">
+        <item quantity="one">Ya hay %1$d reporte parecido. Revise la lista antes de enviar.</item>
+        <item quantity="other">Ya hay %1$d reportes parecidos. Revise la lista antes de enviar.</item>
+    </plurals>
+
+    <!-- Detalle -->
+    <string name="detail_title">Reporte</string>
+    <string name="detail_not_found">Este reporte ya no está disponible.</string>
+    <string name="detail_requested_action">Acción solicitada</string>
+    <string name="detail_location">Ubicación</string>
+    <string name="detail_department">Departamento responsable</string>
+    <string name="detail_reported_by">Reportado por</string>
+    <string name="detail_notes_source">Notas / origen</string>
+    <string name="detail_history">Historial</string>
+    <string name="detail_change_status">Cambiar el estado</string>
+    <string name="detail_support">A mí también me pasa</string>
+    <plurals name="detail_support_count">
+        <item quantity="one">%1$d residente reportó lo mismo</item>
+        <item quantity="other">%1$d residentes reportaron lo mismo</item>
+    </plurals>
+    <string name="detail_reported_on">Reportado el %1$s</string>
+    <string name="detail_updated_on">Actualizado el %1$s</string>
+    <string name="detail_coordinates">%1$s, %2$s</string>
+    <string name="detail_history_created">Reportado</string>
+    <string name="detail_history_entry">%1$s a %2$s</string>
+
+    <!-- Ediciones de un gestor a los campos de un problema -->
+    <string name="edited_chip">Editado</string>
+    <string name="detail_edit">Editar detalles</string>
+    <string name="detail_edited_by">Editado por %1$s · %2$s</string>
+    <string name="detail_edited_fields">Se cambió: %1$s</string>
+    <plurals name="detail_edited_times">
+        <item quantity="one">%1$d edición en total</item>
+        <item quantity="other">%1$d ediciones en total</item>
+    </plurals>
+    <string name="edit_issue_title">Editar problema</string>
+    <string name="edit_notice">Todas las personas que puedan ver este reporte verán que fue editado y por quién. Quien lo reportó sigue siendo su autor.</string>
+    <string name="edit_save">Guardar cambios</string>
+    <string name="edit_cancel">Descartar cambios</string>
+    <string name="edit_not_permitted">No administras esta zona, así que no puedes editar este reporte.</string>
+
+    <!-- Traspaso al sistema de solicitudes de la ciudad; %1$s es su nombre. -->
+    <string name="external_title">%1$s</string>
+    <string name="external_none">Todavía no se ha enviado a la ciudad.</string>
+    <string name="external_manual_hint">Presente el reporte en %1$s y luego anote aquí el número de referencia para poder darle seguimiento nosotros.</string>
+    <string name="external_reference">Número de referencia</string>
+    <string name="external_record">Guardar la referencia</string>
+    <string name="external_submitted_on">Enviado el %1$s</string>
+    <string name="external_last_checked">Revisado el %1$s</string>
+
+    <!-- Sincronización -->
+    <string name="sync_idle">Guardado en este dispositivo</string>
+    <string name="sync_syncing">Sincronizando…</string>
+    <string name="sync_no_backend">Modo sin conexión: aún no hay servidor conectado, así que los cambios quedan en este dispositivo.</string>
+    <string name="sync_synced">Sincronizado</string>
+    <string name="sync_failed">Falló la sincronización: %1$s</string>
+    <plurals name="sync_pending">
+        <item quantity="one">%1$d cambio pendiente de sincronizar</item>
+        <item quantity="other">%1$d cambios pendientes de sincronizar</item>
+    </plurals>
+
+    <!-- Estados -->
+    <string name="status_submitted">Enviado</string>
+    <string name="status_opened">Abierto</string>
+    <string name="status_needs_next_steps">Faltan próximos pasos</string>
+    <string name="status_approved_pending">Aprobado – pendiente</string>
+    <string name="status_closed_complete">Cerrado – completo</string>
+
+    <!-- Prioridad -->
+    <string name="priority_high">Alta</string>
+    <string name="priority_medium">Media</string>
+    <string name="priority_low">Baja</string>
+
+    <!-- Categorías -->
+    <string name="category_road_surface">Pavimento</string>
+    <string name="category_street_lighting">Alumbrado público</string>
+    <string name="category_drainage">Drenaje</string>
+    <string name="category_ada_access">Accesibilidad (ADA)</string>
+    <string name="category_traffic_safety">Seguridad vial</string>
+    <string name="category_sidewalk">Banqueta</string>
+    <string name="category_park_maintenance">Mantenimiento de parques</string>
+    <string name="category_trash_dumping">Basura / tiradero ilegal</string>
+    <string name="category_graffiti">Grafiti</string>
+    <string name="category_water_utilities">Agua potable</string>
+    <string name="category_signage">Señalización</string>
+    <string name="category_other">Otra cosa</string>
+
+    <!-- Comunes -->
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_save">Guardar</string>
+    <string name="common_close">Cerrar</string>
+    <string name="common_none">Ninguno</string>
+    <string name="common_unassigned">Sin asignar</string>
+    <string name="common_optional">Opcional</string>
+    <string name="common_export_csv">Exportar CSV</string>
+
+    <!-- Perfil -->
+    <string name="profile_title">Tu perfil</string>
+    <string name="profile_open">Tu perfil</string>
+    <string name="profile_role">Rol</string>
+    <string name="profile_areas">Tus áreas</string>
+    <string name="profile_areas_citywide">Toda la ciudad</string>
+    <string name="profile_areas_none">Todavía no tienes áreas asignadas. Un administrador debe darte un distrito o un barrio para que te lleguen reportes.</string>
+    <string name="profile_admin_everything">Los administradores revisan todos los reportes, en cualquier área, y deciden qué puede hacer cada persona.</string>
+    <string name="profile_resident_note">Los residentes reportan problemas, siguen sus propios reportes durante la revisión y consultan todo lo aprobado.</string>
+    <string name="profile_guest_title">Estás navegando sin cuenta</string>
+    <string name="profile_guest_body">No se guarda nada tuyo entre visitas. Inicia sesión si quieres seguir los reportes que envíes.</string>
+    <string name="profile_edit">Editar perfil</string>
+    <string name="profile_manage_users">Personas y roles</string>
+    <string name="profile_manage_users_body">Define qué puede hacer cada persona y de qué parte de la ciudad responde cada gestor.</string>
+    <string name="profile_export_csv">Exportar reportes en CSV</string>
+    <string name="profile_export_csv_body">Todos los reportes de la ciudad, con ubicación, revisión y datos de contacto, en un archivo de hoja de cálculo.</string>
+    <string name="profile_export_csv_failed">No se pudo guardar el archivo. Inténtelo de nuevo.</string>
+
+    <!-- Editar perfil -->
+    <string name="edit_profile_title">Editar perfil</string>
+    <string name="edit_profile_name">Tu nombre</string>
+    <string name="edit_profile_email">Correo electrónico</string>
+    <string name="edit_profile_email_hint">La dirección con la que inicias sesión.</string>
+    <string name="edit_profile_save">Guardar perfil</string>
+    <string name="edit_profile_not_editable">Estás navegando sin cuenta, así que no hay perfil que editar.</string>
+    <string name="error_name_required">Escribe un nombre.</string>
+    <string name="error_email_in_use">Otra cuenta ya usa esa dirección.</string>
+    <string name="error_profile_missing">Esa cuenta ya no está disponible.</string>
+
+    <!-- Administración: personas y roles -->
+    <string name="admin_users_title">Personas y roles</string>
+    <plurals name="admin_users_count">
+        <item quantity="one">%1$d persona</item>
+        <item quantity="other">%1$d personas</item>
+    </plurals>
+    <string name="admin_users_you">Tú</string>
+    <string name="admin_users_no_areas">Sin áreas asignadas</string>
+    <string name="admin_users_empty_title">Todavía no hay nadie</string>
+    <string name="admin_users_empty_body">Una cuenta aparece aquí la primera vez que inicia sesión. Cierra sesión y entra como otra persona para ver cómo se llena.</string>
+    <string name="admin_users_not_permitted">Solo un administrador puede cambiar lo que pueden hacer las demás personas.</string>
+    <string name="admin_user_title">Rol y áreas</string>
+    <string name="admin_user_role">Rol</string>
+    <string name="admin_user_role_locked">No puedes cambiar tu propio rol. Pídeselo a otro administrador si hace falta cambiarlo.</string>
+    <string name="admin_user_role_admin_note">Los administradores llegan a todos los reportes, así que no necesitan áreas.</string>
+    <string name="admin_user_role_resident_note">Los residentes reportan y siguen sus propios reportes. No revisan nada, así que no necesitan áreas.</string>
+    <string name="admin_user_not_found">Esa cuenta ya no está disponible.</string>
+    <string name="admin_user_areas">Áreas de las que responde este gestor</string>
+    <string name="admin_user_citywide">Toda la ciudad</string>
+    <string name="admin_user_citywide_body">Un gestor de toda la ciudad revisa cada reporte. Mientras esto esté activo, las listas de abajo se ignoran.</string>
+    <string name="admin_user_districts">Distritos del concejo</string>
+    <string name="admin_user_neighborhoods">Barrios</string>
+    <string name="admin_user_departments">Departamentos</string>
+    <string name="admin_user_no_districts">Este perfil de ciudad no publica distritos del concejo.</string>
+    <string name="admin_user_no_neighborhoods">Este perfil de ciudad no publica barrios.</string>
+    <string name="admin_user_no_departments">Este perfil de ciudad no publica departamentos.</string>
+    <string name="admin_user_empty_scope">Sin ningún área asignada, no llegará nada a la cola de revisión de este gestor.</string>
+    <string name="admin_user_save">Guardar asignación</string>
+
+    <!-- Roles -->
+    <string name="role_resident">Residente</string>
+    <string name="role_manager">Gestor</string>
+    <string name="role_admin">Administrador</string>
+</resources>

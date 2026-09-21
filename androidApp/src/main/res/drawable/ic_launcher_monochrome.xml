@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The themed-icon layer: one silhouette the launcher tints. The stripes are
+  dropped, because a tint has only one colour to spend, and the face is cut out
+  of the cone with `evenOdd` so Helpy is still smiling.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="2.5"
+        android:scaleY="2.5"
+        android:translateX="24"
+        android:translateY="21.5">
+        <path
+            android:fillColor="#000000"
+            android:fillType="evenOdd"
+            android:pathData="M4,19 h16 c0.55,0 1,0.45 1,1 v1 c0,0.55 -0.45,1 -1,1 H4 c-0.55,0 -1,-0.45 -1,-1 v-1 c0,-0.55 0.45,-1 1,-1 z M10,3 h4 l4,16 h-12 z M9.5,14 a1,1 0 1,1 -2,0 a1,1 0 1,1 2,0z M16.5,14 a1,1 0 1,1 -2,0 a1,1 0 1,1 2,0z M12,18 a3,3 0 0,1 -2.5,-1.5 a0.5,0.5 0 0,1 0.8,-0.6 a2,2 0 0,0 3.4,0 a0.5,0.5 0 0,1 0.8,0.6 a3,3 0 0,1 -2.5,1.5z" />
+    </group>
+</vector>
