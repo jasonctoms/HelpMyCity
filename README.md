@@ -5,11 +5,14 @@
 
 <h1 align="center">HelpMyCity</h1>
 
-A neighborhood issue tracker any city can run. A resident reports a problem — a
-pothole, a dead streetlight, a blocked sidewalk ramp — a community manager
-triages it, and everyone can follow it until it is fixed. It is built for cities
-delegating to volunteers, where per-seat spreadsheet pricing does not scale and
-the city's own request system is not somewhere residents can watch their report.
+HelpMyCity is an open source issue tracker that any city can fork and run! Written to be very
+easy to configure and maintain, and an upgrade to the old school whitelabel solutions
+that nobody enjoys using.
+
+A resident reports a problem — a pothole, a dead streetlight, a blocked sidewalk 
+ramp — a community manager triages it, and everyone can follow it until it is fixed. 
+It is built for cities delegating to volunteers, where per-seat pricing does not scale 
+and the city's own request system is not somewhere residents can watch their report.
 
 One Kotlin Multiplatform + Compose Multiplatform codebase runs on **Android, iOS
 and the web**, stores everything locally first so it works with no signal, and
