@@ -23,7 +23,7 @@ class AppBootstrapper(
         started = true
         scope.launch {
             // Seed first: the sync engine's watcher should see a populated store.
-            seeder.seedIfEmpty()
+            seeder.seed()
             syncEngine.start(scope)
         }
     }

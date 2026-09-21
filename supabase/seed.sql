@@ -32,12 +32,45 @@ on conflict (id) do update set
     contact_email = excluded.contact_email,
     handles_categories = excluded.handles_categories;
 
+-- Rows the profile no longer lists would otherwise outlive it.
+delete from neighborhoods where id not in (
+    'nbhd-airport',
+    'nbhd-eastside-capistrano',
+    'nbhd-fire-mountain',
+    'nbhd-guajome',
+    'nbhd-ivey-ranch-rancho-del-oro',
+    'nbhd-lake',
+    'nbhd-loma-alta',
+    'nbhd-mira-costa',
+    'nbhd-morro-hills',
+    'nbhd-north-valley',
+    'nbhd-ocean-hills',
+    'nbhd-oceana',
+    'nbhd-peacock',
+    'nbhd-san-luis-rey',
+    'nbhd-south-oceanside',
+    'nbhd-townsite',
+    'nbhd-tri-city'
+);
+
 insert into neighborhoods (id, name, council_district) values
-    ('nbhd-libby-lake',     'Libby Lake',     'District 1'),
-    ('nbhd-crown-heights',  'Crown Heights',  'District 2'),
-    ('nbhd-eastside',       'Eastside',       'District 2'),
-    ('nbhd-mesa-margarita', 'Mesa Margarita', 'District 3'),
-    ('nbhd-fire-mountain',  'Fire Mountain',  'District 4')
+    ('nbhd-airport', 'Airport', 'District 1'),
+    ('nbhd-eastside-capistrano', 'Eastside Capistrano', 'District 1'),
+    ('nbhd-fire-mountain', 'Fire Mountain', 'District 3'),
+    ('nbhd-guajome', 'Guajome', null),
+    ('nbhd-ivey-ranch-rancho-del-oro', 'Ivey Ranch Rancho Del Oro', 'District 4'),
+    ('nbhd-lake', 'Lake', 'District 3'),
+    ('nbhd-loma-alta', 'Loma Alta', 'District 1'),
+    ('nbhd-mira-costa', 'Mira Costa', 'District 3'),
+    ('nbhd-morro-hills', 'Morro Hills', 'District 2'),
+    ('nbhd-north-valley', 'North Valley', null),
+    ('nbhd-ocean-hills', 'Ocean Hills', 'District 3'),
+    ('nbhd-oceana', 'Oceana', 'District 1'),
+    ('nbhd-peacock', 'Peacock', 'District 4'),
+    ('nbhd-san-luis-rey', 'San Luis Rey', null),
+    ('nbhd-south-oceanside', 'South Oceanside', 'District 3'),
+    ('nbhd-townsite', 'Townsite', 'District 1'),
+    ('nbhd-tri-city', 'Tri-City', 'District 3')
 on conflict (id) do update set
     name = excluded.name,
     council_district = excluded.council_district;
@@ -80,7 +113,7 @@ begin
         'No continuous sidewalk on the park frontage, so people walk in the traffic lane to reach the community center.',
         'Install a continuous sidewalk or a striped walking lane.',
         'sidewalk', 'open', 'high',
-        '{"description":"Libby Lake Park frontage","point":{"latitude":33.2385,"longitude":-117.3245},"neighborhood":"nbhd-libby-lake"}',
+        '{"description":"Libby Lake Park frontage","point":{"latitude":33.2385,"longitude":-117.3245},"neighborhood":"nbhd-san-luis-rey"}',
         'dept-public-works', 'Walk audit', null,
         'approved', 'Sample data', now_ms - 9 * day_ms, null,
         7, now_ms - 9 * day_ms, now_ms - 9 * day_ms
@@ -91,7 +124,7 @@ begin
         'Street lights have been out between Montecito and Redondo for weeks.',
         'Repair or replace the failed street lights.',
         'street_lighting', 'in_progress', 'high',
-        '{"description":"N. River Rd (Montecito -> Redondo)","point":{"latitude":33.2421,"longitude":-117.3312},"neighborhood":"nbhd-libby-lake"}',
+        '{"description":"N. River Rd (Montecito -> Redondo)","point":{"latitude":33.2421,"longitude":-117.3312},"neighborhood":"nbhd-north-valley"}',
         'dept-street-lighting', 'Resident request', null,
         'approved', 'Sample data', now_ms - 6 * day_ms, null,
         12, now_ms - 6 * day_ms, now_ms - 2 * day_ms
@@ -102,7 +135,7 @@ begin
         'The corner floods and stays flooded for days; the storm drain looks blocked.',
         'Clear the storm drain and check the grade.',
         'drainage', 'in_progress', 'medium',
-        '{"description":"Calle Solimar & Calle Los Santos","point":{"latitude":33.2298,"longitude":-117.3187},"neighborhood":"nbhd-mesa-margarita"}',
+        '{"description":"Calle Solimar & Calle Los Santos","point":{"latitude":33.2298,"longitude":-117.3187},"neighborhood":"nbhd-san-luis-rey"}',
         'dept-water-utilities', 'Resident request; ownership unclear', null,
         'approved', 'Sample data', now_ms - 4 * day_ms, null,
         3, now_ms - 4 * day_ms, now_ms - 1 * day_ms
@@ -115,7 +148,7 @@ begin
         'Crosswalk paint is nearly gone where kids cross to the school.',
         'Repaint the crosswalk and add advance warning signage.',
         'traffic_safety', 'in_review', 'high',
-        '{"description":"Douglas Dr at the elementary school crossing","point":{"latitude":33.2456,"longitude":-117.3402},"neighborhood":"nbhd-crown-heights"}',
+        '{"description":"Douglas Dr at the elementary school crossing","point":{"latitude":33.2456,"longitude":-117.3402},"neighborhood":"nbhd-north-valley"}',
         'dept-traffic-calming', 'Walk audit', null,
         'pending_review', null, null, null,
         1, now_ms - 2 * 3600000, now_ms - 2 * 3600000
@@ -126,7 +159,7 @@ begin
         'Mattresses and construction debris dumped along the fence line.',
         'Schedule a pickup and consider a camera or better lighting.',
         'trash_dumping', 'complete', 'low',
-        '{"description":"Behind the ballfields, north fence line","point":{"latitude":33.2371,"longitude":-117.3268},"neighborhood":"nbhd-libby-lake"}',
+        '{"description":"Behind the ballfields, north fence line","point":{"latitude":33.2371,"longitude":-117.3268},"neighborhood":"nbhd-san-luis-rey"}',
         'dept-public-works', 'Resident request',
         'Debris hauled away and a motion-activated light installed on the fence line.',
         'approved', 'Sample data', now_ms - 21 * day_ms, null,
@@ -139,7 +172,7 @@ begin
         'The hedge next door has grown over six feet and blocks my view of the street.',
         'Make them trim it.',
         'other', 'rejected', 'low',
-        '{"description":"Private yard off Mesa Dr","neighborhood":"nbhd-mesa-margarita"}',
+        '{"description":"Private yard off Mesa Dr","neighborhood":"nbhd-san-luis-rey"}',
         null, 'Resident request', null,
         'rejected', 'Sample data', now_ms - 3 * day_ms,
         'A hedge on private property is between neighbors; the city only acts when it blocks a sidewalk or a sight line at a corner.',

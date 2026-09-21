@@ -106,7 +106,9 @@ sign-ins on the sign-in screen and a dataset that resets nightly.
 - **Kanban board** grouped by status, using the same query and the same filters
   as the list.
 - **Map** of every located issue, markers colored by status, filterable by
-  neighborhood, tap to open.
+  neighborhood, tap to open. Neighborhoods the city supplies boundaries for are
+  outlined, and tapping one filters to it; the filtered ones are shaded and the
+  camera fits their whole area.
 - **A side-by-side workspace** on anything wider than a phone: the list and the
   map at once, with the tabs and the report button in the header.
 - **Issue detail:** everything on the report, its photos, its full status

@@ -125,11 +125,15 @@ data class CityBranding(
  *   empty database.
  * @param defaultZoom the starting zoom for [center]. Roughly: 10 is a county,
  *   12 a city, 15 a few blocks.
+ * @param boundarySource where the outlines drawn from
+ *   [Neighborhood.boundaryGeoJson] come from, shown under the map. Null shows
+ *   nothing; set it whenever any neighborhood has a boundary.
  */
 data class MapSettings(
     val styleUrl: String = OPEN_FREE_MAP_LIBERTY,
     val center: GeoPoint? = null,
     val defaultZoom: Double = 12.0,
+    val boundarySource: String? = null,
 ) {
     companion object {
         /**

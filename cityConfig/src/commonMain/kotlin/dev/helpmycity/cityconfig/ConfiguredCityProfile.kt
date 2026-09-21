@@ -63,6 +63,7 @@ object ConfiguredCityProfile : CityProfile {
     override val map: MapSettings = MapSettings(
         center = GeoPoint(latitude = 33.1959, longitude = -117.3795),
         defaultZoom = 13.0,
+        boundarySource = "Neighborhood boundaries: City of Oceanside GIS (gis.oceansideca.org)",
     )
 
     /**
@@ -126,12 +127,116 @@ object ConfiguredCityProfile : CityProfile {
         ),
     )
 
+    /**
+     * The city's own neighborhood areas; see [NeighborhoodBoundaries] for the
+     * source. A neighborhood names a council district only where at least 85%
+     * of it lies in one, per the city's `Oceanside_37115_Council_Districts`
+     * layer on ArcGIS Online. Guajome, North Valley and San Luis Rey straddle
+     * two or three, so issues there carry no district.
+     */
     override val neighborhoods: List<Neighborhood> = listOf(
-        Neighborhood(id = "nbhd-libby-lake", name = "Libby Lake", councilDistrict = "District 1"),
-        Neighborhood(id = "nbhd-crown-heights", name = "Crown Heights", councilDistrict = "District 2"),
-        Neighborhood(id = "nbhd-eastside", name = "Eastside", councilDistrict = "District 2"),
-        Neighborhood(id = "nbhd-mesa-margarita", name = "Mesa Margarita", councilDistrict = "District 3"),
-        Neighborhood(id = "nbhd-fire-mountain", name = "Fire Mountain", councilDistrict = "District 4"),
+        Neighborhood(
+            id = "nbhd-airport",
+            name = "Airport",
+            councilDistrict = "District 1",
+            boundaryGeoJson = NeighborhoodBoundaries.AIRPORT,
+        ),
+        Neighborhood(
+            id = "nbhd-eastside-capistrano",
+            name = "Eastside Capistrano",
+            councilDistrict = "District 1",
+            boundaryGeoJson = NeighborhoodBoundaries.EASTSIDE_CAPISTRANO,
+        ),
+        Neighborhood(
+            id = "nbhd-fire-mountain",
+            name = "Fire Mountain",
+            councilDistrict = "District 3",
+            boundaryGeoJson = NeighborhoodBoundaries.FIRE_MOUNTAIN,
+        ),
+        Neighborhood(
+            id = "nbhd-guajome",
+            name = "Guajome",
+            councilDistrict = null,
+            boundaryGeoJson = NeighborhoodBoundaries.GUAJOME,
+        ),
+        Neighborhood(
+            id = "nbhd-ivey-ranch-rancho-del-oro",
+            name = "Ivey Ranch Rancho Del Oro",
+            councilDistrict = "District 4",
+            boundaryGeoJson = NeighborhoodBoundaries.IVEY_RANCH_RANCHO_DEL_ORO,
+        ),
+        Neighborhood(
+            id = "nbhd-lake",
+            name = "Lake",
+            councilDistrict = "District 3",
+            boundaryGeoJson = NeighborhoodBoundaries.LAKE,
+        ),
+        Neighborhood(
+            id = "nbhd-loma-alta",
+            name = "Loma Alta",
+            councilDistrict = "District 1",
+            boundaryGeoJson = NeighborhoodBoundaries.LOMA_ALTA,
+        ),
+        Neighborhood(
+            id = "nbhd-mira-costa",
+            name = "Mira Costa",
+            councilDistrict = "District 3",
+            boundaryGeoJson = NeighborhoodBoundaries.MIRA_COSTA,
+        ),
+        Neighborhood(
+            id = "nbhd-morro-hills",
+            name = "Morro Hills",
+            councilDistrict = "District 2",
+            boundaryGeoJson = NeighborhoodBoundaries.MORRO_HILLS,
+        ),
+        Neighborhood(
+            id = "nbhd-north-valley",
+            name = "North Valley",
+            councilDistrict = null,
+            boundaryGeoJson = NeighborhoodBoundaries.NORTH_VALLEY,
+        ),
+        Neighborhood(
+            id = "nbhd-ocean-hills",
+            name = "Ocean Hills",
+            councilDistrict = "District 3",
+            boundaryGeoJson = NeighborhoodBoundaries.OCEAN_HILLS,
+        ),
+        Neighborhood(
+            id = "nbhd-oceana",
+            name = "Oceana",
+            councilDistrict = "District 1",
+            boundaryGeoJson = NeighborhoodBoundaries.OCEANA,
+        ),
+        Neighborhood(
+            id = "nbhd-peacock",
+            name = "Peacock",
+            councilDistrict = "District 4",
+            boundaryGeoJson = NeighborhoodBoundaries.PEACOCK,
+        ),
+        Neighborhood(
+            id = "nbhd-san-luis-rey",
+            name = "San Luis Rey",
+            councilDistrict = null,
+            boundaryGeoJson = NeighborhoodBoundaries.SAN_LUIS_REY,
+        ),
+        Neighborhood(
+            id = "nbhd-south-oceanside",
+            name = "South Oceanside",
+            councilDistrict = "District 3",
+            boundaryGeoJson = NeighborhoodBoundaries.SOUTH_OCEANSIDE,
+        ),
+        Neighborhood(
+            id = "nbhd-townsite",
+            name = "Townsite",
+            councilDistrict = "District 1",
+            boundaryGeoJson = NeighborhoodBoundaries.TOWNSITE,
+        ),
+        Neighborhood(
+            id = "nbhd-tri-city",
+            name = "Tri-City",
+            councilDistrict = "District 3",
+            boundaryGeoJson = NeighborhoodBoundaries.TRI_CITY,
+        ),
     )
 
     /**

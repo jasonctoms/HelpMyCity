@@ -35,7 +35,7 @@ class ReferenceDataSeederTest {
 
     @Test
     fun referenceDataIsWrittenOnFirstRun() = runTest {
-        seeder().seedIfEmpty()
+        seeder().seed()
 
         assertEquals(1, departments.count())
         assertEquals(1, neighborhoods.count())
@@ -43,7 +43,7 @@ class ReferenceDataSeederTest {
 
     @Test
     fun aProfileWithNothingToSeedWritesNothing() = runTest {
-        seeder(CitylessProfile).seedIfEmpty()
+        seeder(CitylessProfile).seed()
 
         assertEquals(0, departments.count())
         assertEquals(0, neighborhoods.count())
@@ -51,11 +51,11 @@ class ReferenceDataSeederTest {
 
     @Test
     fun reseedingChangesNothing() = runTest {
-        seeder().seedIfEmpty()
+        seeder().seed()
         val seededDepartments = departments.observeAll().first()
         val seededNeighborhoods = neighborhoods.observeAll().first()
 
-        seeder().seedIfEmpty()
+        seeder().seed()
 
         assertEquals(seededDepartments, departments.observeAll().first())
         assertEquals(seededNeighborhoods, neighborhoods.observeAll().first())
@@ -68,14 +68,23 @@ class ReferenceDataSeederTest {
      */
     @Test
     fun anEditedReferenceRowSurvivesTheNextStart() = runTest {
-        seeder().seedIfEmpty()
+        seeder().seed()
         val renamed = departments.observeAll().first()
             .single()
             .copy(name = "Streets and Sidewalks")
         departments.upsertAll(listOf(renamed))
 
-        seeder().seedIfEmpty()
+        seeder().seed()
 
         assertEquals(listOf(renamed), departments.observeAll().first())
+    }
+
+    @Test
+    fun neighborhoodsFollowTheProfile() = runTest {
+        neighborhoods.upsertAll(listOf(Neighborhood(id = "nbhd-old", name = "Retired")))
+
+        seeder().seed()
+
+        assertEquals(TestCity.neighborhoods, neighborhoods.observeAll().first())
     }
 }

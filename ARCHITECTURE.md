@@ -92,7 +92,7 @@ shared/src/commonMain/kotlin/dev/helpmycity/
     sync/          outbox-drain sync engine
     auth/          AuthService + mock: accounts, and nothing about permissions
     session/       UserSession: joins the signed-in account to its User record
-    seed/          writes the CityProfile's reference data on first run
+    seed/          writes the CityProfile's reference data at startup
     export/        CSV export (data portability)
   di/              Koin annotations module, dataModule, expect platformModule()
   ui/              theme, navigation, components, screens, view models
@@ -466,5 +466,6 @@ check. `:shared:jsTest` needs a Chrome binary for ChromeHeadless;
   device, because the mock has no list to pull from and this app deliberately
   does not create accounts for other people.
 - **No dashboard charts.** Status, priority and department breakdowns, and the
-  remaining geographic dimensions (census tract, police precinct, boundary
-  overlays) are modelled on `IssueLocation` with nothing filling them in.
+  remaining geographic dimensions (census tract, police precinct) are modelled
+  on `IssueLocation` with nothing filling them in. Neighborhood boundaries are
+  drawn on the map but not used to tag an issue from its pin.

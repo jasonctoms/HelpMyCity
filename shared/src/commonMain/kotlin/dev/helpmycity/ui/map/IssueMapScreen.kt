@@ -63,6 +63,8 @@ import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.switch
 import org.maplibre.compose.interaction.ClickResult
 import org.maplibre.compose.layers.CircleLayer
+import org.maplibre.compose.layers.FillLayer
+import org.maplibre.compose.layers.LineLayer
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.map.rememberMapState
@@ -72,8 +74,14 @@ import org.maplibre.compose.style.BaseStyle
 import org.maplibre.spatialk.geojson.BoundingBox
 import org.maplibre.spatialk.geojson.Feature
 import org.maplibre.spatialk.geojson.FeatureCollection
+import org.maplibre.spatialk.geojson.Geometry
+import org.maplibre.spatialk.geojson.MultiPolygon
 import org.maplibre.spatialk.geojson.Point
+import org.maplibre.spatialk.geojson.Polygon
 import org.maplibre.spatialk.geojson.Position
+
+/** The property every neighborhood outline carries, so a tap resolves to it. */
+private const val PROP_NEIGHBORHOOD_ID = "neighborhoodId"
 
 /** The property every marker carries, so a tap resolves back to a row. */
 private const val PROP_ISSUE_ID = "issueId"
@@ -81,8 +89,17 @@ private const val PROP_ISSUE_ID = "issueId"
 /** Drives the per-status marker color; holds an [IssueStatus.storageKey]. */
 private const val PROP_STATUS = "status"
 
+private const val BOUNDARY_HIT_LAYER_ID = "neighborhood-hit-areas"
+private const val BOUNDARY_FILL_LAYER_ID = "neighborhood-fills"
+private const val BOUNDARY_LINE_LAYER_ID = "neighborhood-outlines"
 private const val MARKER_LAYER_ID = "issue-markers"
 private const val GLYPH_LAYER_ID = "issue-marker-glyphs"
+
+/**
+ * Fixed rather than themed: the basemap is light in both themes, and dark
+ * theme's primary all but vanishes on it. Purple, because no status uses it.
+ */
+private val BOUNDARY_COLOR = Color(0xFF6A3FB5)
 
 private val MARKER_RADIUS = 10.dp
 private val GLYPH_SIZE = DpSize(12.dp, 12.dp)
@@ -132,11 +149,11 @@ fun IssueMapScreen(
         }
         IssueMap(
             issues = state.plotted,
+            neighborhoods = state.neighborhoods,
+            selectedNeighborhoods = state.selectedNeighborhoods,
             settings = viewModel.settings,
-            // Changing the filter is a request to look somewhere else, so it
-            // re-frames; a background sync is not, so it does not.
-            framingKey = state.selectedNeighborhoods,
             onIssueClick = onIssueClick,
+            onNeighborhoodClick = viewModel::toggleNeighborhood,
             modifier = Modifier.weight(1f).fillMaxWidth(),
         )
         MapLegend(
@@ -144,6 +161,7 @@ fun IssueMapScreen(
             matchingCount = state.matchingCount,
             totalCount = total,
             isFiltered = state.selectedNeighborhoods.isNotEmpty(),
+            boundarySource = viewModel.settings.boundarySource,
             clearsFloatingActionButton = clearsFloatingActionButton,
         )
     }
@@ -189,12 +207,18 @@ private fun NeighborhoodFilterRow(
 @Composable
 private fun IssueMap(
     issues: List<Issue>,
+    neighborhoods: List<Neighborhood>,
+    selectedNeighborhoods: Set<String>,
     settings: MapSettings,
-    framingKey: Any,
     onIssueClick: (String) -> Unit,
+    onNeighborhoodClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val features = remember(issues) { issues.toFeatureCollection() }
+    val boundaries = remember(neighborhoods) { neighborhoods.toBoundaryFeatures() }
+    val selectedBoundaries = remember(boundaries, selectedNeighborhoods) {
+        FeatureCollection(boundaries.features.filter { it.neighborhoodId() in selectedNeighborhoods })
+    }
     val markerColor = remember {
         switch(
             feature[PROP_STATUS].asString(),
@@ -221,6 +245,36 @@ private fun IssueMap(
             zoom = if (settings.center != null) settings.defaultZoom else WORLD_ZOOM,
         ),
     ) {
+        // Declared first so it draws under the markers, which also puts it
+        // after them for clicks: a tap on a marker opens the issue instead.
+        val boundarySource = rememberGeoJsonSource(data = GeoJsonData.Features(boundaries))
+        FillLayer(
+            id = BOUNDARY_HIT_LAYER_ID,
+            source = boundarySource,
+            opacity = const(0f),
+            onClick = { clicked ->
+                val neighborhoodId = clicked.firstNotNullOfOrNull { it.neighborhoodId() }
+                if (neighborhoodId == null) {
+                    ClickResult.Pass
+                } else {
+                    onNeighborhoodClick(neighborhoodId)
+                    ClickResult.Consume
+                }
+            },
+        )
+        FillLayer(
+            id = BOUNDARY_FILL_LAYER_ID,
+            source = rememberGeoJsonSource(data = GeoJsonData.Features(selectedBoundaries)),
+            color = const(BOUNDARY_COLOR),
+            opacity = const(0.12f),
+        )
+        LineLayer(
+            id = BOUNDARY_LINE_LAYER_ID,
+            source = boundarySource,
+            color = const(BOUNDARY_COLOR),
+            opacity = const(0.7f),
+            width = const(1.5.dp),
+        )
         val source = rememberGeoJsonSource(data = GeoJsonData.Features(features))
         CircleLayer(
             id = MARKER_LAYER_ID,
@@ -250,13 +304,17 @@ private fun IssueMap(
         )
     }
 
-    // Frame the issues once they arrive, then leave the camera alone until
-    // [framingKey] changes: re-framing on every sync would yank the map away
-    // from whoever is panning it.
-    var hasFramed by remember(framingKey) { mutableStateOf(false) }
-    LaunchedEffect(issues, framingKey) {
+    // Frame the selection once there is something to frame, then leave the
+    // camera alone until the selection changes: re-framing on every sync would
+    // yank the map away from whoever is panning it. A selection frames its
+    // whole area, and no selection the whole city, not just the issues, which
+    // may be a few pins a block apart or none at all.
+    val framedArea = if (selectedNeighborhoods.isEmpty()) boundaries else selectedBoundaries
+    var hasFramed by remember(selectedNeighborhoods) { mutableStateOf(false) }
+    LaunchedEffect(issues, framedArea) {
         if (hasFramed) return@LaunchedEffect
-        val box = issues.boundingBox() ?: return@LaunchedEffect
+        val box = (issues.mapNotNull { it.location.point?.toPosition() } + framedArea.outerRings())
+            .boundingBox() ?: return@LaunchedEffect
         hasFramed = true
         mapState.fitCameraToBounds(boundingBox = box, padding = FRAMING_PADDING)
     }
@@ -281,6 +339,7 @@ private fun MapLegend(
     matchingCount: Int,
     totalCount: Int,
     isFiltered: Boolean,
+    boundarySource: String?,
     clearsFloatingActionButton: Boolean,
 ) {
     val legendTitle = stringResource(Res.string.map_legend_title)
@@ -328,6 +387,14 @@ private fun MapLegend(
             ) {
                 IssueStatus.boardOrder.forEach { LegendItem(it) }
             }
+            if (boundarySource != null) {
+                Text(
+                    text = boundarySource,
+                    modifier = Modifier.padding(end = if (clearsFloatingActionButton) FAB_INSET else 0.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
@@ -360,6 +427,9 @@ private fun GeoPoint.toPosition(): Position = Position(longitude = longitude, la
 private fun Feature<*, JsonObject?>.issueId(): String? =
     properties?.get(PROP_ISSUE_ID)?.jsonPrimitive?.contentOrNull
 
+private fun Feature<*, JsonObject?>.neighborhoodId(): String? =
+    properties?.get(PROP_NEIGHBORHOOD_ID)?.jsonPrimitive?.contentOrNull
+
 /** One point feature per issue, carrying only what the style and a tap need. */
 private fun List<Issue>.toFeatureCollection(): FeatureCollection<Point, JsonObject> =
     FeatureCollection(
@@ -377,14 +447,40 @@ private fun List<Issue>.toFeatureCollection(): FeatureCollection<Point, JsonObje
         }
     )
 
-/** The tightest box containing every issue, or null when there are none. */
-private fun List<Issue>.boundingBox(): BoundingBox? {
-    val points = mapNotNull { it.location.point }
-    if (points.isEmpty()) return null
+/**
+ * Every neighborhood with a boundary, as one feature each. A boundary that
+ * does not parse as GeoJSON is left off rather than failing the map.
+ */
+private fun List<Neighborhood>.toBoundaryFeatures(): FeatureCollection<Geometry, JsonObject?> =
+    FeatureCollection(
+        mapNotNull { neighborhood ->
+            neighborhood.boundaryGeoJson
+                ?.let(Geometry::fromJsonOrNull)
+                ?.let { boundary ->
+                    Feature(
+                        geometry = boundary,
+                        properties = JsonObject(mapOf(PROP_NEIGHBORHOOD_ID to JsonPrimitive(neighborhood.id))),
+                    )
+                }
+        }
+    )
+
+/** Every vertex on the outside of each polygon; the holes are inside anyway. */
+private fun FeatureCollection<Geometry, *>.outerRings(): List<Position> = features.flatMap { feature ->
+    when (val geometry = feature.geometry) {
+        is Polygon -> geometry.coordinates.firstOrNull().orEmpty()
+        is MultiPolygon -> geometry.coordinates.flatMap { it.firstOrNull().orEmpty() }
+        else -> emptyList()
+    }
+}
+
+/** The tightest box containing every position, or null when there are none. */
+private fun List<Position>.boundingBox(): BoundingBox? {
+    if (isEmpty()) return null
     return BoundingBox(
-        west = points.minOf { it.longitude },
-        south = points.minOf { it.latitude },
-        east = points.maxOf { it.longitude },
-        north = points.maxOf { it.latitude },
+        west = minOf { it.longitude },
+        south = minOf { it.latitude },
+        east = maxOf { it.longitude },
+        north = maxOf { it.latitude },
     )
 }

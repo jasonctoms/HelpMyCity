@@ -101,12 +101,52 @@ district it sits in.
 
 **Ids are permanent.** Department and neighborhood ids are stored on every issue
 and merged against on a later backend pull. Pick stable, readable ones
-(`dept-public-works`, `nbhd-libby-lake`) and do not renumber them afterwards.
+(`dept-public-works`, `nbhd-townsite`) and do not renumber them afterwards.
 
 **Council districts come from neighborhoods.** There is no separate list: each
 `Neighborhood` names its `councilDistrict`, and an issue's district is derived
 from its neighborhood at submission. A manager can then be scoped to a district
-without anyone tagging reports with one.
+without anyone tagging reports with one. Where a neighborhood straddles
+districts, leave `councilDistrict` null rather than guessing: issues there carry
+no district, which a citywide manager still sees.
+
+**Neighborhoods follow the profile.** Departments are written into the local
+store once, so an admin's edits survive. Neighborhoods have no editor, so every
+start replaces them with the profile's list: rename, add or retire one and
+installs pick it up with the next release.
+
+### Neighborhood boundaries
+
+Give each `Neighborhood` a `boundaryGeoJson` and the map outlines it, lets a
+tap inside it select it, shades the selected ones and frames their whole area
+rather than just their pins. The value is a GeoJSON geometry — a
+`Polygon` or `MultiPolygon`, not a `Feature` — in longitude/latitude (WGS 84).
+Leave it null and the neighborhood is simply not drawn; one that does not parse
+is skipped rather than breaking the map.
+
+Most cities publish their neighborhood or planning-area polygons on an ArcGIS
+server, and any ArcGIS layer will hand them over in the right shape.
+Oceanside's came from this query, which reprojects to WGS 84, simplifies to
+about 5 m and rounds to five decimal places, which keeps all 17 areas to about
+13 KB:
+
+```
+https://gis.oceansideca.org/gis/rest/services/WebService/Residential_Neighborhood/MapServer/3/query
+    ?where=1%3D1&outFields=Name&outSR=4326&maxAllowableOffset=0.00005&geometryPrecision=5&f=geojson
+```
+
+Take each feature's `geometry` object, as-is, and keep the strings out of the
+profile itself:
+[`NeighborhoodBoundaries.kt`](./cityConfig/src/commonMain/kotlin/dev/helpmycity/cityconfig/NeighborhoodBoundaries.kt)
+holds one constant per neighborhood, and the profile points at them. They ship
+in the app, so the map never depends on the city's server being up.
+
+Then say where they came from, in `MapSettings.boundarySource`
+([step 5](#5-the-map)). Official GIS data is usually public but rarely comes
+with a stated license, so check the terms, or ask the city's GIS team, before a
+public deployment uses it. The same layer is a good way to set
+`councilDistrict`: overlay it on the city's district map and see which
+neighborhoods fall inside a single district.
 
 **The backend holds the same lists.** Issues refer to departments and
 neighborhoods by id, so whatever stores issues needs matching rows — on Supabase,
@@ -133,6 +173,10 @@ default, which puts it on a light plate.
 `MapSettings` takes the point the camera opens on, the zoom it opens at, and a
 basemap style URL. Center it on your downtown and pick a zoom that shows most of
 the city.
+
+If your neighborhoods have boundaries ([step 3](#neighborhood-boundaries)),
+set `boundarySource` to a line naming where they came from. It is shown under
+the map, next to the legend.
 
 The default basemap is [OpenFreeMap](https://openfreemap.org/): real
 OpenStreetMap detail, no key, no signup. It is donation-funded, so a deployment
@@ -313,6 +357,7 @@ and `ui/Labels.kt` routes them. No code changes.
 - [ ] Departments and neighborhoods matched by rows in the backend
 - [ ] Branding images hosted somewhere that sends CORS headers
 - [ ] Map center, zoom, and a basemap you are willing to depend on
+- [ ] Neighborhood boundaries, if any, credited in `boundarySource`
 - [ ] Geocoder chosen, or deliberately left off
 - [ ] `CityRequestGateway` pointed at the city's portal, or removed
 - [ ] Backend decided; access rules restated wherever the data lives
