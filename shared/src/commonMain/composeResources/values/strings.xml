@@ -157,6 +157,7 @@
     <string name="detail_history">History</string>
     <string name="detail_change_status">Change status</string>
     <string name="detail_support">Same problem here</string>
+    <string name="detail_supported">You reported this too</string>
     <plurals name="detail_support_count">
         <item quantity="one">%1$d resident reported this too</item>
         <item quantity="other">%1$d residents reported this too</item>
@@ -197,6 +198,8 @@
     <string name="sync_no_backend">Offline mode: no backend is connected yet, so changes stay on this device.</string>
     <string name="sync_synced">Synced</string>
     <string name="sync_failed">Sync failed: %1$s</string>
+    <string name="sync_now">Sync now</string>
+    <string name="sync_status">Sync status</string>
     <plurals name="sync_pending">
         <item quantity="one">%1$d change waiting to sync</item>
         <item quantity="other">%1$d changes waiting to sync</item>

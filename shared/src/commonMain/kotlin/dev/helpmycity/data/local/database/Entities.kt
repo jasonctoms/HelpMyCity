@@ -118,6 +118,23 @@ class IssuePhotoEntity(
     @ColumnInfo(name = "remote_version") val remoteVersion: String?,
 )
 
+/**
+ * Storage shape for [dev.helpmycity.domain.model.IssueSupport]. No foreign key:
+ * a pulled star can arrive before the issue it belongs to, and a star on an
+ * issue that is gone is harmless.
+ */
+@Entity(
+    tableName = "issue_supports",
+    primaryKeys = ["issue_id", "user_id"],
+    indices = [Index("user_id"), Index("sync_state")],
+)
+data class IssueSupportEntity(
+    @ColumnInfo(name = "issue_id") val issueId: String,
+    @ColumnInfo(name = "user_id") val userId: String,
+    @ColumnInfo(name = "created_at") val createdAtMillis: Long,
+    @ColumnInfo(name = "sync_state") val syncState: String,
+)
+
 @Entity(
     tableName = "issue_status_changes",
     foreignKeys = [

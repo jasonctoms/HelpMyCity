@@ -66,7 +66,10 @@ class DefaultSyncEngine(
             combine(
                 localDataSource.observeAll(),
                 localDataSource.observePendingPhotoCount(),
-            ) { issues, pendingPhotos -> issues.count { it.sync.state != SyncState.SYNCED } + pendingPhotos }
+                localDataSource.observePendingSupportCount(),
+            ) { issues, pendingPhotos, pendingSupports ->
+                issues.count { it.sync.state != SyncState.SYNCED } + pendingPhotos + pendingSupports
+            }
                 .distinctUntilChanged()
                 // A manager editing a form produces a burst of writes; sync once at the end of it.
                 .debounce(SYNC_DEBOUNCE_MILLIS)
@@ -120,6 +123,22 @@ class DefaultSyncEngine(
             }
         }
 
+        // After the issues, so a star on a report filed offline finds its issue.
+        val pendingSupports = localDataSource.pendingSupports()
+        var supported = 0
+        for (support in pendingSupports) {
+            when (val ack = backend.pushSupport(support)) {
+                is RemoteResult.Success -> {
+                    localDataSource.markSupportSynced(support)
+                    supported++
+                }
+
+                RemoteResult.NotConfigured -> return SyncStatus.NoBackend
+                is RemoteResult.Failure ->
+                    return SyncStatus.Failed(ack.message, pendingSupports.size - supported)
+            }
+        }
+
         val pendingPhotos = localDataSource.pendingPhotos()
         var uploaded = 0
         for (photo in pendingPhotos) {
@@ -141,6 +160,12 @@ class DefaultSyncEngine(
                 remote.value.size
             }
 
+            RemoteResult.NotConfigured -> return SyncStatus.NoBackend
+            is RemoteResult.Failure -> return SyncStatus.Failed(remote.message, 0)
+        }
+
+        when (val remote = backend.fetchOwnSupports()) {
+            is RemoteResult.Success -> localDataSource.mergeRemoteSupports(remote.value)
             RemoteResult.NotConfigured -> return SyncStatus.NoBackend
             is RemoteResult.Failure -> return SyncStatus.Failed(remote.message, 0)
         }

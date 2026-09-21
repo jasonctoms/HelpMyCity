@@ -23,7 +23,7 @@ import org.koin.core.annotation.KoinViewModel
 class SessionViewModel(
     session: UserSession,
     private val authService: AuthService,
-    syncEngine: SyncEngine,
+    private val syncEngine: SyncEngine,
     bootstrapper: AppBootstrapper,
 ) : ViewModel() {
 
@@ -32,6 +32,10 @@ class SessionViewModel(
 
     init {
         bootstrapper.start(viewModelScope)
+    }
+
+    fun syncNow() {
+        viewModelScope.launch { syncEngine.syncNow() }
     }
 
     fun signOut() {

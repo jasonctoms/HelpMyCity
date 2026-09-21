@@ -4,6 +4,7 @@ import dev.helpmycity.domain.model.Department
 import dev.helpmycity.domain.model.Issue
 import dev.helpmycity.domain.model.IssuePhoto
 import dev.helpmycity.domain.model.IssueStatusChange
+import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.Neighborhood
 import dev.helpmycity.domain.model.SyncState
 import dev.helpmycity.domain.model.User
@@ -49,6 +50,21 @@ interface IssueLocalDataSource {
      * photo whose issue is not stored here is skipped rather than orphaned.
      */
     suspend fun mergeRemotePhotos(photos: List<IssuePhoto>)
+    fun observeSupportedIssueIds(userId: String): Flow<Set<String>>
+
+    /**
+     * Records the star and counts it on the local issue straight away, so the
+     * tally moves before the backend has heard about it. False, and nothing
+     * written, when this user had already starred the issue.
+     */
+    suspend fun addSupport(support: IssueSupport): Boolean
+    suspend fun pendingSupports(): List<IssueSupport>
+    fun observePendingSupportCount(): Flow<Int>
+    suspend fun markSupportSynced(support: IssueSupport)
+
+    /** Stars the backend holds, stored as synced. Counts are left to the pulled issues. */
+    suspend fun mergeRemoteSupports(supports: List<IssueSupport>)
+
     suspend fun markSynced(issueId: String, syncedAtMillis: Long, remoteVersion: String?)
     suspend fun markSyncState(issueId: String, state: SyncState)
     suspend fun count(): Int

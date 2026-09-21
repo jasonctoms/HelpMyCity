@@ -41,7 +41,7 @@ import dev.helpmycity.ui.admin.AdminUserScreen
 import dev.helpmycity.ui.admin.AdminUsersScreen
 import dev.helpmycity.ui.auth.SignInScreen
 import dev.helpmycity.ui.components.CityHeader
-import dev.helpmycity.ui.components.SyncBanner
+import dev.helpmycity.ui.components.SyncIndicator
 import dev.helpmycity.ui.issues.EditIssueScreen
 import dev.helpmycity.ui.issues.IssueBoardScreen
 import dev.helpmycity.ui.issues.IssueDetailScreen
@@ -174,6 +174,7 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                     } else {
                         null
                     },
+                    status = { SyncIndicator(syncStatus, onSyncNow = session::syncNow) },
                 )
             },
             bottomBar = {
@@ -211,7 +212,6 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
             },
         ) { innerPadding ->
             Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                SyncBanner(syncStatus)
                 Box(modifier = Modifier.fillMaxSize()) {
                     NavDisplay(
                         backStack = backStack,

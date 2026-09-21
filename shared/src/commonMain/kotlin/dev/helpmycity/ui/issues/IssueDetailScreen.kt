@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -69,6 +70,7 @@ import helpmycity.shared.generated.resources.detail_reported_by
 import helpmycity.shared.generated.resources.detail_reported_on
 import helpmycity.shared.generated.resources.detail_requested_action
 import helpmycity.shared.generated.resources.detail_support
+import helpmycity.shared.generated.resources.detail_supported
 import helpmycity.shared.generated.resources.detail_support_count
 import helpmycity.shared.generated.resources.ic_star
 import helpmycity.shared.generated.resources.external_last_checked
@@ -198,7 +200,12 @@ fun IssueDetailScreen(
             }
         }
 
-        SupportButton(count = issue.supportCount, onClick = viewModel::addSupport)
+        SupportButton(
+            count = issue.supportCount,
+            supported = state.hasSupported,
+            enabled = state.canSupport && !state.hasSupported,
+            onClick = viewModel::addSupport,
+        )
 
         if (state.canReview) {
             HorizontalDivider()
@@ -536,11 +543,22 @@ private fun HistoryRow(entry: IssueStatusChange) {
  * read a star, so it gets the action spelled out.
  */
 @Composable
-private fun SupportButton(count: Int, onClick: () -> Unit) {
-    val action = stringResource(Res.string.detail_support)
+private fun SupportButton(count: Int, supported: Boolean, enabled: Boolean, onClick: () -> Unit) {
+    val action = stringResource(if (supported) Res.string.detail_supported else Res.string.detail_support)
     val tally = pluralStringResource(Res.plurals.detail_support_count, count, count)
     OutlinedButton(
         onClick = onClick,
+        enabled = enabled,
+        // Disabled would grey out the one state worth showing off, so a starred
+        // button keeps the accent colour.
+        colors = if (supported) {
+            ButtonDefaults.outlinedButtonColors(
+                disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        } else {
+            ButtonDefaults.outlinedButtonColors()
+        },
         modifier = Modifier.semantics { contentDescription = "$action. $tally" },
     ) {
         Icon(

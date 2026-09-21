@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -159,12 +160,43 @@ class DefaultIssueRepositoryTest {
         val id = repository.submitIssue(draft)
         local.markSynced(id, syncedAtMillis = 1_500L, remoteVersion = "v1")
 
-        repository.addSupport(id)
+        repository.updateIssue(assertNotNull(local.getById(id)).copy(title = "Street light still out"))
 
         val issue = assertNotNull(local.getById(id))
-        assertEquals(1, issue.supportCount)
         assertEquals(SyncState.PENDING_UPLOAD, issue.sync.state)
         assertTrue(local.pendingSync().any { it.id == id })
+    }
+
+    /**
+     * A resident may not change someone else's issue, so a star must travel as
+     * its own row -- pushing the issue would be refused by the backend.
+     */
+    @Test
+    fun aStarCountsOncePerUserAndLeavesTheIssueOutOfTheOutbox() = runTest {
+        val (repository, local) = repository()
+        val id = repository.submitIssue(draft)
+        local.markSynced(id, syncedAtMillis = 1_500L, remoteVersion = "v1")
+        session.signedInAs(resident)
+
+        assertTrue(repository.addSupport(id))
+        assertFalse(repository.addSupport(id))
+        session.signedInAs(otherResident)
+        assertTrue(repository.addSupport(id))
+
+        val issue = assertNotNull(local.getById(id))
+        assertEquals(2, issue.supportCount)
+        assertEquals(SyncState.SYNCED, issue.sync.state)
+        assertEquals(listOf(resident.id, otherResident.id), local.pendingSupports().map { it.userId })
+        assertEquals(setOf(id), repository.observeSupportedIssueIds().first())
+    }
+
+    @Test
+    fun nobodySignedInCannotStar() = runTest {
+        val (repository, local) = repository()
+        val id = repository.submitIssue(draft)
+
+        assertFalse(repository.addSupport(id))
+        assertEquals(0, assertNotNull(local.getById(id)).supportCount)
     }
     @Test
     fun photosAreStoredAgainstTheirIssueAndQueuedForUpload() = runTest {

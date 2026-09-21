@@ -13,6 +13,7 @@ import dev.helpmycity.domain.model.IssuePriority
 import dev.helpmycity.domain.model.IssueReview
 import dev.helpmycity.domain.model.IssueStatus
 import dev.helpmycity.domain.model.IssueStatusChange
+import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.ManagerScope
 import dev.helpmycity.domain.model.Neighborhood
 import dev.helpmycity.domain.model.ReporterContact
@@ -170,6 +171,20 @@ internal fun IssuePhoto.toEntity(): IssuePhotoEntity = IssuePhotoEntity(
     syncState = sync.state.storageKey,
     lastSyncedAtMillis = sync.lastSyncedAtMillis,
     remoteVersion = sync.remoteVersion,
+)
+
+internal fun IssueSupportEntity.toDomain(): IssueSupport = IssueSupport(
+    issueId = issueId,
+    userId = userId,
+    createdAtMillis = createdAtMillis,
+    syncState = SyncState.fromStorageKey(syncState),
+)
+
+internal fun IssueSupport.toEntity(): IssueSupportEntity = IssueSupportEntity(
+    issueId = issueId,
+    userId = userId,
+    createdAtMillis = createdAtMillis,
+    syncState = syncState.storageKey,
 )
 
 internal fun IssueStatusChangeEntity.toDomain(): IssueStatusChange = IssueStatusChange(

@@ -12,6 +12,7 @@ import dev.helpmycity.domain.model.IssuePriority
 import dev.helpmycity.domain.model.IssueReview
 import dev.helpmycity.domain.model.IssueStatus
 import dev.helpmycity.domain.model.IssueStatusChange
+import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.Neighborhood
 import dev.helpmycity.domain.model.ReporterContact
 import dev.helpmycity.domain.model.ReviewState
@@ -76,6 +77,13 @@ internal data class StatusChangeRow(
     @SerialName("changed_by_user_id") val changedByUserId: String? = null,
     @SerialName("changed_by_display_name") val changedByDisplayName: String? = null,
     @SerialName("changed_at_millis") val changedAtMillis: Long,
+)
+
+@Serializable
+internal data class SupportRow(
+    @SerialName("issue_id") val issueId: String,
+    @SerialName("user_id") val userId: String,
+    @SerialName("created_at_millis") val createdAtMillis: Long,
 )
 
 /**
@@ -170,6 +178,12 @@ internal fun IssueStatusChange.toRow(): StatusChangeRow = StatusChangeRow(
     changedAtMillis = changedAtMillis,
 )
 
+internal fun IssueSupport.toRow(): SupportRow = SupportRow(
+    issueId = issueId,
+    userId = userId,
+    createdAtMillis = createdAtMillis,
+)
+
 // --- row -> domain -------------------------------------------------------
 //
 // A row that came back from the backend is by definition agreed with it, so
@@ -218,6 +232,13 @@ internal fun EditRow.toIssueEdit(): IssueEdit = IssueEdit(
     revision = revision,
     // An unknown key is a row written by a newer build; drop it rather than crash.
     fields = fields.mapNotNull { EditableField.fromStorageKeyOrNull(it) }.toSet(),
+)
+
+internal fun SupportRow.toIssueSupport(): IssueSupport = IssueSupport(
+    issueId = issueId,
+    userId = userId,
+    createdAtMillis = createdAtMillis,
+    syncState = SyncState.SYNCED,
 )
 
 internal fun StoredPhotoRow.toIssuePhoto(publicUrl: String): IssuePhoto = IssuePhoto(

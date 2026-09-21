@@ -12,6 +12,7 @@ import dev.helpmycity.domain.model.IssueLocation
 import dev.helpmycity.domain.model.IssuePhoto
 import dev.helpmycity.domain.model.IssueReview
 import dev.helpmycity.domain.model.IssueStatusChange
+import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.SyncMetadata
 import dev.helpmycity.domain.model.SyncState
 import dev.helpmycity.domain.model.IssueCategory
@@ -202,6 +203,51 @@ class DefaultSyncEngineTest {
         assertEquals(1, local.pendingPhotos().size)
     }
 
+    @Test
+    fun aStarIsPushedOnItsOwnAndStarsFromOtherDevicesArePulled() = runTest {
+        val local = InMemoryIssueLocalDataSource()
+        local.upsert(issue("starred").copy(sync = SyncMetadata(state = SyncState.SYNCED)))
+        local.addSupport(IssueSupport("starred", "user-1", createdAtMillis = 2L))
+        val fromElsewhere = IssueSupport("elsewhere", "user-1", createdAtMillis = 3L)
+        val backend = StarBackend(fromElsewhere)
+        val engine = DefaultSyncEngine(local, backend, AcceptingPhotoBackend(), time)
+
+        assertIs<SyncStatus.Synced>(engine.syncNow())
+
+        assertEquals(listOf("starred"), backend.pushedSupports.map { it.issueId })
+        assertTrue(backend.pushedIssues.isEmpty())
+        assertTrue(local.pendingSupports().isEmpty())
+        assertEquals(setOf("starred", "elsewhere"), local.observeSupportedIssueIds("user-1").first())
+    }
+
+    /** Accepts stars, holds [remote] as the caller's own, and records what was pushed. */
+    private class StarBackend(private vararg val remote: IssueSupport) : IssueBackendApi {
+        val pushedIssues = mutableListOf<String>()
+        val pushedSupports = mutableListOf<IssueSupport>()
+
+        override suspend fun fetchIssuesChangedSince(sinceMillis: Long?): RemoteResult<List<Issue>> =
+            RemoteResult.Success(emptyList())
+
+        override suspend fun pushIssue(issue: Issue): RemoteResult<RemoteAck> {
+            pushedIssues += issue.id
+            return RemoteResult.Success(RemoteAck(issue.id, "v1", acknowledgedAtMillis = 5_000L))
+        }
+
+        override suspend fun pushStatusChange(change: IssueStatusChange): RemoteResult<RemoteAck> =
+            RemoteResult.Success(RemoteAck(change.id, "v1", acknowledgedAtMillis = 5_000L))
+
+        override suspend fun deleteIssue(issueId: String): RemoteResult<Unit> =
+            RemoteResult.Success(Unit)
+
+        override suspend fun pushSupport(support: IssueSupport): RemoteResult<Unit> {
+            pushedSupports += support
+            return RemoteResult.Success(Unit)
+        }
+
+        override suspend fun fetchOwnSupports(): RemoteResult<List<IssueSupport>> =
+            RemoteResult.Success(remote.toList())
+    }
+
     /** A backend that already holds rows, and counts how often it is read. */
     private class PopulatedBackend(private vararg val remote: Issue) : IssueBackendApi {
         var fetchCount: Int = 0
@@ -220,6 +266,12 @@ class DefaultSyncEngineTest {
 
         override suspend fun deleteIssue(issueId: String): RemoteResult<Unit> =
             RemoteResult.Success(Unit)
+
+        override suspend fun pushSupport(support: IssueSupport): RemoteResult<Unit> =
+            RemoteResult.Success(Unit)
+
+        override suspend fun fetchOwnSupports(): RemoteResult<List<IssueSupport>> =
+            RemoteResult.Success(emptyList())
     }
 
     private class AcceptingBackend : IssueBackendApi {
@@ -234,6 +286,12 @@ class DefaultSyncEngineTest {
 
         override suspend fun deleteIssue(issueId: String): RemoteResult<Unit> =
             RemoteResult.Success(Unit)
+
+        override suspend fun pushSupport(support: IssueSupport): RemoteResult<Unit> =
+            RemoteResult.Success(Unit)
+
+        override suspend fun fetchOwnSupports(): RemoteResult<List<IssueSupport>> =
+            RemoteResult.Success(emptyList())
     }
 
     private class RejectingBackend(private val retryable: Boolean) : IssueBackendApi {
@@ -247,6 +305,8 @@ class DefaultSyncEngineTest {
             failure
 
         override suspend fun deleteIssue(issueId: String): RemoteResult<Unit> = failure
+        override suspend fun pushSupport(support: IssueSupport): RemoteResult<Unit> = failure
+        override suspend fun fetchOwnSupports(): RemoteResult<List<IssueSupport>> = failure
     }
 
     /** Accepts every upload, and already holds [remote]. */

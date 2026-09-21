@@ -197,6 +197,78 @@ create policy "reviewers may append history"
     on issue_status_changes for insert with check (is_reviewer());
 
 -- ---------------------------------------------------------------------------
+-- Stars. One row per (issue, user), which is what holds a user to one star per
+-- issue. `issues.support_count` is the tally of these rows, kept by the
+-- triggers below; nothing a client sends can set it.
+--
+-- Like the photo section, this can be re-run on its own against a project that
+-- predates it.
+-- ---------------------------------------------------------------------------
+
+create table if not exists issue_supports (
+    issue_id          text not null references issues (id) on delete cascade,
+    user_id           uuid not null default auth.uid() references auth.users (id) on delete cascade,
+    created_at_millis bigint not null,
+    primary key (issue_id, user_id)
+);
+
+create index if not exists issue_supports_user_id_idx on issue_supports (user_id);
+
+alter table issue_supports enable row level security;
+
+drop policy if exists "read own stars" on issue_supports;
+create policy "read own stars"
+    on issue_supports for select using (user_id = auth.uid());
+
+-- Insert only. The client pushes with `ignoreDuplicates`, so a second star from
+-- the same user is a no-op rather than an update.
+drop policy if exists "star readable issues" on issue_supports;
+create policy "star readable issues"
+    on issue_supports for insert with check (
+        user_id = auth.uid()
+        and exists (
+            select 1 from issues i
+            where i.id = issue_id
+              and (i.review_state = 'approved' or i.submitted_by_user_id = auth.uid() or is_reviewer())
+        )
+    );
+
+-- Security definer, because the person starring usually may not update the
+-- issue. Moving `updated_at_millis` is what lets other devices' incremental
+-- pulls see the new count.
+create or replace function count_issue_support() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+    update public.issues
+       set support_count = support_count + 1,
+           updated_at_millis = greatest(updated_at_millis + 1, (extract(epoch from now()) * 1000)::bigint)
+     where id = new.issue_id;
+    return new;
+end
+$$;
+
+drop trigger if exists count_issue_support on issue_supports;
+create trigger count_issue_support after insert on issue_supports
+    for each row execute function count_issue_support();
+
+-- A pushed issue carries whatever count its device last saw, so an API caller's
+-- value is ignored: a new report starts at zero and an edit keeps the stored
+-- count. The trigger above and the demo seed run as the owner and pass through.
+create or replace function keep_support_count() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+    if current_user in ('anon', 'authenticated') then
+        new.support_count := case when tg_op = 'INSERT' then 0 else old.support_count end;
+    end if;
+    return new;
+end
+$$;
+
+drop trigger if exists keep_support_count on issues;
+create trigger keep_support_count before insert or update on issues
+    for each row execute function keep_support_count();
+
+-- ---------------------------------------------------------------------------
 -- Photos. The bytes live in a public-read bucket, keyed `<issue id>/<photo id>`
 -- so a replayed upload overwrites itself instead of duplicating; `issue_photos`
 -- is how other devices find them.

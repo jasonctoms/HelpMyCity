@@ -1,6 +1,8 @@
 package dev.helpmycity.data.local.database
 
 import androidx.room3.Dao
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import androidx.room3.Upsert
 import kotlinx.coroutines.flow.Flow
@@ -101,6 +103,28 @@ interface IssueDao {
 
     @Query("SELECT * FROM issue_status_changes WHERE sync_state != 'synced' ORDER BY changed_at ASC")
     suspend fun pendingStatusChanges(): List<IssueStatusChangeEntity>
+
+    @Query("SELECT issue_id FROM issue_supports WHERE user_id = :userId")
+    fun observeSupportedIssueIds(userId: String): Flow<List<String>>
+
+    /** -1 when this user has already starred the issue. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertSupport(support: IssueSupportEntity): Long
+
+    @Query("UPDATE issues SET support_count = support_count + 1 WHERE id = :issueId")
+    suspend fun incrementSupportCount(issueId: String)
+
+    @Upsert
+    suspend fun upsertSupports(supports: List<IssueSupportEntity>)
+
+    @Query("SELECT * FROM issue_supports WHERE sync_state != 'synced' ORDER BY created_at ASC")
+    suspend fun pendingSupports(): List<IssueSupportEntity>
+
+    @Query("SELECT COUNT(*) FROM issue_supports WHERE sync_state != 'synced'")
+    fun observePendingSupportCount(): Flow<Int>
+
+    @Query("UPDATE issue_supports SET sync_state = 'synced' WHERE issue_id = :issueId AND user_id = :userId")
+    suspend fun markSupportSynced(issueId: String, userId: String)
 }
 
 @Dao

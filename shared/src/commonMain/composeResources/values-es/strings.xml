@@ -157,6 +157,7 @@
     <string name="detail_history">Historial</string>
     <string name="detail_change_status">Cambiar el estado</string>
     <string name="detail_support">A mí también me pasa</string>
+    <string name="detail_supported">Tú también lo reportaste</string>
     <plurals name="detail_support_count">
         <item quantity="one">%1$d residente reportó lo mismo</item>
         <item quantity="other">%1$d residentes reportaron lo mismo</item>
@@ -197,6 +198,8 @@
     <string name="sync_no_backend">Modo sin conexión: aún no hay servidor conectado, así que los cambios quedan en este dispositivo.</string>
     <string name="sync_synced">Sincronizado</string>
     <string name="sync_failed">Falló la sincronización: %1$s</string>
+    <string name="sync_now">Sincronizar ahora</string>
+    <string name="sync_status">Estado de sincronización</string>
     <plurals name="sync_pending">
         <item quantity="one">%1$d cambio pendiente de sincronizar</item>
         <item quantity="other">%1$d cambios pendientes de sincronizar</item>

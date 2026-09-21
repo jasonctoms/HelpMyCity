@@ -11,6 +11,7 @@ import dev.helpmycity.domain.model.Department
 import dev.helpmycity.domain.model.Issue
 import dev.helpmycity.domain.model.IssuePhoto
 import dev.helpmycity.domain.model.IssueStatusChange
+import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.Neighborhood
 import dev.helpmycity.domain.model.SyncState
 import dev.helpmycity.domain.model.User
@@ -104,6 +105,26 @@ internal class RoomIssueLocalDataSource(database: HelpMyCityDatabase) : IssueLoc
 
     override suspend fun pendingStatusChanges(): List<IssueStatusChange> =
         dao.pendingStatusChanges().map(IssueStatusChangeEntity::toDomain)
+
+    override fun observeSupportedIssueIds(userId: String): Flow<Set<String>> =
+        dao.observeSupportedIssueIds(userId).map { it.toSet() }
+
+    override suspend fun addSupport(support: IssueSupport): Boolean {
+        if (dao.insertSupport(support.toEntity()) == -1L) return false
+        dao.incrementSupportCount(support.issueId)
+        return true
+    }
+
+    override suspend fun pendingSupports(): List<IssueSupport> =
+        dao.pendingSupports().map(IssueSupportEntity::toDomain)
+
+    override fun observePendingSupportCount(): Flow<Int> = dao.observePendingSupportCount()
+
+    override suspend fun markSupportSynced(support: IssueSupport) =
+        dao.markSupportSynced(support.issueId, support.userId)
+
+    override suspend fun mergeRemoteSupports(supports: List<IssueSupport>) =
+        dao.upsertSupports(supports.map { it.copy(syncState = SyncState.SYNCED).toEntity() })
 
     override suspend fun markSynced(issueId: String, syncedAtMillis: Long, remoteVersion: String?) =
         dao.markSynced(issueId, syncedAtMillis, remoteVersion)

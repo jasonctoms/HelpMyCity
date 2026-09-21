@@ -38,6 +38,10 @@ data class IssueDetailUiState(
     val canReview: Boolean = false,
     /** This viewer filed it, which is why they can see it before it is approved. */
     val isSubmitter: Boolean = false,
+    /** This viewer has starred it; a second star would not count. */
+    val hasSupported: Boolean = false,
+    /** Signed in, as anyone -- a star has to belong to someone. */
+    val canSupport: Boolean = false,
     val isLoaded: Boolean = false,
 )
 
@@ -89,11 +93,14 @@ class IssueDetailViewModel(
     val uiState: StateFlow<IssueDetailUiState> = combine(
         details,
         session.currentUser,
-    ) { state, user ->
+        issueRepository.observeSupportedIssueIds(),
+    ) { state, user, supported ->
         val issue = state.issue
         state.copy(
             canReview = issue != null && user.manages(issue),
             isSubmitter = issue != null && user.submitted(issue),
+            hasSupported = issueId in supported,
+            canSupport = user != null,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), IssueDetailUiState())
 

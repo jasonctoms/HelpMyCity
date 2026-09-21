@@ -76,15 +76,18 @@ environment variable → `-P` flag → `local.properties` → blank, so CI sets
 
 **SQL Editor → New query**, paste all of [`schema.sql`](./schema.sql), **Run**.
 
-This creates `issues`, `issue_status_changes`, `issue_photos`, `departments`
-and `neighborhoods`, turns on row-level security for all five, and creates the
-public `issue-photos` bucket, limited to images of 20 MB or less.
+This creates `issues`, `issue_status_changes`, `issue_supports`,
+`issue_photos`, `departments` and `neighborhoods`, turns on row-level security
+for all six, and creates the public `issue-photos` bucket, limited to images of
+20 MB or less.
 
-Check: **Table Editor** should list the five tables, each marked *RLS enabled*.
+Check: **Table Editor** should list the six tables, each marked *RLS enabled*.
 
 A project set up before photos synced can take the photo section on its own:
 paste everything from the `Photos.` banner to the end of `schema.sql`. It
-replaces the old storage policies rather than adding beside them.
+replaces the old storage policies rather than adding beside them. Likewise, a
+project set up before stars were per-user can take the section from the
+`Stars.` banner up to the `Photos.` banner.
 
 ## 4. Load the demo data
 

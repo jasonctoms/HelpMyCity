@@ -71,6 +71,7 @@ private val HeaderScrim = Brush.verticalGradient(
  *   its own title in place of the wordmark.
  * @param action the primary call to action, drawn beside the profile button on
  *   a wide window. Null leaves it to the floating action button.
+ * @param status a small indicator drawn first among the header's buttons.
  */
 @Composable
 fun CityHeader(
@@ -85,6 +86,7 @@ fun CityHeader(
     onProfileClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     action: (@Composable () -> Unit)? = null,
+    status: (@Composable () -> Unit)? = null,
 ) {
     val nested = onBack != null
     // The photograph runs under the status bar; only the content is inset.
@@ -111,6 +113,10 @@ fun CityHeader(
                     Spacer(Modifier.width(8.dp))
                 }
                 Spacer(Modifier.weight(1f))
+                if (status != null) {
+                    status()
+                    Spacer(Modifier.width(8.dp))
+                }
                 if (action != null) {
                     action()
                     Spacer(Modifier.width(12.dp))

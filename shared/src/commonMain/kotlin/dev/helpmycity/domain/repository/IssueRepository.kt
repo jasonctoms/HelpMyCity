@@ -87,8 +87,15 @@ interface IssueRepository {
      */
     suspend fun rejectIssue(issueId: String, reason: String): ReviewOutcome
 
-    /** "Me too" from a resident who found an existing report instead of filing a duplicate. */
-    suspend fun addSupport(issueId: String)
+    /** Issues the signed-in user has starred; empty when nobody is signed in. */
+    fun observeSupportedIssueIds(): Flow<Set<String>>
+
+    /**
+     * "Me too" from a resident who found an existing report instead of filing a
+     * duplicate. Once per user per issue: false when this user already starred
+     * it, or nobody is signed in.
+     */
+    suspend fun addSupport(issueId: String): Boolean
 
     suspend fun deleteIssue(id: String)
 }

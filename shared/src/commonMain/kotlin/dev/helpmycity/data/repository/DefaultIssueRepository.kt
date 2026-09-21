@@ -16,6 +16,7 @@ import dev.helpmycity.domain.model.IssuePhoto
 import dev.helpmycity.domain.model.IssueReview
 import dev.helpmycity.domain.model.IssueStatus
 import dev.helpmycity.domain.model.IssueStatusChange
+import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.SyncMetadata
 import dev.helpmycity.domain.model.SyncState
 import dev.helpmycity.domain.model.User
@@ -24,8 +25,11 @@ import dev.helpmycity.domain.repository.IssueRepository
 import dev.helpmycity.domain.repository.ReviewOutcome
 import dev.helpmycity.domain.util.IdGenerator
 import dev.helpmycity.domain.util.TimeProvider
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.Single
 
@@ -302,9 +306,22 @@ class DefaultIssueRepository(
         return action(issue, reviewer, time.nowMillis())
     }
 
-    override suspend fun addSupport(issueId: String) {
-        val existing = local.getById(issueId) ?: return
-        local.upsert(existing.copy(supportCount = existing.supportCount + 1).touched(time.nowMillis()))
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun observeSupportedIssueIds(): Flow<Set<String>> =
+        viewer.flatMapLatest { user ->
+            if (user == null) flowOf(emptySet()) else local.observeSupportedIssueIds(user.id)
+        }
+
+    /**
+     * A star is its own row rather than an edit to the issue, so starring
+     * never pushes the issue itself -- which a resident is not allowed to change.
+     */
+    override suspend fun addSupport(issueId: String): Boolean {
+        val user = session.currentUser.value ?: return false
+        if (local.getById(issueId) == null) return false
+        return local.addSupport(
+            IssueSupport(issueId = issueId, userId = user.id, createdAtMillis = time.nowMillis())
+        )
     }
 
     override suspend fun deleteIssue(id: String) {

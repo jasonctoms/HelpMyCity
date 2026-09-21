@@ -9,6 +9,7 @@ import dev.helpmycity.domain.model.Department
 import dev.helpmycity.domain.model.Issue
 import dev.helpmycity.domain.model.IssuePhoto
 import dev.helpmycity.domain.model.IssueStatusChange
+import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.Neighborhood
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.exceptions.HttpRequestException
@@ -83,9 +84,25 @@ internal class SupabaseIssueBackendApi(
             supabase.from(ISSUES).delete { filter { eq("id", issueId) } }
         }
 
+    /**
+     * `ignoreDuplicates` for the same reason as [pushStatusChange]: the table
+     * is insert-only, and the (issue, user) key is what keeps a user to one star.
+     */
+    override suspend fun pushSupport(support: IssueSupport): RemoteResult<Unit> =
+        remote(client) { supabase ->
+            supabase.from(SUPPORTS).upsert(support.toRow()) { ignoreDuplicates = true }
+        }
+
+    /** Row-level security returns only the caller's own stars. */
+    override suspend fun fetchOwnSupports(): RemoteResult<List<IssueSupport>> =
+        remote(client) { supabase ->
+            supabase.from(SUPPORTS).select().decodeList<SupportRow>().map(SupportRow::toIssueSupport)
+        }
+
     private companion object {
         const val ISSUES = "issues"
         const val STATUS_CHANGES = "issue_status_changes"
+        const val SUPPORTS = "issue_supports"
     }
 }
 
@@ -204,8 +221,9 @@ private suspend inline fun <T> remote(
     } catch (e: RestException) {
         // Postgres said no -- a constraint, or a policy that does not allow
         // this. Retrying sends the identical request, so it stays no.
-        RemoteResult.Failure(e.message ?: "Supabase rejected the request.", retryable = false, cause = e)
+        // Not `e.message`: that carries the request headers, session token included.
+        RemoteResult.Failure(e.error, retryable = false, cause = e)
     } catch (e: HttpRequestException) {
-        RemoteResult.Failure(e.message ?: "Could not reach Supabase.", retryable = true, cause = e)
+        RemoteResult.Failure("Could not reach Supabase.", retryable = true, cause = e)
     }
 }

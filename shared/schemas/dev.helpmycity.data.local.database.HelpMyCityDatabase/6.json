@@ -1,0 +1,746 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 6,
+    "identityHash": "820769838ebde7c6478cf4d8830f0ef7",
+    "entities": [
+      {
+        "tableName": "issues",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `requested_action` TEXT NOT NULL, `category` TEXT NOT NULL, `status` TEXT NOT NULL, `priority` TEXT NOT NULL, `location_description` TEXT NOT NULL, `latitude` REAL, `longitude` REAL, `geocoded_address` TEXT, `neighborhood` TEXT, `council_district` TEXT, `census_tract` TEXT, `police_precinct` TEXT, `department_id` TEXT, `reporter_name` TEXT, `reporter_email` TEXT, `reporter_phone` TEXT, `submitted_by_user_id` TEXT, `notes_source` TEXT NOT NULL, `review_state` TEXT NOT NULL, `reviewed_by_user_id` TEXT, `reviewed_by_display_name` TEXT, `reviewed_at` INTEGER, `rejection_reason` TEXT, `edited_by_user_id` TEXT, `edited_by_display_name` TEXT, `edited_at` INTEGER, `edit_revision` INTEGER, `edited_fields` TEXT, `external_system` TEXT, `external_reference_number` TEXT, `external_submitted_at` INTEGER, `external_last_checked_at` INTEGER, `external_reported_status` TEXT, `support_count` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `sync_state` TEXT NOT NULL, `last_synced_at` INTEGER, `remote_version` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestedAction",
+            "columnName": "requested_action",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "locationDescription",
+            "columnName": "location_description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "geocodedAddress",
+            "columnName": "geocoded_address",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "neighborhood",
+            "columnName": "neighborhood",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "councilDistrict",
+            "columnName": "council_district",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "censusTract",
+            "columnName": "census_tract",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "policePrecinct",
+            "columnName": "police_precinct",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "departmentId",
+            "columnName": "department_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reporterName",
+            "columnName": "reporter_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reporterEmail",
+            "columnName": "reporter_email",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reporterPhone",
+            "columnName": "reporter_phone",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "submittedByUserId",
+            "columnName": "submitted_by_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notesSource",
+            "columnName": "notes_source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewState",
+            "columnName": "review_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewedByUserId",
+            "columnName": "reviewed_by_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reviewedByDisplayName",
+            "columnName": "reviewed_by_display_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reviewedAtMillis",
+            "columnName": "reviewed_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rejectionReason",
+            "columnName": "rejection_reason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "editedByUserId",
+            "columnName": "edited_by_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "editedByDisplayName",
+            "columnName": "edited_by_display_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "editedAtMillis",
+            "columnName": "edited_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "editRevision",
+            "columnName": "edit_revision",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "editedFields",
+            "columnName": "edited_fields",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "externalSystem",
+            "columnName": "external_system",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "externalReferenceNumber",
+            "columnName": "external_reference_number",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "externalSubmittedAtMillis",
+            "columnName": "external_submitted_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "externalLastCheckedAtMillis",
+            "columnName": "external_last_checked_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "externalReportedStatus",
+            "columnName": "external_reported_status",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "supportCount",
+            "columnName": "support_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtMillis",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "sync_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedAtMillis",
+            "columnName": "last_synced_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "remoteVersion",
+            "columnName": "remote_version",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_issues_status",
+            "unique": false,
+            "columnNames": [
+              "status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issues_status` ON `${TABLE_NAME}` (`status`)"
+          },
+          {
+            "name": "index_issues_category",
+            "unique": false,
+            "columnNames": [
+              "category"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issues_category` ON `${TABLE_NAME}` (`category`)"
+          },
+          {
+            "name": "index_issues_neighborhood",
+            "unique": false,
+            "columnNames": [
+              "neighborhood"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issues_neighborhood` ON `${TABLE_NAME}` (`neighborhood`)"
+          },
+          {
+            "name": "index_issues_council_district",
+            "unique": false,
+            "columnNames": [
+              "council_district"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issues_council_district` ON `${TABLE_NAME}` (`council_district`)"
+          },
+          {
+            "name": "index_issues_review_state",
+            "unique": false,
+            "columnNames": [
+              "review_state"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issues_review_state` ON `${TABLE_NAME}` (`review_state`)"
+          },
+          {
+            "name": "index_issues_sync_state",
+            "unique": false,
+            "columnNames": [
+              "sync_state"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issues_sync_state` ON `${TABLE_NAME}` (`sync_state`)"
+          },
+          {
+            "name": "index_issues_updated_at",
+            "unique": false,
+            "columnNames": [
+              "updated_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issues_updated_at` ON `${TABLE_NAME}` (`updated_at`)"
+          }
+        ]
+      },
+      {
+        "tableName": "issue_photos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `issue_id` TEXT NOT NULL, `bytes` BLOB, `remote_url` TEXT, `caption` TEXT, `created_at` INTEGER NOT NULL, `sync_state` TEXT NOT NULL, `last_synced_at` INTEGER, `remote_version` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`issue_id`) REFERENCES `issues`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "issueId",
+            "columnName": "issue_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bytes",
+            "columnName": "bytes",
+            "affinity": "BLOB"
+          },
+          {
+            "fieldPath": "remoteUrl",
+            "columnName": "remote_url",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "caption",
+            "columnName": "caption",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "sync_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedAtMillis",
+            "columnName": "last_synced_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "remoteVersion",
+            "columnName": "remote_version",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_issue_photos_issue_id",
+            "unique": false,
+            "columnNames": [
+              "issue_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_photos_issue_id` ON `${TABLE_NAME}` (`issue_id`)"
+          },
+          {
+            "name": "index_issue_photos_sync_state",
+            "unique": false,
+            "columnNames": [
+              "sync_state"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_photos_sync_state` ON `${TABLE_NAME}` (`sync_state`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "issues",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "issue_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "issue_status_changes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `issue_id` TEXT NOT NULL, `from_status` TEXT, `to_status` TEXT NOT NULL, `note` TEXT, `changed_by_user_id` TEXT, `changed_by_display_name` TEXT, `changed_at` INTEGER NOT NULL, `sync_state` TEXT NOT NULL, `last_synced_at` INTEGER, `remote_version` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`issue_id`) REFERENCES `issues`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "issueId",
+            "columnName": "issue_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fromStatus",
+            "columnName": "from_status",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "toStatus",
+            "columnName": "to_status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "changedByUserId",
+            "columnName": "changed_by_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "changedByDisplayName",
+            "columnName": "changed_by_display_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "changedAtMillis",
+            "columnName": "changed_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "sync_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedAtMillis",
+            "columnName": "last_synced_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "remoteVersion",
+            "columnName": "remote_version",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_issue_status_changes_issue_id",
+            "unique": false,
+            "columnNames": [
+              "issue_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_status_changes_issue_id` ON `${TABLE_NAME}` (`issue_id`)"
+          },
+          {
+            "name": "index_issue_status_changes_sync_state",
+            "unique": false,
+            "columnNames": [
+              "sync_state"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_status_changes_sync_state` ON `${TABLE_NAME}` (`sync_state`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "issues",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "issue_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "issue_supports",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`issue_id` TEXT NOT NULL, `user_id` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `sync_state` TEXT NOT NULL, PRIMARY KEY(`issue_id`, `user_id`))",
+        "fields": [
+          {
+            "fieldPath": "issueId",
+            "columnName": "issue_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "sync_state",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "issue_id",
+            "user_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_issue_supports_user_id",
+            "unique": false,
+            "columnNames": [
+              "user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_supports_user_id` ON `${TABLE_NAME}` (`user_id`)"
+          },
+          {
+            "name": "index_issue_supports_sync_state",
+            "unique": false,
+            "columnNames": [
+              "sync_state"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_supports_sync_state` ON `${TABLE_NAME}` (`sync_state`)"
+          }
+        ]
+      },
+      {
+        "tableName": "departments",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `contact_email` TEXT, `contact_phone` TEXT, `handles_categories` TEXT NOT NULL, `sync_state` TEXT NOT NULL, `last_synced_at` INTEGER, `remote_version` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contactEmail",
+            "columnName": "contact_email",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contactPhone",
+            "columnName": "contact_phone",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "handlesCategories",
+            "columnName": "handles_categories",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "sync_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedAtMillis",
+            "columnName": "last_synced_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "remoteVersion",
+            "columnName": "remote_version",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "neighborhoods",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `council_district` TEXT, `boundary_geojson` TEXT, `sync_state` TEXT NOT NULL, `last_synced_at` INTEGER, `remote_version` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "councilDistrict",
+            "columnName": "council_district",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "boundaryGeoJson",
+            "columnName": "boundary_geojson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "sync_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedAtMillis",
+            "columnName": "last_synced_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "remoteVersion",
+            "columnName": "remote_version",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "users",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `display_name` TEXT NOT NULL, `email` TEXT, `role` TEXT NOT NULL, `scope_citywide` INTEGER NOT NULL, `scope_districts` TEXT NOT NULL, `scope_neighborhoods` TEXT NOT NULL, `scope_departments` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "display_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "email",
+            "columnName": "email",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scopeCitywide",
+            "columnName": "scope_citywide",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scopeDistricts",
+            "columnName": "scope_districts",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scopeNeighborhoods",
+            "columnName": "scope_neighborhoods",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scopeDepartments",
+            "columnName": "scope_departments",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_users_email",
+            "unique": false,
+            "columnNames": [
+              "email"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_users_email` ON `${TABLE_NAME}` (`email`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '820769838ebde7c6478cf4d8830f0ef7')"
+    ]
+  }
+}

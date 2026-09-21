@@ -4,6 +4,7 @@ import dev.helpmycity.domain.model.Department
 import dev.helpmycity.domain.model.Issue
 import dev.helpmycity.domain.model.IssuePhoto
 import dev.helpmycity.domain.model.IssueStatusChange
+import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.Neighborhood
 
 /**
@@ -26,6 +27,12 @@ class NoopIssueBackendApi : IssueBackendApi {
         RemoteResult.NotConfigured
 
     override suspend fun deleteIssue(issueId: String): RemoteResult<Unit> =
+        RemoteResult.NotConfigured
+
+    override suspend fun pushSupport(support: IssueSupport): RemoteResult<Unit> =
+        RemoteResult.NotConfigured
+
+    override suspend fun fetchOwnSupports(): RemoteResult<List<IssueSupport>> =
         RemoteResult.NotConfigured
 }
 

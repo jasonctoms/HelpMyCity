@@ -10,6 +10,7 @@ import androidx.room3.RoomDatabaseConstructor
         IssueEntity::class,
         IssuePhotoEntity::class,
         IssueStatusChangeEntity::class,
+        IssueSupportEntity::class,
         DepartmentEntity::class,
         NeighborhoodEntity::class,
         UserEntity::class,
@@ -26,7 +27,7 @@ abstract class HelpMyCityDatabase : RoomDatabase() {
 
     companion object {
         /** Bump on any schema change; `shared/schemas` holds the exported schema. */
-        const val VERSION: Int = 5
+        const val VERSION: Int = 6
         const val FILE_NAME: String = "helpmycity.db"
     }
 }

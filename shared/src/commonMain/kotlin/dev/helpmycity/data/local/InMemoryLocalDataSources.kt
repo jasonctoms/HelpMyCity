@@ -4,6 +4,7 @@ import dev.helpmycity.domain.model.Department
 import dev.helpmycity.domain.model.Issue
 import dev.helpmycity.domain.model.IssuePhoto
 import dev.helpmycity.domain.model.IssueStatusChange
+import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.Neighborhood
 import dev.helpmycity.domain.model.SyncState
 import dev.helpmycity.domain.model.User
@@ -19,6 +20,7 @@ class InMemoryIssueLocalDataSource : IssueLocalDataSource {
     private val issues = MutableStateFlow<Map<String, Issue>>(emptyMap())
     private val history = MutableStateFlow<List<IssueStatusChange>>(emptyList())
     private val photos = MutableStateFlow<Map<String, IssuePhoto>>(emptyMap())
+    private val supports = MutableStateFlow<Map<Pair<String, String>, IssueSupport>>(emptyMap())
     private val writeLock = Mutex()
 
     override fun observeAll(): Flow<List<Issue>> =
@@ -103,6 +105,40 @@ class InMemoryIssueLocalDataSource : IssueLocalDataSource {
     override suspend fun pendingStatusChanges(): List<IssueStatusChange> =
         history.value.filter { it.sync.state != SyncState.SYNCED }
             .sortedBy(IssueStatusChange::changedAtMillis)
+
+    override fun observeSupportedIssueIds(userId: String): Flow<Set<String>> =
+        supports.map { all -> all.values.filter { it.userId == userId }.mapTo(mutableSetOf(), IssueSupport::issueId) }
+
+    override suspend fun addSupport(support: IssueSupport): Boolean = writeLock.withLock {
+        val key = support.issueId to support.userId
+        if (key in supports.value) return@withLock false
+        supports.update { it + (key to support) }
+        issues.update { current ->
+            val issue = current[support.issueId] ?: return@update current
+            current + (issue.id to issue.copy(supportCount = issue.supportCount + 1))
+        }
+        true
+    }
+
+    override suspend fun pendingSupports(): List<IssueSupport> =
+        supports.value.values.filter { it.syncState != SyncState.SYNCED }.sortedBy(IssueSupport::createdAtMillis)
+
+    override fun observePendingSupportCount(): Flow<Int> =
+        supports.map { all -> all.values.count { it.syncState != SyncState.SYNCED } }
+
+    override suspend fun markSupportSynced(support: IssueSupport) {
+        supports.update { current ->
+            val key = support.issueId to support.userId
+            val existing = current[key] ?: return@update current
+            current + (key to existing.copy(syncState = SyncState.SYNCED))
+        }
+    }
+
+    override suspend fun mergeRemoteSupports(supports: List<IssueSupport>) {
+        this.supports.update { current ->
+            current + supports.associate { (it.issueId to it.userId) to it.copy(syncState = SyncState.SYNCED) }
+        }
+    }
 
     override suspend fun markSynced(issueId: String, syncedAtMillis: Long, remoteVersion: String?) =
         writeLock.withLock {

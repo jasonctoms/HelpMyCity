@@ -160,3 +160,14 @@ data class IssuePhoto(
         return result
     }
 }
+
+/**
+ * One user's star on one issue. A user stars an issue at most once, so the pair
+ * is the identity; [Issue.supportCount] is the backend's tally of these rows.
+ */
+data class IssueSupport(
+    val issueId: String,
+    val userId: String,
+    val createdAtMillis: Long,
+    val syncState: SyncState = SyncState.PENDING_UPLOAD,
+)

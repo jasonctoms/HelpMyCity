@@ -4,6 +4,7 @@ import dev.helpmycity.domain.model.Department
 import dev.helpmycity.domain.model.Issue
 import dev.helpmycity.domain.model.IssuePhoto
 import dev.helpmycity.domain.model.IssueStatusChange
+import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.Neighborhood
 
 /**
@@ -33,6 +34,15 @@ interface IssueBackendApi {
     suspend fun pushStatusChange(change: IssueStatusChange): RemoteResult<RemoteAck>
 
     suspend fun deleteIssue(issueId: String): RemoteResult<Unit>
+
+    /**
+     * Records one user's star. The backend owns [Issue.supportCount]: it counts
+     * each (issue, user) pair once, and a replayed push must be harmless.
+     */
+    suspend fun pushSupport(support: IssueSupport): RemoteResult<Unit>
+
+    /** The signed-in user's stars, so a new device knows what it already starred. */
+    suspend fun fetchOwnSupports(): RemoteResult<List<IssueSupport>>
 }
 
 interface ReferenceDataBackendApi {
