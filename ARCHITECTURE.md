@@ -318,6 +318,13 @@ in the Supabase example, `app_metadata`, which only a trusted server can write.
 - **View models are scoped to their back stack entry** by
   `rememberViewModelStoreNavEntryDecorator`, so popping a detail screen clears
   its state.
+- **On the web the back stack is mirrored into browser history**
+  (`ui/navigation/BrowserHistory.js.kt`), so the browser's back and forward
+  buttons work and every screen has an address. Addresses are hash URLs
+  (`/#/issues/<id>`, `/#/profile`) mapped in `ui/navigation/RoutePaths.kt`; a
+  hash needs no rewrite rule on the host and keeps the build's relative asset
+  paths working. A new route needs an address there too. The browser tab takes
+  the same screen title the header shows, followed by the city's name.
 - **One breakpoint, at 900 dp.** Below it the app is a phone: bottom bar, one
   screen at a time, a floating report button. At or above it the tabs and the
   report button move into the header and the list and the map sit side by side

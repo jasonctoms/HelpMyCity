@@ -106,24 +106,27 @@ fun topLevelRoutesFor(
 /**
  * Navigation 3 persists the back stack through `SavedState`, which on non-Android
  * targets needs an explicit polymorphic serializer registration for every
- * [NavKey]. Forgetting to add a route here fails at runtime on the first
- * save/restore, so keep this list in step with the routes above.
+ * [NavKey]; the web build's browser history stores back stacks the same way.
+ * Forgetting to add a route here fails at runtime on the first save/restore, so
+ * keep this list in step with the routes above.
  */
-val navigationSavedStateConfiguration: SavedStateConfiguration = SavedStateConfiguration {
-    serializersModule = SerializersModule {
-        polymorphic(NavKey::class) {
-            subclass(IssueListRoute::class, IssueListRoute.serializer())
-            subclass(IssueBoardRoute::class, IssueBoardRoute.serializer())
-            subclass(IssueMapRoute::class, IssueMapRoute.serializer())
-            subclass(ReviewQueueRoute::class, ReviewQueueRoute.serializer())
-            subclass(IssueDetailRoute::class, IssueDetailRoute.serializer())
-            subclass(NewIssueRoute::class, NewIssueRoute.serializer())
-            subclass(RejectedIssuesRoute::class, RejectedIssuesRoute.serializer())
-            subclass(EditIssueRoute::class, EditIssueRoute.serializer())
-            subclass(ProfileRoute::class, ProfileRoute.serializer())
-            subclass(EditProfileRoute::class, EditProfileRoute.serializer())
-            subclass(AdminUsersRoute::class, AdminUsersRoute.serializer())
-            subclass(AdminUserRoute::class, AdminUserRoute.serializer())
-        }
+val routeSerializersModule: SerializersModule = SerializersModule {
+    polymorphic(NavKey::class) {
+        subclass(IssueListRoute::class, IssueListRoute.serializer())
+        subclass(IssueBoardRoute::class, IssueBoardRoute.serializer())
+        subclass(IssueMapRoute::class, IssueMapRoute.serializer())
+        subclass(ReviewQueueRoute::class, ReviewQueueRoute.serializer())
+        subclass(IssueDetailRoute::class, IssueDetailRoute.serializer())
+        subclass(NewIssueRoute::class, NewIssueRoute.serializer())
+        subclass(RejectedIssuesRoute::class, RejectedIssuesRoute.serializer())
+        subclass(EditIssueRoute::class, EditIssueRoute.serializer())
+        subclass(ProfileRoute::class, ProfileRoute.serializer())
+        subclass(EditProfileRoute::class, EditProfileRoute.serializer())
+        subclass(AdminUsersRoute::class, AdminUsersRoute.serializer())
+        subclass(AdminUserRoute::class, AdminUserRoute.serializer())
     }
+}
+
+val navigationSavedStateConfiguration: SavedStateConfiguration = SavedStateConfiguration {
+    serializersModule = routeSerializersModule
 }

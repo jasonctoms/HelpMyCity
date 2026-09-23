@@ -1,4 +1,6 @@
 <resources>
+    <!-- The browser tab: the screen, then the city. -->
+    <string name="page_title">%1$s · %2$s</string>
     <string name="app_name">HelpMyCity</string>
 
     <!-- Navegación -->

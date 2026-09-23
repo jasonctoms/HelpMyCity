@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -70,6 +71,9 @@ import dev.helpmycity.ui.map.IssueMapScreen
 import dev.helpmycity.ui.profile.EditProfileScreen
 import dev.helpmycity.ui.profile.ProfileScreen
 import dev.helpmycity.ui.navigation.AdminUserRoute
+import dev.helpmycity.ui.navigation.BrowserHistory
+import dev.helpmycity.ui.navigation.BrowserTitle
+import dev.helpmycity.ui.navigation.initialBackStack
 import dev.helpmycity.ui.navigation.AdminUsersRoute
 import dev.helpmycity.ui.navigation.EditIssueRoute
 import dev.helpmycity.ui.navigation.EditProfileRoute
@@ -98,9 +102,11 @@ import helpmycity.shared.generated.resources.issues_add
 import helpmycity.shared.generated.resources.issues_title
 import helpmycity.shared.generated.resources.map_title
 import helpmycity.shared.generated.resources.new_issue_title
+import helpmycity.shared.generated.resources.page_title
 import helpmycity.shared.generated.resources.profile_title
 import helpmycity.shared.generated.resources.rejected_title
 import helpmycity.shared.generated.resources.review_queue_title
+import helpmycity.shared.generated.resources.sign_in_title
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -126,6 +132,7 @@ fun App() {
         // auth flow is reachable.
         val user = currentUser
         if (user == null) {
+            BrowserTitle(pageTitle(stringResource(Res.string.sign_in_title)))
             SignInScreen()
         } else {
             SignedInApp(session = session, canReview = user.isReviewer)
@@ -146,10 +153,16 @@ private val ReadingMaxWidth = 900.dp
 @Composable
 private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
     val city: CityProfile = koinInject()
-    val backStack = rememberNavBackStack(navigationSavedStateConfiguration, IssueListRoute)
+    val backStack = rememberNavBackStack(
+        navigationSavedStateConfiguration,
+        *remember { initialBackStack() }.toTypedArray(),
+    )
+    BrowserHistory(backStack)
     val syncStatus by session.syncStatus.collectAsStateWithLifecycle()
     val currentRoute = backStack.lastOrNull()
     val topLevelRoute = currentRoute as? TopLevelRoute
+    val screenTitle = titleFor(currentRoute)
+    BrowserTitle(pageTitle(screenTitle))
 
     // A role can narrow under the app, and the review queue must not stay on
     // screen when it does.
@@ -173,7 +186,7 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                 CityHeader(
                     cityName = city.displayName,
                     branding = city.branding,
-                    screenTitle = titleFor(currentRoute),
+                    screenTitle = screenTitle,
                     tabs = tabs,
                     selectedTab = topLevelRoute,
                     onTabClick = { backStack.switchTopLevelTo(it) },
@@ -470,6 +483,13 @@ private const val SlideFraction = 8
 private fun NavBackStack<NavKey>.switchTopLevelTo(route: TopLevelRoute) {
     clear()
     add(route)
+}
+
+/** What the browser tab says: the screen, then the city it belongs to. */
+@Composable
+private fun pageTitle(screenTitle: String): String {
+    val city: CityProfile = koinInject()
+    return stringResource(Res.string.page_title, screenTitle, city.displayName)
 }
 
 @Composable
