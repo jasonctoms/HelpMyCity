@@ -30,6 +30,7 @@ import helpmycity.shared.generated.resources.location_pin_hint
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
+import org.maplibre.compose.camera.CameraUpdate
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.interaction.ClickResult
 import org.maplibre.compose.interaction.MapInteractions
@@ -71,7 +72,7 @@ fun LocationPickerMap(
     val mapState = rememberMapState(
         baseStyle = BaseStyle.Uri(settings.styleUrl),
         initialCameraPosition = CameraPosition(
-            target = (point ?: settings.center)?.toPickerPosition() ?: Position(0.0, 0.0),
+            center = (point ?: settings.center)?.toPickerPosition() ?: Position(0.0, 0.0),
             zoom = if (point != null || settings.center != null) {
                 settings.defaultZoom + PIN_ZOOM_BOOST
             } else {
@@ -119,9 +120,9 @@ fun LocationPickerMap(
     // would yank the map out from under them.
     LaunchedEffect(point, isApproximate) {
         if (point == null || !isApproximate) return@LaunchedEffect
-        mapState.animateCameraPosition(
-            CameraPosition(
-                target = point.toPickerPosition(),
+        mapState.animateCamera(
+            CameraUpdate(
+                center = point.toPickerPosition(),
                 zoom = settings.defaultZoom + PIN_ZOOM_BOOST,
             )
         )

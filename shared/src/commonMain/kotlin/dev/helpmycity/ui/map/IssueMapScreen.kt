@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,6 +53,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import org.maplibre.compose.camera.CameraFit
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.expressions.dsl.asString
 import org.maplibre.compose.expressions.dsl.case
@@ -71,6 +71,7 @@ import org.maplibre.compose.map.rememberMapState
 import org.maplibre.compose.sources.GeoJsonData
 import org.maplibre.compose.sources.rememberGeoJsonSource
 import org.maplibre.compose.style.BaseStyle
+import org.maplibre.compose.util.DpPadding
 import org.maplibre.spatialk.geojson.BoundingBox
 import org.maplibre.spatialk.geojson.Feature
 import org.maplibre.spatialk.geojson.FeatureCollection
@@ -107,7 +108,7 @@ private val GLYPH_SIZE = DpSize(12.dp, 12.dp)
 /** Zoomed all the way out, for a deployment with no center and no located issues. */
 private const val WORLD_ZOOM = 1.0
 
-private val FRAMING_PADDING = PaddingValues(48.dp)
+private val FRAMING_PADDING = DpPadding(48.dp, 48.dp, 48.dp, 48.dp)
 
 /** Roughly the width of the Scaffold's extended FAB, which floats over the legend. */
 private val FAB_INSET = 180.dp
@@ -241,7 +242,7 @@ private fun IssueMap(
     val mapState = rememberMapState(
         baseStyle = BaseStyle.Uri(settings.styleUrl),
         initialCameraPosition = CameraPosition(
-            target = settings.center?.toPosition() ?: Position(0.0, 0.0),
+            center = settings.center?.toPosition() ?: Position(0.0, 0.0),
             zoom = if (settings.center != null) settings.defaultZoom else WORLD_ZOOM,
         ),
     ) {
@@ -316,7 +317,7 @@ private fun IssueMap(
         val box = (issues.mapNotNull { it.location.point?.toPosition() } + framedArea.outerRings())
             .boundingBox() ?: return@LaunchedEffect
         hasFramed = true
-        mapState.fitCameraToBounds(boundingBox = box, padding = FRAMING_PADDING)
+        mapState.fitCameraToBounds(boundingBox = box, fit = CameraFit(fitPadding = FRAMING_PADDING))
     }
 
     if (isScreenSettled()) {

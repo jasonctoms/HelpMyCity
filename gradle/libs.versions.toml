@@ -1,34 +1,34 @@
 [versions]
-agp = "9.4.1"
+agp = "9.5.0"
 android-compileSdk = "37"
 android-minSdk = "30"
 android-targetSdk = "37"
 androidx-activity = "1.13.0"
 androidx-appcompat = "1.8.0"
-androidx-core = "1.19.0"
+androidx-core = "1.19.1"
 androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.11.0"
 androidx-testExt = "1.3.0"
-coil = "3.6.2"
-compass = "4.0.0"
-composeMultiplatform = "1.12.0"
-filekit = "0.16.0"
+coil = "3.6.3"
+compass = "4.0.1"
+composeMultiplatform = "1.12.2"
+filekit = "0.17.0"
 junit = "4.13.2"
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 kotlinx-coroutines = "1.11.0"
 kotlinx-browser = "0.5.0"
-kotlinx-datetime = "0.6.2"
-kotlinx-serialization = "1.11.0"
+kotlinx-datetime = "0.8.0"
+kotlinx-serialization = "1.12.0"
 koin = "4.2.2"
 koin-plugin = "1.2.1"
 ksp = "2.3.11"
-ktor = "3.5.2"
-maplibre = "0.16.0"
+ktor = "3.6.1"
+maplibre = "0.20.0"
 material3 = "1.9.0"
-navigation3 = "1.1.1"
+navigation3 = "1.2.0"
 room = "3.0.3"
 sqlite = "2.7.1"
-supabase = "3.1.4"
+supabase = "3.8.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
@@ -69,14 +69,7 @@ kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
-# Pinned with `strictly`, and the pin is load-bearing. supabase-kt is compiled
-# against kotlinx-datetime 0.6.x and references `InstantIso8601Serializer`,
-# which 0.7.0 removed when `Instant` moved to `kotlin.time`. Kotlin/JS partial
-# linkage turns that missing symbol into a stub that throws only when it runs,
-# so a newer version still BUILDS and then fails at sign-in. Compose Material3
-# asks for 0.7.1 and gets downgraded; that only affects its date/time pickers,
-# which this app does not use. Raise this when supabase-kt targets 0.7+.
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = { strictly = "0.6.2" } }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }

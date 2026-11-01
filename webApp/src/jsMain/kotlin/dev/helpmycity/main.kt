@@ -7,14 +7,14 @@ import dev.helpmycity.cityconfig.ConfiguredBackend
 import dev.helpmycity.cityconfig.ConfiguredCityProfile
 import kotlinx.browser.document
 import org.jetbrains.skiko.wasm.onWasmReady
-import org.maplibre.compose.browser.installMapLibreCompose
+import org.maplibre.compose.browser.installMaplibreCompose
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     initKoin(city = ConfiguredCityProfile, backend = ConfiguredBackend)
     onWasmReady {
         // Emitted next to the bundle by webpack.config.d/maplibreWorker.js.
-        installMapLibreCompose(workerUrl = "maplibre-gl-worker.mjs")
+        installMaplibreCompose(workerUrl = "maplibre-gl-worker.mjs")
         ComposeViewport(document.body!!) {
             App()
         }

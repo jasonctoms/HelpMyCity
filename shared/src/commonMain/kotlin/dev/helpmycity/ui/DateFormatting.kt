@@ -1,7 +1,9 @@
 package dev.helpmycity.ui
 
-import kotlinx.datetime.Instant
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 
 /**
@@ -9,15 +11,12 @@ import kotlinx.datetime.toLocalDateTime
  *
  * Hand-rolled because Kotlin has no common-code locale formatter, and an
  * unambiguous `2026-08-09 14:32` reads the same in English and Spanish.
- *
- * Uses `kotlinx.datetime.Instant` rather than `kotlin.time.Instant`: the
- * interop between the two arrived in kotlinx-datetime 0.7, and this project is
- * pinned to 0.6.2 for supabase-kt -- see `gradle/libs.versions.toml`.
  */
+@OptIn(ExperimentalTime::class)
 fun formatTimestamp(epochMillis: Long, includeTime: Boolean = false): String {
     val local = Instant.fromEpochMilliseconds(epochMillis)
         .toLocalDateTime(TimeZone.currentSystemDefault())
-    val date = "${local.year}-${local.monthNumber.pad()}-${local.dayOfMonth.pad()}"
+    val date = "${local.year}-${local.month.number.pad()}-${local.day.pad()}"
     return if (includeTime) "$date ${local.hour.pad()}:${local.minute.pad()}" else date
 }
 
