@@ -4,9 +4,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Pushes locally-queued writes to the backend and pulls remote changes back
- * down. Started once at app launch; everything else in the app just writes
- * locally and lets this drain the queue.
+ * Pushes queued local writes up to the backend and pulls remote changes back
+ * down. It starts once when the app launches, and everything else in the app just
+ * writes locally and lets this drain the queue.
  */
 interface SyncEngine {
     val status: StateFlow<SyncStatus>
@@ -25,7 +25,7 @@ sealed interface SyncStatus {
 
     data object Syncing : SyncStatus
 
-    /** No backend is configured, so there is nothing to sync to. Not an error. */
+    /** No backend is configured, so there is nothing to sync to. This is not an error. */
     data object NoBackend : SyncStatus
 
     data class Synced(

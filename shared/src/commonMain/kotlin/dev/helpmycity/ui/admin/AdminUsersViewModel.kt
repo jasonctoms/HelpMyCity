@@ -17,23 +17,23 @@ import org.koin.core.annotation.KoinViewModel
 data class AdminUserRow(
     val user: User,
     val areaNames: List<String>,
-    /** The admin reading the screen. Their own row says so and cannot change its role. */
+    /** The admin looking at the screen. Their own row says so, and its role can't be changed. */
     val isSelf: Boolean,
 )
 
 data class AdminUsersUiState(
     val users: List<AdminUserRow> = emptyList(),
-    /** False for anyone but an admin. The repository refuses the writes either way. */
+    /** False for anyone who is not an admin. The repository refuses the writes either way. */
     val isPermitted: Boolean = true,
 )
 
 /**
- * Everyone this deployment has ever signed in, for an admin to give a role and
- * a slice of the city to.
+ * Everyone who has ever signed in to this deployment, so an admin can give them a
+ * role and a part of the city.
  *
- * Someone appears here the first time their account signs in -- with the mocked
+ * Someone shows up here the first time their account signs in. With the mock
  * identity provider that is the only way anyone gets in, and with a real one it
- * is how the list fills up as a city's volunteers arrive.
+ * is how the list fills up as a city's volunteers join.
  */
 @KoinViewModel
 class AdminUsersViewModel(

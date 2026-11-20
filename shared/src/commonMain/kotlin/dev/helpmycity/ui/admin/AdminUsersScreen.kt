@@ -34,11 +34,10 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Everyone this deployment has seen, and what each of them may do.
+ * Everyone this deployment has seen, and what each of them is allowed to do.
  *
- * Reads rather than edits: the assignment itself is one person at a time on
- * [AdminUserScreen], because a role changed by a stray tap in a list is a role
- * nobody meant to change.
+ * This only reads. Assigning happens one person at a time on [AdminUserScreen],
+ * because a role changed by a stray tap in a list is a role nobody meant to change.
  */
 @Composable
 fun AdminUsersScreen(
@@ -127,8 +126,8 @@ private fun UserCard(row: AdminUserRow, onClick: () -> Unit) {
                 text = row.user.role.label(),
                 style = MaterialTheme.typography.labelLarge,
             )
-            // Only a manager's areas mean anything: an admin already reaches
-            // everything and a resident reviews nothing.
+            // Only a manager's areas mean anything. An admin already reaches
+            // everything, and a resident does not review anything.
             if (row.user.role == UserRole.MANAGER) {
                 Text(
                     text = when {

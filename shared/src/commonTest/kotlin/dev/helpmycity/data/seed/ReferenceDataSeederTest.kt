@@ -62,9 +62,9 @@ class ReferenceDataSeederTest {
     }
 
     /**
-     * The guard on a populated store is "is it empty", not "does this id
-     * exist", so an admin who renamed or deleted a seeded department does not
-     * get it back on the next start.
+     * The check on a populated store is "is it empty" and not "does this id
+     * exist", so an admin who renamed or deleted a seeded department does not get
+     * it back on the next start.
      */
     @Test
     fun anEditedReferenceRowSurvivesTheNextStart() = runTest {

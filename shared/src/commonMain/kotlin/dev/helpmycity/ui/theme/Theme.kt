@@ -8,8 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 /**
- * A deliberately plain Material 3 theme. Managers are volunteers using this in
- * the field on their own phones, so the priority is legibility over branding.
+ * An intentionally plain Material 3 theme. Managers are volunteers using this out
+ * in the field on their own phones, so being easy to read matters more than
+ * branding.
  */
 private val LightColors = lightColorScheme(
     primary = Color(0xFF00658E),

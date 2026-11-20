@@ -1,10 +1,10 @@
-// Puts the public demo back to its starting state: empties the issue-photos
-// bucket, then replays supabase/seed.sql's reset_demo_data().
+// Puts the public demo back the way it started. It empties the issue-photos
+// bucket, then runs supabase/seed.sql's reset_demo_data() again.
 //
-// The dataset itself is not here. This function owns only the part SQL cannot
-// do -- deleting the stored image bytes. Removing rows from storage.objects
-// would leave the files themselves orphaned in the backing store, so the
-// Storage API has to do it.
+// The dataset itself does not live here. This function only handles the part SQL
+// can't do, which is deleting the stored image bytes. Removing rows from
+// storage.objects would leave the actual files orphaned in the backing store, so
+// the Storage API has to do it.
 //
 // Scheduled daily by supabase/schedule.sql.
 
@@ -16,8 +16,8 @@ const BUCKET = 'issue-photos'
 const PAGE = 100
 
 /**
- * Timing-safe string compare. A plain `===` leaks the shared secret one
- * character at a time to anyone willing to measure the response.
+ * Timing-safe string compare. A plain `===` leaks the shared secret one character
+ * at a time to anyone patient enough to time the response.
  */
 function secretMatches(given: string, expected: string): boolean {
   const a = new TextEncoder().encode(given)
@@ -32,14 +32,14 @@ async function emptyPhotoBucket(supabase: ReturnType<typeof createClient>): Prom
   const storage = supabase.storage.from(BUCKET)
   let removed = 0
 
-  // Top level is one folder per issue; the files sit one level down.
+  // The top level is one folder per issue, and the files are one level down.
   for (let offset = 0; ; offset += PAGE) {
     const { data: folders, error } = await storage.list('', { limit: PAGE, offset })
     if (error) throw error
     if (!folders || folders.length === 0) break
 
     for (const folder of folders) {
-      // A folder has no id; a stray file at the root does.
+      // A folder has no id, but a stray file at the root does.
       if (folder.id !== null) {
         const { error: rmError } = await storage.remove([folder.name])
         if (rmError) throw rmError
@@ -69,16 +69,16 @@ Deno.serve(async (request) => {
     return Response.json({ error: 'DEMO_RESET_SECRET is not set.' }, { status: 500 })
   }
 
-  // The function is reachable by anyone who knows the URL, and verify_jwt is no
-  // protection here: the publishable key is public, so any visitor holds a
-  // valid JWT. The shared secret is what actually gates this.
+  // Anyone who knows the URL can reach this function, and verify_jwt does not
+  // protect anything here, since the publishable key is public and any visitor
+  // has a valid JWT. The shared secret is what actually guards it.
   const given = request.headers.get('x-reset-secret') ?? ''
   if (!secretMatches(given, expected)) {
     return Response.json({ error: 'Forbidden.' }, { status: 403 })
   }
 
-  // The secret key bypasses row-level security, which is the point: this has to
-  // delete rows no ordinary caller may touch. It never leaves the server.
+  // The secret key skips row-level security, and that is the point, because this
+  // has to delete rows no normal caller can touch. It never leaves the server.
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,

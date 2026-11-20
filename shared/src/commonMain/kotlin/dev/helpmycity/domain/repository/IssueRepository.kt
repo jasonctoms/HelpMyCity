@@ -10,41 +10,41 @@ import dev.helpmycity.domain.model.IssueStatusChange
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Reads always come from the local database, so the UI renders instantly and
- * works with no network. Writes land locally first and are queued for the
- * backend by the sync engine.
+ * Reads always come from the local database, so the UI renders right away and
+ * works without a network. Writes land locally first, and the sync engine queues
+ * them up for the backend.
  *
- * Every read is already filtered to what the signed-in user is allowed to see
- * (see [dev.helpmycity.domain.access.canSee]), so no screen has to
- * remember that an issue awaiting triage is not public yet.
+ * Every read is already filtered down to what the signed-in user is allowed to
+ * see (see [dev.helpmycity.domain.access.canSee]), so no screen has to remember
+ * that an issue waiting on triage is not public yet.
  */
 interface IssueRepository {
     /**
      * Leaves out [IssueStatus.REJECTED] issues unless [filter] asks for that
-     * status by name, so they stay off the list, board and map.
+     * status by name, so they stay off the list, board, and map.
      */
     fun observeIssues(filter: IssueFilter = IssueFilter.None): Flow<List<Issue>>
 
     fun observeIssue(id: String): Flow<Issue?>
 
     /**
-     * Issues waiting on triage that the signed-in user is responsible for --
-     * what the review queue shows. Empty for anyone who is not a manager.
+     * Issues waiting on triage that the signed-in user is responsible for, which
+     * is what the review queue shows. Empty for anyone who is not a manager.
      */
     fun observeReviewQueue(): Flow<List<Issue>>
 
     fun observeHistory(issueId: String): Flow<List<IssueStatusChange>>
 
-    /** Photos for one issue, read separately so listing issues never loads image bytes. */
+    /** Photos for one issue. They are read separately so listing issues never loads image bytes. */
     fun observePhotos(issueId: String): Flow<List<IssuePhoto>>
 
     suspend fun getIssue(id: String): Issue?
 
     /**
-     * Attaches an image to an issue, queued for upload like every other write.
+     * Attaches an image to an issue and queues it for upload like any other write.
      *
-     * [bytes] is the encoded image as the platform picker handed it over -- see
-     * [IssuePhoto.bytes] for why the bytes are stored rather than a file URI.
+     * [bytes] is the encoded image exactly as the platform picker handed it over.
+     * [IssuePhoto.bytes] explains why the bytes get stored instead of a file URI.
      */
     suspend fun addPhoto(issueId: String, bytes: ByteArray, caption: String? = null): String
 
@@ -56,24 +56,25 @@ interface IssueRepository {
     suspend fun updateIssue(issue: Issue)
 
     /**
-     * Corrects an issue's own fields -- the "edit for completeness" step a
-     * manager takes before approving a report.
+     * Fixes up an issue's own fields. This is the "edit for completeness" step a
+     * manager does before approving a report.
      *
-     * Restricted to whoever manages the issue, checked here rather than only in
-     * the screen, and every accepted edit stamps
-     * [dev.helpmycity.domain.model.IssueEdit] on the issue so the
-     * change is visible to everyone who can see it, submitter included.
+     * Only whoever manages the issue can do this, and that gets checked here and
+     * not just in the screen. Every accepted edit stamps
+     * [dev.helpmycity.domain.model.IssueEdit] on the issue, so anyone who can see
+     * the issue (submitter included) can see that it changed.
      */
     suspend fun editIssue(issueId: String, draft: IssueEditDraft): EditOutcome
 
     /**
-     * Moves an issue to [newStatus] and appends an audit entry in one step, so
-     * the history can never drift from the current status.
+     * Moves an issue to [newStatus] and adds an audit entry in the same step, so
+     * the history can never drift away from the current status.
      *
-     * Only an approved issue has a status to change, and only to one of
-     * [IssueStatus.workflow]: review and rejection are triage's job. [IssueStatus.COMPLETE]
-     * needs a [resolution], which is shown to everyone and recorded as the
-     * history note when there is no other; leaving it clears the resolution.
+     * Only an approved issue has a status to change, and it can only move to one
+     * of [IssueStatus.workflow]; review and rejection are triage's job.
+     * [IssueStatus.COMPLETE] needs a [resolution], which everyone can see, and it
+     * doubles as the history note when there isn't one. Moving out of Complete
+     * clears the resolution.
      */
     suspend fun changeStatus(
         issueId: String,
@@ -85,17 +86,17 @@ interface IssueRepository {
     ): StatusOutcome
 
     /**
-     * Publishes an issue: the manager reviewing it accepts the report, and it
-     * becomes visible to everyone. An issue in review or rejected moves to
+     * Publishes an issue. The manager reviewing it accepts the report, and then
+     * everyone can see it. An issue that is in review or rejected moves to
      * [IssueStatus.OPEN].
      */
     suspend fun approveIssue(issueId: String, note: String? = null): ReviewOutcome
 
     /**
-     * Turns an issue down. [reason] is required and is shown to the submitter:
-     * a rejection with no explanation is not a rejection this app will record.
-     * The issue moves to [IssueStatus.REJECTED], losing any resolution, and
-     * stays visible only to its submitter and its managers.
+     * Turns an issue down. [reason] is required, and the submitter gets to read
+     * it; this app will not record a rejection without an explanation. The issue
+     * moves to [IssueStatus.REJECTED], loses any resolution, and stays visible only
+     * to its submitter and its managers.
      */
     suspend fun rejectIssue(issueId: String, reason: String): ReviewOutcome
 
@@ -104,8 +105,8 @@ interface IssueRepository {
 
     /**
      * "Me too" from a resident who found an existing report instead of filing a
-     * duplicate. Once per user per issue: false when this user already starred
-     * it, or nobody is signed in.
+     * duplicate. It only counts once per user per issue, so this returns false if
+     * the user already starred it or nobody is signed in.
      */
     suspend fun addSupport(issueId: String): Boolean
 
@@ -115,9 +116,9 @@ interface IssueRepository {
 /**
  * Why a review action did or did not land.
  *
- * A result rather than an exception because two of the three failures are
- * ordinary UI states -- an empty reason box, or a queue gone stale while the
- * screen was open -- and the caller has something to say about each.
+ * This is a result instead of an exception because two of the three failures are
+ * just ordinary UI states (an empty reason box, or a queue that went stale while
+ * the screen was open), and the caller has something to say about each one.
  */
 sealed interface ReviewOutcome {
     data object Recorded : ReviewOutcome
@@ -151,9 +152,9 @@ sealed interface StatusOutcome {
 /**
  * Why an edit did or did not land.
  *
- * [NoChanges] is not an error: a manager who opens the form, reads it and saves
+ * [NoChanges] is not an error. A manager who opens the form, reads it, and saves
  * without touching anything should not leave an "edited by" mark on a report
- * they did not change.
+ * they never changed.
  */
 sealed interface EditOutcome {
     data object Recorded : EditOutcome

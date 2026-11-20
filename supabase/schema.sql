@@ -1,21 +1,22 @@
--- HelpMyCity on Supabase: schema, policies and storage.
+-- HelpMyCity on Supabase: the schema, policies, and storage.
 --
 -- Run this first in a new project's SQL editor, then `seed.sql`, then
--- `schedule.sql`. Put the project URL and publishable key into
--- `local.properties` as `supabase.url` and `supabase.publishableKey`.
+-- `schedule.sql`. Put the project URL and publishable key in `local.properties`
+-- as `supabase.url` and `supabase.publishableKey`.
 --
--- Column names here are the contract `SupabaseRows.kt` encodes to; enum-valued
--- columns hold the domain type's `storageKey`, never its Kotlin constant name.
+-- The column names here are the contract `SupabaseRows.kt` encodes to. Columns
+-- that hold enums store the domain type's `storageKey`, never its Kotlin constant
+-- name.
 
 -- ---------------------------------------------------------------------------
--- Reference data. Optional: a deployment that keeps departments and
--- neighborhoods in its CityProfile can leave both tables empty.
+-- Reference data. This is optional, since a deployment that keeps departments
+-- and neighborhoods in its CityProfile can leave both tables empty.
 -- ---------------------------------------------------------------------------
 
--- These are not optional, even though nothing reads them back yet: issues carry
--- a foreign key to `departments`, so an issue pushed with a department id that
--- is missing here is rejected outright. Keep this table in step with the
--- deployment's `CityProfile.departments` -- `seed.sql` does that for Oceanside.
+-- These are not optional, even though nothing reads them back yet. Issues have a
+-- foreign key to `departments`, so an issue pushed with a department id that is
+-- missing here just gets rejected. Keep this table in sync with the deployment's
+-- `CityProfile.departments` (`seed.sql` does that for Oceanside).
 create table if not exists departments (
     id                 text primary key,
     name               text not null,
@@ -34,16 +35,16 @@ create table if not exists neighborhoods (
 -- ---------------------------------------------------------------------------
 -- Issues.
 --
--- Timestamps are client-authored epoch millis, because the app is offline-first:
--- a report filed in a parking garage is written locally and keeps the time it
--- was actually filed. `updated_at_millis` doubles as the row version and as the
--- cursor for incremental sync, which is why it is indexed.
+-- Timestamps are epoch millis written by the client, because the app is
+-- offline-first. A report filed in a parking garage gets written locally and
+-- keeps the time it was actually filed. `updated_at_millis` doubles as the row
+-- version and as the cursor for incremental sync, which is why it is indexed.
 --
--- Caveat worth knowing before this carries a real city: that cursor is in the
--- *client's* clock domain. A device whose clock runs fast can write a row that
--- another device's next incremental pull skips. Fine for a demo; a production
--- deployment should add a server-stamped `synced_at timestamptz default now()`
--- and page on that instead.
+-- One thing to know before this runs a real city: that cursor uses the
+-- _client's_ clock. A device whose clock runs fast can write a row that another
+-- device's next incremental pull skips over. That is fine for a demo, but a
+-- production deployment should add a server-stamped
+-- `synced_at timestamptz default now()` and page on that instead.
 -- ---------------------------------------------------------------------------
 
 create table if not exists issues (
@@ -71,16 +72,16 @@ create table if not exists issues (
     created_at_millis        bigint not null,
     updated_at_millis        bigint not null,
 
-    -- Mirrors IssueReview's own invariant: a manager cannot reject without
-    -- saying why, because the submitter is shown the reason. The Kotlin type
-    -- refuses to construct the pair, so a row breaking it could not be read back.
+    -- Matches IssueReview's own rule that a manager can't reject without saying
+    -- why, because the submitter gets shown the reason. The Kotlin type will not
+    -- construct that combination, so a row that breaks it could not be read back.
     constraint rejected_issues_carry_a_reason check (
         review_state <> 'rejected' or coalesce(btrim(rejection_reason), '') <> ''
     ),
 
-    -- Mirrors IssueStatus: a report is in review until a manager decides, and
+    -- Matches IssueStatus. A report is in review until a manager decides, and
     -- rejected exactly when they turn it down. This is also what stops a
-    -- submitter filing a report straight into "open".
+    -- submitter from filing a report straight into "open".
     constraint status_follows_review check (
         (status = 'in_review') = (review_state = 'pending_review')
         and (status = 'rejected') = (review_state = 'rejected')
@@ -113,17 +114,17 @@ create index if not exists issue_status_changes_issue_id_idx on issue_status_cha
 -- Who may do what.
 --
 -- The publishable key is public, so every rule that matters lives here. Roles come
--- from `app_metadata`, which only the service key can write -- never
+-- from `app_metadata`, which only the service key can write, and never from
 -- `user_metadata`, which the signed-in user can write themselves.
 --
--- Grant a manager or admin from a trusted context, e.g. the SQL editor:
+-- Make someone a manager or admin from a trusted context, like the SQL editor:
 --   update auth.users
 --      set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}'::jsonb
 --    where email = 'you@example.com';
 -- ---------------------------------------------------------------------------
 
--- `set search_path = ''` keeps these resolvable only through qualified names,
--- which is what stops a shadowing schema from redefining what a role means.
+-- `set search_path = ''` means these only resolve through qualified names, which
+-- is what stops a shadowing schema from redefining what a role means.
 create or replace function claimed_role() returns text
 language sql stable set search_path = '' as $$
     select coalesce(auth.jwt() -> 'app_metadata' ->> 'role', 'resident')
@@ -139,15 +140,15 @@ alter table issue_status_changes enable row level security;
 alter table departments enable row level security;
 alter table neighborhoods enable row level security;
 
--- Reference data is public, and editable only from a trusted context.
+-- Reference data is public, and can only be edited from a trusted context.
 create policy "reference data is public"
     on departments for select using (true);
 create policy "neighborhoods are public"
     on neighborhoods for select using (true);
 
--- An approved issue is the public map. Everything else is visible to the
--- person who filed it and to reviewers -- including a rejection and its reason,
--- which is the whole point of recording one.
+-- An approved issue is the public map. Everything else is visible to the person
+-- who filed it and to reviewers, including a rejection and its reason (which is
+-- the whole point of recording one).
 create policy "read approved, own, or all as reviewer"
     on issues for select using (
         review_state = 'approved'
@@ -155,8 +156,9 @@ create policy "read approved, own, or all as reviewer"
         or is_reviewer()
     );
 
--- Anyone may file, including an anonymous session. A new report is pending and
--- unreviewed whatever the client sends: triage is not the submitter's to claim.
+-- Anyone can file, including an anonymous session. A new report is pending and
+-- unreviewed no matter what the client sends, because the submitter does not get
+-- to decide triage.
 create policy "anyone may file a report"
     on issues for insert with check (
         (submitted_by_user_id is null or submitted_by_user_id = auth.uid())
@@ -166,19 +168,19 @@ create policy "anyone may file a report"
         and rejection_reason is null
     );
 
--- Only reviewers change a *reviewed* report.
+-- Only reviewers can change a _reviewed_ report.
 create policy "reviewers may update"
     on issues for update using (is_reviewer()) with check (is_reviewer());
 
--- A submitter may revise their own report until a manager has looked at it,
--- and may never touch the triage fields -- so revising it cannot become
+-- A submitter can revise their own report until a manager has looked at it, but
+-- they can never touch the triage fields, so revising it can't turn into
 -- approving it.
 --
--- This policy is also what makes the client's outbox replayable. The sync
--- engine re-pushes anything it has not seen acknowledged, and a push is an
--- upsert: the second attempt is an UPDATE, not an INSERT. Without this, a
--- resident whose acknowledgement was lost on a bad connection would have their
--- own report rejected forever afterwards.
+-- This policy is also what makes the client's outbox replayable. The sync engine
+-- re-pushes anything it has not seen acknowledged, and a push is an upsert, so
+-- the second attempt is an UPDATE and not an INSERT. Without this, a resident
+-- whose acknowledgement got lost on a bad connection would have their own report
+-- rejected forever after.
 create policy "submitters may revise their own pending report"
     on issues for update
     using (submitted_by_user_id = auth.uid() and review_state = 'pending_review')
@@ -193,7 +195,7 @@ create policy "submitters may revise their own pending report"
 create policy "admins may delete"
     on issues for delete using (claimed_role() = 'admin');
 
--- History follows the issue it belongs to, and is never rewritten.
+-- History follows the issue it belongs to, and it never gets rewritten.
 create policy "read history of readable issues"
     on issue_status_changes for select using (
         exists (
@@ -203,19 +205,20 @@ create policy "read history of readable issues"
         )
     );
 
--- Insert only: no update or delete policy exists here, deliberately. An audit
--- trail that can be rewritten is not one. The client pushes these with
--- `ignoreDuplicates`, so re-sending an entry is a no-op rather than an update.
+-- Insert only. There is no update or delete policy here, on purpose, because an
+-- audit trail that can be rewritten is not really an audit trail. The client
+-- pushes these with `ignoreDuplicates`, so re-sending an entry does nothing
+-- instead of updating it.
 create policy "reviewers may append history"
     on issue_status_changes for insert with check (is_reviewer());
 
 -- ---------------------------------------------------------------------------
--- Stars. One row per (issue, user), which is what holds a user to one star per
--- issue. `issues.support_count` is the tally of these rows, kept by the
--- triggers below; nothing a client sends can set it.
+-- Stars. One row per (issue, user), which is what limits a user to one star per
+-- issue. `issues.support_count` is the count of these rows, kept up to date by
+-- the triggers below, and nothing a client sends can set it.
 --
--- Like the photo section, this can be re-run on its own against a project that
--- predates it.
+-- Like the photo section, this can be run again on its own against a project
+-- that was set up before it existed.
 -- ---------------------------------------------------------------------------
 
 create table if not exists issue_supports (
@@ -234,7 +237,7 @@ create policy "read own stars"
     on issue_supports for select using (user_id = auth.uid());
 
 -- Insert only. The client pushes with `ignoreDuplicates`, so a second star from
--- the same user is a no-op rather than an update.
+-- the same user does nothing instead of updating.
 drop policy if exists "star readable issues" on issue_supports;
 create policy "star readable issues"
     on issue_supports for insert with check (
@@ -246,8 +249,8 @@ create policy "star readable issues"
         )
     );
 
--- Security definer, because the person starring usually may not update the
--- issue. Moving `updated_at_millis` is what lets other devices' incremental
+-- Security definer, because the person starring usually is not allowed to update
+-- the issue. Bumping `updated_at_millis` is what lets other devices' incremental
 -- pulls see the new count.
 create or replace function count_issue_support() returns trigger
 language plpgsql security definer set search_path = '' as $$
@@ -264,9 +267,10 @@ drop trigger if exists count_issue_support on issue_supports;
 create trigger count_issue_support after insert on issue_supports
     for each row execute function count_issue_support();
 
--- A pushed issue carries whatever count its device last saw, so an API caller's
--- value is ignored: a new report starts at zero and an edit keeps the stored
--- count. The trigger above and the demo seed run as the owner and pass through.
+-- A pushed issue has whatever count its device last saw, so the value an API
+-- caller sends gets ignored. A new report starts at zero, and an edit keeps the
+-- stored count. The trigger above and the demo seed run as the owner, so they
+-- pass through.
 create or replace function keep_support_count() returns trigger
 language plpgsql set search_path = '' as $$
 begin
@@ -283,22 +287,23 @@ create trigger keep_support_count before insert or update on issues
 
 -- ---------------------------------------------------------------------------
 -- Photos. The bytes live in a public-read bucket, keyed `<issue id>/<photo id>`
--- so a replayed upload overwrites itself instead of duplicating; `issue_photos`
--- is how other devices find them.
+-- so a replayed upload overwrites itself instead of making a duplicate, and
+-- `issue_photos` is how other devices find them.
 --
--- Public-read means an object's URL works for anyone who has it, including the
--- photo of a report still awaiting review. The ids in the path are random
--- UUIDs and the row that names them follows the issue's visibility, so the URL
--- is not discoverable -- but a deployment whose pending reports must stay
--- private should make the bucket private and hand out signed URLs instead.
+-- Public-read means an object's URL works for anyone who has it, and that
+-- includes the photo on a report that is still waiting on review. The ids in the
+-- path are random UUIDs, and the row that names them follows the issue's
+-- visibility, so the URL can't really be discovered. Still, a deployment whose
+-- pending reports have to stay private should make the bucket private and hand
+-- out signed URLs instead.
 --
--- Unlike every other table, `uploaded_at_millis` is stamped by the server,
--- because a photo filed offline arrives long after it was taken and would
--- otherwise land behind other devices' sync cursors. The cursor itself is still
--- the client's clock, so the caveat on `issues` applies here too.
+-- Unlike every other table, the server stamps `uploaded_at_millis`. A photo filed
+-- offline shows up long after it was taken, and it would otherwise land behind
+-- other devices' sync cursors. The cursor itself still uses the client's clock,
+-- so the caveat on `issues` applies here too.
 --
--- The policies are dropped first so this section can be re-run on its own
--- against a project that predates it.
+-- The policies get dropped first so this section can be run again on its own
+-- against a project that was set up before it existed.
 -- ---------------------------------------------------------------------------
 
 create table if not exists issue_photos (
@@ -316,8 +321,8 @@ create index if not exists issue_photos_uploaded_at_millis_idx on issue_photos (
 
 alter table issue_photos enable row level security;
 
--- Who may attach a photo to an issue: whoever filed it, or a reviewer. Runs as
--- the caller, so the issue must also be one they can read.
+-- Who can attach a photo to an issue, which is whoever filed it or a reviewer.
+-- This runs as the caller, so the issue also has to be one they can read.
 create or replace function may_attach_photo(target_issue_id text) returns boolean
 language sql stable set search_path = '' as $$
     select exists (
@@ -337,8 +342,8 @@ create policy "read photos of readable issues"
         )
     );
 
--- Insert only. The client pushes rows with `ignoreDuplicates`, so a replay is a
--- no-op and no update policy is needed.
+-- Insert only. The client pushes rows with `ignoreDuplicates`, so a replay does
+-- nothing and there is no need for an update policy.
 drop policy if exists "submitters and reviewers may record photos" on issue_photos;
 create policy "submitters and reviewers may record photos"
     on issue_photos for insert with check (
@@ -347,8 +352,8 @@ create policy "submitters and reviewers may record photos"
         and storage_path = issue_id || '/' || id
     );
 
--- Images only, and no larger than a phone photo needs to be. Without a type
--- list, a public bucket anyone can write to is free hosting for any file.
+-- Images only, and no bigger than a phone photo needs to be. Without a type list,
+-- a public bucket anyone can write to is just free hosting for any file at all.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('issue-photos', 'issue-photos', true, 20971520,
         array['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic'])
@@ -361,8 +366,8 @@ drop policy if exists "issue photos are public" on storage.objects;
 create policy "issue photos are public"
     on storage.objects for select using (bucket_id = 'issue-photos');
 
--- The first path segment is the issue id, so an upload is checked against the
--- issue it claims to belong to.
+-- The first path segment is the issue id, so an upload gets checked against the
+-- issue it says it belongs to.
 drop policy if exists "signed-in users may attach photos" on storage.objects;
 drop policy if exists "submitters and reviewers may attach photos" on storage.objects;
 create policy "submitters and reviewers may attach photos"
@@ -371,8 +376,8 @@ create policy "submitters and reviewers may attach photos"
         and public.may_attach_photo((storage.foldername(name))[1])
     );
 
--- An upsert is an update the second time, so the outbox replay needs this --
--- but only over an object the caller uploaded.
+-- An upsert is an update the second time around, so the outbox replay needs
+-- this, but only for an object the caller uploaded.
 drop policy if exists "signed-in users may replace their upload" on storage.objects;
 drop policy if exists "uploaders may replace their own photo" on storage.objects;
 create policy "uploaders may replace their own photo"

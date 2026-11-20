@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.coroutines.CoroutineContext
 
-/** Room-backed storage. Constructed from a platform builder -- see `getDatabaseBuilder`. */
+/** Room-backed storage. It is built from a platform builder (see `getDatabaseBuilder`). */
 class RoomLocalStore(database: HelpMyCityDatabase) : LocalStore {
     override val issues: IssueLocalDataSource = RoomIssueLocalDataSource(database)
     override val departments: DepartmentLocalDataSource = RoomDepartmentLocalDataSource(database)
@@ -29,23 +29,24 @@ class RoomLocalStore(database: HelpMyCityDatabase) : LocalStore {
 }
 
 /**
- * Everything about building the database except the two things that differ per
- * platform: where the file lives, and which [SQLiteDriver] to use.
+ * Everything about building the database except the two things that are
+ * different on each platform, which are where the file lives and which
+ * [SQLiteDriver] to use.
  *
- * A plain function rather than a Koin binding, so the compiler plugin does not
- * emit a hint here as well as in each platform module.
+ * This is a plain function instead of a Koin binding, so the compiler plugin does
+ * not emit a hint here on top of the one in each platform module.
  */
 fun RoomDatabase.Builder<HelpMyCityDatabase>.buildHelpMyCityDatabase(
     driver: SQLiteDriver,
     /**
-     * Where queries run. Null keeps Room's default, which is what web wants --
-     * the browser is single-threaded and the web driver is already async.
+     * Where queries run. Null keeps Room's default, which is what the web wants,
+     * since the browser is single-threaded and the web driver is already async.
      */
     queryCoroutineContext: CoroutineContext? = null,
 ): HelpMyCityDatabase = this
     .setDriver(driver)
     .apply { queryCoroutineContext?.let { setQueryCoroutineContext(it) } }
-    // No production data yet. Swap for real migrations before the first deployment.
+    // There is no production data yet. Swap this for real migrations before the first deployment.
     .fallbackToDestructiveMigration(dropAllTables = true)
     .build()
 

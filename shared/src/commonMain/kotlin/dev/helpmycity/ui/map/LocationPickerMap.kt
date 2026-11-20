@@ -47,19 +47,19 @@ import org.maplibre.spatialk.geojson.Position
 
 private const val PICKED_LAYER_ID = "picked-location"
 
-/** Tall enough to place a pin on a street, short enough to leave the form usable. */
+/** Tall enough to place a pin on a street, and short enough that the form is still usable. */
 private val PICKER_HEIGHT = 240.dp
 
 /**
- * Tap-to-place location picker: how an issue gets a point out of the
- * descriptions residents give ("Libby Lake Park frontage").
+ * Tap-to-place location picker. This is how an issue gets an actual point out of
+ * the descriptions residents give ("Libby Lake Park frontage").
  *
- * Tap rather than a center crosshair -- one gesture, it reads to a screen reader
- * as "set location", and it records nothing for someone who only panned the map
- * to look around.
+ * It uses a tap instead of a center crosshair. That is one gesture, it reads to a
+ * screen reader as "set location", and it does not record anything for someone
+ * who only panned the map to look around.
  *
- * [isApproximate] marks a pin that geocoding placed from the address rather than
- * a finger, so the hint invites a correction instead of implying precision.
+ * [isApproximate] marks a pin that geocoding placed from the address instead of a
+ * finger, so the hint invites a correction instead of pretending to be precise.
  */
 @Composable
 fun LocationPickerMap(
@@ -98,8 +98,8 @@ fun LocationPickerMap(
         )
     }
 
-    // Held across recomposition so a new callback identity does not rebuild the
-    // interaction config, which would cancel a gesture in progress.
+    // Kept across recomposition so a new callback identity does not rebuild the
+    // interaction config, which would cancel a gesture that is in progress.
     val currentOnPointChange by rememberUpdatedState(onPointChange)
     val interactions = remember {
         MapInteractions {
@@ -115,8 +115,8 @@ fun LocationPickerMap(
         }
     }
 
-    // A geocoded pin can land well outside the current view, so follow it. A pin
-    // the resident tapped is already where they are looking, and moving there
+    // A geocoded pin can land way outside the current view, so follow it. A pin
+    // the resident tapped is already where they are looking, and moving to it
     // would yank the map out from under them.
     LaunchedEffect(point, isApproximate) {
         if (point == null || !isApproximate) return@LaunchedEffect
@@ -172,7 +172,7 @@ fun LocationPickerMap(
     }
 }
 
-/** A pin is placed on a street, so open closer in than the overview map does. */
+/** A pin goes on a street, so start more zoomed in than the overview map does. */
 private const val PIN_ZOOM_BOOST = 2.0
 
 private fun GeoPoint.toPickerPosition(): Position =

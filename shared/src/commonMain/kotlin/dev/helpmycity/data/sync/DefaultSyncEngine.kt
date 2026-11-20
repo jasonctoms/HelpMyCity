@@ -25,20 +25,21 @@ import org.koin.core.annotation.Single
 /**
  * Outbox-drain sync.
  *
- * Local writes are the source of truth until the backend acknowledges them, so
- * the loop is: collect everything not in [SyncState.SYNCED], push it, mark what
- * the backend accepted, then pull remote changes since the last successful sync.
- * Photos go after the issues they belong to, in both directions: a backend can
- * refuse a photo for an issue it has not seen, and a pulled photo has nowhere to
- * land locally until its issue has.
+ * Local writes are the source of truth until the backend acknowledges them. So
+ * the loop goes like this: collect everything that is not [SyncState.SYNCED], push
+ * it, mark whatever the backend accepted, and then pull remote changes since the
+ * last successful sync. Photos go after the issues they belong to in both
+ * directions. A backend can refuse a photo for an issue it has never seen, and a
+ * pulled photo has nowhere to land locally until its issue does.
  *
- * What a pull returns depends on who is asking, so a change of user or role
- * starts again from a full pull and drops synced rows the new caller cannot see.
+ * What a pull returns depends on who is asking, so when the user or their role
+ * changes, it starts over with a full pull and drops synced rows the new caller
+ * can't see.
  *
- * With [dev.helpmycity.data.remote.NoopIssueBackendApi] wired in, every
- * push comes back [RemoteResult.NotConfigured] and nothing is marked synced --
- * so the queue keeps building correctly and will drain on the first run against
- * a real backend, rather than silently discarding writes.
+ * With [dev.helpmycity.data.remote.NoopIssueBackendApi] wired in, every push comes
+ * back [RemoteResult.NotConfigured] and nothing gets marked synced. That way the
+ * queue keeps building up correctly and drains on the first run against a real
+ * backend, instead of quietly throwing writes away.
  */
 @Single(binds = [SyncEngine::class])
 class DefaultSyncEngine(
@@ -52,7 +53,7 @@ class DefaultSyncEngine(
     private val _status = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
     override val status: StateFlow<SyncStatus> = _status.asStateFlow()
 
-    /** One sync at a time; a manual "sync now" during an auto-sync waits rather than racing. */
+    /** One sync at a time. A manual "sync now" during an auto-sync waits its turn instead of racing it. */
     private val syncLock = Mutex()
     private var watchJob: Job? = null
     private var lastSuccessfulSyncMillis: Long? = null
@@ -63,8 +64,8 @@ class DefaultSyncEngine(
         if (watchJob != null) return
         watchJob = scope.launch {
             // The first value doubles as the startup pull. The outbox watcher
-            // below only fires when something is queued, so without it a fresh
-            // install would never learn what the backend already has.
+            // below only fires when something is queued, so without this a fresh
+            // install would never find out what the backend already has.
             launch {
                 session.currentUser
                     .map { user -> user?.id to user?.role }
@@ -80,7 +81,7 @@ class DefaultSyncEngine(
                 issues.count { it.sync.state != SyncState.SYNCED } + pendingPhotos + pendingSupports
             }
                 .distinctUntilChanged()
-                // A manager editing a form produces a burst of writes; sync once at the end of it.
+                // A manager editing a form causes a burst of writes, so sync once at the end.
                 .debounce(SYNC_DEBOUNCE_MILLIS)
                 .collect { pendingCount -> if (pendingCount > 0) syncNow() }
         }
@@ -119,7 +120,7 @@ class DefaultSyncEngine(
                     pushed++
                 }
 
-                // Nothing to push to. Leave the queue intact and report honestly.
+                // Nothing to push to. Leave the queue alone and say so.
                 RemoteResult.NotConfigured -> return SyncStatus.NoBackend
 
                 is RemoteResult.Failure -> {
@@ -138,7 +139,7 @@ class DefaultSyncEngine(
             }
         }
 
-        // After the issues, so a star on a report filed offline finds its issue.
+        // This goes after the issues, so a star on a report filed offline can find its issue.
         val pendingSupports = localDataSource.pendingSupports()
         var supported = 0
         for (support in pendingSupports) {

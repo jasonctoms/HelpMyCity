@@ -2,7 +2,7 @@ package dev.helpmycity.ui.navigation
 
 import androidx.navigation3.runtime.NavKey
 
-/** The address of [route] in the web build: what follows the `#`, or `""` for the issue list. */
+/** The address of [route] in the web build, meaning what comes after the `#` (or `""` for the issue list). */
 fun pathOf(route: Route): String = when (route) {
     IssueListRoute -> ""
     ReviewQueueRoute -> "/review"
@@ -19,9 +19,10 @@ fun pathOf(route: Route): String = when (route) {
 }
 
 /**
- * The back stack an address opens: its screen on top of the screens you would
- * have come through, so the back arrow still leads somewhere after following a
- * link. Anything unrecognised opens the issue list.
+ * The back stack an address opens, which is its screen on top of the screens you
+ * would have come through to get there. That way the back arrow still goes
+ * somewhere after following a link. Anything it does not recognize opens the
+ * issue list.
  */
 fun backStackFor(path: String): List<NavKey> {
     val segments = path.split('/').filter { it.isNotEmpty() }

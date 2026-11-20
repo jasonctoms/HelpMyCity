@@ -41,11 +41,11 @@ import org.jetbrains.compose.resources.stringResource
 private val FailedTint = Color(0xFFFFB4AB)
 
 /**
- * Where the user's data is, as one small icon in the header. Tapping it says so
- * in words, and offers a manual sync when there is a backend to sync with.
+ * Where the user's data is, as one small icon in the header. Tapping it explains
+ * in words, and offers a manual sync if there is a backend to sync with.
  *
- * With no backend configured the honest answer is "changes stay on this
- * device", not a spinner that implies an upload is happening.
+ * With no backend configured, the honest answer is "changes stay on this device",
+ * and not a spinner that makes it look like an upload is happening.
  */
 @Composable
 fun SyncIndicator(status: SyncStatus, onSyncNow: () -> Unit, modifier: Modifier = Modifier) {

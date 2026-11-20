@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 /**
  * A city department an issue can be routed to.
  *
- * The set of departments is per-deployment: see
- * [dev.helpmycity.deployment.CityProfile.departments].
+ * Each deployment has its own set of departments (see
+ * [dev.helpmycity.deployment.CityProfile.departments]).
  */
 @Serializable
 data class Department(

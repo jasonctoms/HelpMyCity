@@ -17,8 +17,8 @@ import kotlinx.coroutines.flow.update
 import org.koin.core.annotation.KoinViewModel
 
 /**
- * Backs both the list and the kanban board -- they are the same query with a
- * different presentation, so they share a filter.
+ * Backs both the list and the kanban board. They are the same query presented
+ * differently, so they share a filter.
  */
 @KoinViewModel
 class IssueListViewModel(private val repository: IssueRepository) : ViewModel() {

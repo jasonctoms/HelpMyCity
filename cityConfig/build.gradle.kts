@@ -3,19 +3,22 @@ import java.io.StringReader
 import java.util.Properties
 
 /**
- * Oceanside, CA on Supabase: the one module a fork edits.
+ * Oceanside, CA on Supabase. This is the one module a fork edits.
  *
- * Holds both halves of what makes the app *this* city's -- the `CityProfile`
- * (departments, neighborhoods, the My Oceanside hand-off) and the
- * `BackendProvider` Oceanside runs on (`supabase/`). Nothing under `:shared`
- * depends on it, and dropping it leaves a working, if unconfigured, app.
+ * It holds both halves of what makes the app _this_ city's app: the
+ * `CityProfile` (departments, neighborhoods, and the My Oceanside hand-off) and
+ * the `BackendProvider` Oceanside runs on (`supabase/`). Nothing under `:shared`
+ * depends on it, and if you drop it you still have a working (if unconfigured)
+ * app.
  *
- * Supabase is this deployment's choice and the repository's one worked example,
- * not a requirement: a fork implementing `BackendProvider` against something
- * else replaces the `supabase` package and the settings below with its own.
+ * Supabase is what this deployment picked, and it is the repo's one worked
+ * example, but it is not a requirement. A fork that implements `BackendProvider`
+ * against something else just replaces the `supabase` package and the settings
+ * below with its own.
  *
- * No Compose, no Room, no Koin compiler plugin -- replacing this module means
- * filling in data classes and a connection string, not learning the build.
+ * There is no Compose, no Room, and no Koin compiler plugin here, so replacing
+ * this module means filling in some data classes and a connection string instead
+ * of having to learn the build.
  */
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -24,21 +27,20 @@ plugins {
 }
 
 /**
- * Where this build's Supabase project details come from, most specific first:
- * a CI environment variable, then `-P` on the command line, then
- * `local.properties`, then a default. Specific to this backend; another
- * provider's module supplies whatever it needs its own way.
+ * Where this build's Supabase project details come from, most specific first: a
+ * CI environment variable, then `-P` on the command line, then
+ * `local.properties`, then a default. This is specific to this backend, and
+ * another provider's module can get whatever it needs however it wants.
  *
- * Blank is a supported answer and the one a fresh clone gets: `SupabaseConfig`
- * reports itself unconfigured, every API returns `NotConfigured` and sign-in
- * falls back to `MockAuthService`, so the app runs local-only exactly as it
+ * Blank is a supported answer, and it is what a fresh clone gets. `SupabaseConfig`
+ * reports itself as unconfigured, every API returns `NotConfigured`, and sign-in
+ * falls back to `MockAuthService`, so the app runs local-only exactly like it
  * does with no backend at all.
  *
- * None of this is secret. The publishable key is a public identifier; what it
- * may read and write is decided by the row-level security policies in
- * `schema.sql`. It lives in `local.properties` to keep it out of version
- * control and swappable per environment, not because knowing it grants
- * anything.
+ * None of this is secret. The publishable key is a public identifier, and what it
+ * can read and write is decided by the row-level security policies in
+ * `schema.sql`. It lives in `local.properties` to keep it out of version control
+ * and easy to swap per environment, not because knowing it gets you anything.
  */
 val localProperties = providers.fileContents(
     rootProject.layout.projectDirectory.file("local.properties")
@@ -95,9 +97,9 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
-    // JS rather than Wasm on the web, to match `:shared` -- see "Why the web target is JS"
-    // in ARCHITECTURE.md.
-    // ES modules for the same reason `:shared` uses them: maplibre-gl 6 is ESM-only.
+    // JS instead of Wasm on the web, to match `:shared` (see "Why the web target is JS"
+    // in ARCHITECTURE.md).
+    // ES modules for the same reason `:shared` uses them, since GL JS 6 is ESM-only.
     js {
         useEsModules()
         browser()
@@ -122,7 +124,7 @@ kotlin {
             // The only dependency a deployment module needs.
             api(project(":shared"))
 
-            // supabase-kt carries its own Ktor client; each target supplies the engine below.
+            // supabase-kt brings its own Ktor client, and each target supplies the engine below.
             implementation(project.dependencies.platform(libs.supabase.bom))
             implementation(libs.supabase.postgrest)
             implementation(libs.supabase.auth)

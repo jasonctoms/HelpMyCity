@@ -36,21 +36,20 @@ import kotlinx.serialization.json.put
 /**
  * Sign-in backed by Supabase Auth.
  *
- * [currentAccount] tracks Supabase's own session, so a restored session on app
- * start, a token refresh and a sign-out on another tab all land here without
- * the app polling for them.
+ * [currentAccount] follows Supabase's own session, so a session restored on app
+ * start, a token refresh, and a sign-out on another tab all show up here without
+ * the app having to poll for them.
  *
  * Roles and scopes are read from **`app_metadata`**, never `user_metadata`. A
- * signed-in user can write their own `user_metadata` through the API, so a role
- * kept there would let anyone make themselves an admin; `app_metadata` is
- * writable only with the service key, from a trusted server. Both are only a
- * *claim* either way -- see [Account.claimedRole]: the app reads them once to
- * seed a new [dev.helpmycity.domain.model.User] and its own record
- * wins from then on.
+ * signed-in user can write their own `user_metadata` through the API, so keeping
+ * a role there would let anyone make themselves an admin. `app_metadata` can only
+ * be written with the service key, from a trusted server. Either way, both are
+ * only a _claim_ (see [Account.claimedRole]). The app reads them once to seed a
+ * new [dev.helpmycity.domain.model.User], and its own record wins after that.
  *
- * Given no configured client this delegates to [MockAuthService], so selecting
- * the Supabase backend before the project exists leaves a usable app rather
- * than one that refuses every sign-in.
+ * Without a configured client this hands off to [MockAuthService], so picking the
+ * Supabase backend before the project exists still gives you a usable app instead
+ * of one that refuses every sign-in.
  */
 internal class SupabaseAuthService(
     private val client: SupabaseClient?,
@@ -90,8 +89,8 @@ internal class SupabaseAuthService(
             supabase.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
-                // Read back as the account's display name. Self-declared, which
-                // is why it is a name and not a role.
+                // Read back as the account's display name. The user sets it
+                // themselves, which is why it is a name and not a role.
                 data = buildJsonObject { put("display_name", displayName) }
             }
         }
@@ -99,8 +98,8 @@ internal class SupabaseAuthService(
 
     override suspend fun signOut() {
         val supabase = client ?: return fallback!!.signOut()
-        // A failure here means the token is already gone server-side; the local
-        // session is cleared either way, so there is nothing to report.
+        // A failure here means the token is already gone on the server side. The
+        // local session gets cleared either way, so there is nothing to report.
         runCatching { supabase.auth.signOut() }
     }
 
@@ -109,7 +108,7 @@ internal class SupabaseAuthService(
         return attempt { supabase.auth.signInAnonymously() }
     }
 
-    // The session is read back rather than taken from a return value, because
+    // The session gets read back instead of taken from a return value, because
     // signInWith and signInAnonymously both return Unit.
     private suspend inline fun attempt(block: () -> Unit): AuthResult = try {
         block()
@@ -139,8 +138,8 @@ private fun AuthErrorCode?.asFailureReason(): AuthFailureReason = when (this) {
 /**
  * A Supabase user as an [Account].
  *
- * An anonymous user has no email, which is exactly what [Account.isGuest]
- * means, so a guest session needs no special case here.
+ * An anonymous user has no email, which is exactly what [Account.isGuest] means,
+ * so a guest session does not need a special case here.
  */
 private fun UserInfo.toAccount(): Account = Account(
     id = id,

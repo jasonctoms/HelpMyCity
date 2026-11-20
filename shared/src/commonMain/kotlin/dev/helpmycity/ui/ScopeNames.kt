@@ -7,10 +7,10 @@ import dev.helpmycity.domain.model.Neighborhood
 /**
  * The areas a scope covers, named the way the city names them.
  *
- * Citywide is deliberately not in the list: it is a different sentence rather
- * than a longer one, and the screens say it themselves. An id with nothing
- * behind it any more is shown raw rather than dropped, so a stale assignment is
- * visible to the admin who has to clear it.
+ * Citywide is left out of the list on purpose. It is a different sentence, not a
+ * longer one, and the screens say it themselves. An id that does not point at
+ * anything anymore gets shown raw instead of dropped, so the admin who has to
+ * clean up a stale assignment can actually see it.
  */
 fun ManagerScope.areaNames(
     neighborhoods: List<Neighborhood>,

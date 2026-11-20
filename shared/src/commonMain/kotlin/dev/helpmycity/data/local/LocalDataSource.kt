@@ -11,20 +11,20 @@ import dev.helpmycity.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 /**
- * The offline store the repositories read and write. Room backs it on every
- * target; [InMemoryIssueLocalDataSource] backs tests.
+ * The offline store the repositories read from and write to. Room backs it on
+ * every target, and [InMemoryIssueLocalDataSource] backs the tests.
  *
- * Filtering happens in Kotlin rather than SQL: the dataset is a few thousand
- * issues for one city, and keeping
- * [dev.helpmycity.domain.model.IssueFilter] out of the storage layer
- * lets another store be dropped in without reimplementing query translation.
+ * Filtering happens in Kotlin instead of SQL. The dataset is a few thousand issues
+ * for one city, and keeping [dev.helpmycity.domain.model.IssueFilter] out of the
+ * storage layer means another store can be dropped in without redoing all the
+ * query translation.
  */
 interface IssueLocalDataSource {
     fun observeAll(): Flow<List<Issue>>
     fun observeById(id: String): Flow<Issue?>
     fun observeHistory(issueId: String): Flow<List<IssueStatusChange>>
 
-    /** Read per-issue, never as part of [observeAll] -- photo bytes are the big values here. */
+    /** Read per issue and never as part of [observeAll], since photo bytes are the big values here. */
     fun observePhotos(issueId: String): Flow<List<IssuePhoto>>
 
     suspend fun getById(id: String): Issue?
@@ -32,7 +32,7 @@ interface IssueLocalDataSource {
     suspend fun upsertAll(issues: List<Issue>)
     suspend fun delete(id: String)
 
-    /** Drops issues the backend has acknowledged but no longer returns. Unsent work is kept. */
+    /** Drops issues the backend acknowledged but does not return anymore. Unsent work is kept. */
     suspend fun deleteSyncedExcept(keep: Set<String>)
 
     suspend fun appendStatusChange(change: IssueStatusChange)
@@ -43,7 +43,7 @@ interface IssueLocalDataSource {
     suspend fun upsertPhoto(photo: IssuePhoto)
     suspend fun deletePhoto(photoId: String)
 
-    /** Outbox drain: everything the backend has not acknowledged yet. */
+    /** For draining the outbox. This is everything the backend has not acknowledged yet. */
     suspend fun pendingSync(): List<Issue>
     suspend fun pendingStatusChanges(): List<IssueStatusChange>
     suspend fun pendingPhotos(): List<IssuePhoto>
@@ -53,22 +53,22 @@ interface IssueLocalDataSource {
 
     /**
      * Records photos the backend holds. Bytes already stored here are kept, and a
-     * photo whose issue is not stored here is skipped rather than orphaned.
+     * photo whose issue is not stored here gets skipped instead of orphaned.
      */
     suspend fun mergeRemotePhotos(photos: List<IssuePhoto>)
     fun observeSupportedIssueIds(userId: String): Flow<Set<String>>
 
     /**
-     * Records the star and counts it on the local issue straight away, so the
-     * tally moves before the backend has heard about it. False, and nothing
-     * written, when this user had already starred the issue.
+     * Records the star and counts it on the local issue right away, so the count
+     * moves before the backend has even heard about it. Returns false (and writes
+     * nothing) if this user already starred the issue.
      */
     suspend fun addSupport(support: IssueSupport): Boolean
     suspend fun pendingSupports(): List<IssueSupport>
     fun observePendingSupportCount(): Flow<Int>
     suspend fun markSupportSynced(support: IssueSupport)
 
-    /** Stars the backend holds, stored as synced. Counts are left to the pulled issues. */
+    /** Stars the backend holds, stored as synced. The counts come from the pulled issues. */
     suspend fun mergeRemoteSupports(supports: List<IssueSupport>)
 
     suspend fun markSynced(issueId: String, syncedAtMillis: Long, remoteVersion: String?)
@@ -97,16 +97,16 @@ interface NeighborhoodLocalDataSource {
 /**
  * The users the admin screen edits.
  *
- * No `delete`: creating and closing accounts belongs to whoever authenticates
- * them, and this table only holds what *this deployment* decided about an
- * account it has already seen.
+ * There is no `delete`. Creating and closing accounts is up to whoever
+ * authenticates them, and this table only holds what _this deployment_ decided
+ * about an account it has already seen.
  */
 interface UserLocalDataSource {
     fun observeAll(): Flow<List<User>>
     fun observeById(id: String): Flow<User?>
     suspend fun getById(id: String): User?
 
-    /** Case-insensitive: an address is one person however it was typed. */
+    /** Case-insensitive, since an address is the same person no matter how it was typed. */
     suspend fun getByEmail(email: String): User?
 
     suspend fun upsert(account: User)

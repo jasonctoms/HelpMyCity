@@ -12,10 +12,10 @@ import androidx.compose.ui.graphics.painter.Painter
 import dev.helpmycity.domain.model.IssueStatus
 
 /**
- * A white mark per status, drawn over the status color so markers stay
- * tellable apart without color vision: an ellipsis for in review, `!` for
- * open, a half-filled ring for in progress, a check for complete and a cross
- * for rejected.
+ * A white mark for each status, drawn over the status color so you can still
+ * tell markers apart without color vision. An ellipsis for in review, `!` for
+ * open, a half-filled ring for in progress, a check for complete, and a cross for
+ * rejected.
  */
 internal class StatusGlyphPainter(private val status: IssueStatus) : Painter() {
 

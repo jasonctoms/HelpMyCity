@@ -36,8 +36,8 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * @param clearsFloatingActionButton whether the last card has to stay out from
- *   under the Scaffold's report button. False where there is none -- the wide
- *   layout moves that action into the header. See [IssueWorkspaceScreen].
+ *   under the Scaffold's report button. False when there is no button, since the
+ *   wide layout moves that action into the header (see [IssueWorkspaceScreen]).
  */
 @Composable
 fun IssueListScreen(
@@ -58,7 +58,7 @@ fun IssueListScreen(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         )
 
-        // Scrolls rather than wraps, so the list keeps its height on a narrow phone.
+        // Scrolls instead of wrapping, so the list keeps its height on a narrow phone.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -117,8 +117,8 @@ private fun IssueList(
             start = 16.dp,
             end = 16.dp,
             top = 16.dp,
-            // Extra, where there is a floating action button for the last card
-            // to clear.
+            // Extra padding, when there is a floating action button for the last
+            // card to clear.
             bottom = if (clearsFloatingActionButton) 88.dp else 16.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),

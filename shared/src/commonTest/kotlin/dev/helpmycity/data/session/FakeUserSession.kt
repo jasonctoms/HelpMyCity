@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Whoever the test says the app is working with, for tests about who may see or
- * do what. No accounts and no registration -- those are
+ * Whoever the test says the app is working with, for tests about who can see or
+ * do what. There are no accounts and no registration here, since those are
  * [DefaultUserSession]'s job, and it has its own test.
  */
 class FakeUserSession(initialUser: User? = null) : UserSession {

@@ -3,9 +3,9 @@ package dev.helpmycity.domain.model
 import kotlinx.serialization.Serializable
 
 /**
- * Append-only audit entry. Drives issue history in the UI and "how long has this
- * been sitting?" reporting, and it is the reason the app can be the system of
- * record when the city's own tracking is not.
+ * An append-only audit entry. It drives the issue history in the UI and "how long
+ * has this been sitting here?" reporting, and it is the reason this app can be the
+ * system of record when the city's own tracking can't be.
  */
 @Serializable
 data class IssueStatusChange(

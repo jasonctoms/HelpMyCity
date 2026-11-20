@@ -52,8 +52,8 @@ class IssueCsvExporterTest {
 
     @Test
     fun valuesContainingCommasAndQuotesAreEscaped() {
-        // "Calle Solimar & Calle Los Santos" style locations are common in the
-        // real data, and a stray comma must not shift every later column.
+        // Locations like "Calle Solimar & Calle Los Santos" are common in the real
+        // data, and a stray comma should not shift every column after it.
         val csv = exporter.toCsv(listOf(issue("Flooding, again", """The "big" corner""")))
         val row = csv.trim().lines()[1]
 

@@ -7,28 +7,28 @@ import dev.jordond.compass.geocoder.NotSupportedPlatformGeocoder
 import dev.jordond.compass.geocoder.PlatformGeocoder
 
 /**
- * The geocoder built into the device -- Android's `Geocoder`, iOS's
- * `CLGeocoder` -- or nothing on the web, which has no such thing.
+ * The geocoder built into the device (Android's `Geocoder` or iOS's
+ * `CLGeocoder`), or nothing on the web, since browsers do not have one.
  *
- * Worth preferring wherever it exists: it costs nothing, needs no account,
- * spends no third party's donated capacity and is subject to no rate limit.
- * Android's is also absent on plenty of builds, so it reports its own
- * availability; pair it with something that always works using [orElse].
+ * Use it wherever it exists. It costs nothing, needs no account, does not eat
+ * into anybody's donated capacity, and has no rate limit. Plenty of Android builds
+ * do not have it though, so it reports its own availability, and you should pair
+ * it with something that always works using [orElse].
  */
 expect fun deviceGeocoder(): PlatformGeocoder
 
 /**
- * [this] wherever the platform provides it, [fallback] everywhere else -- the
- * device geocoder on a phone, and an HTTP one in a browser, from one expression
- * a city profile can write in common code.
+ * Uses [this] wherever the platform provides it, and [fallback] everywhere else.
+ * That gets you the device geocoder on a phone and an HTTP one in a browser, from
+ * one expression a city profile can write in common code.
  *
- * Availability is re-checked per call rather than captured, so nothing here
- * has to run at start-up.
+ * Availability gets checked again on every call instead of once up front, so
+ * nothing here has to run at startup.
  */
 infix fun PlatformGeocoder.orElse(fallback: PlatformGeocoder): PlatformGeocoder =
     FallbackPlatformGeocoder(preferred = this, fallback = fallback)
 
-/** A geocoder that reports itself unsupported: the form falls back to the pin picker. */
+/** A geocoder that reports itself as unsupported, so the form falls back to the pin picker. */
 val NoGeocoding: Geocoder = Geocoder(NotSupportedPlatformGeocoder)
 
 private class FallbackPlatformGeocoder(

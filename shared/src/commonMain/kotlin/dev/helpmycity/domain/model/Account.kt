@@ -1,13 +1,13 @@
 package dev.helpmycity.domain.model
 
 /**
- * A person as the identity provider knows them: who signed in, not what they may
- * do here.
+ * A person the way the identity provider knows them. This is who signed in, and
+ * says nothing about what they are allowed to do here.
  *
- * The counterpart to [User]. An account proves an identity; a [User] record is
- * what this deployment decided about it, and the two are joined by
- * [dev.helpmycity.data.session.UserSession]. Keeping them apart is
- * what lets an admin change a role without the next sign-in undoing it.
+ * It is the other side of [User]. An account proves an identity, a [User] record
+ * is what this deployment decided about that identity, and
+ * [dev.helpmycity.data.session.UserSession] joins the two. Keeping them separate is
+ * what lets an admin change someone's role without the next sign-in undoing it.
  */
 data class Account(
     val id: String,
@@ -16,13 +16,13 @@ data class Account(
     val email: String?,
 
     /**
-     * What the provider says this person may do -- a role and a scope claim
-     * carried on the account, in the `:cityConfig` example.
+     * What the provider says this person is allowed to do. In the `:cityConfig`
+     * example, that is a role and a scope claim on the account.
      *
-     * Read exactly once, when an account is first registered as a [User]. After
-     * that this app's own record wins, so an assignment made here is not
-     * overwritten every time its holder signs in. Null when the provider says
-     * nothing, which leaves a new user a resident.
+     * This is read exactly once, when an account is first registered as a [User].
+     * After that the app's own record wins, so an assignment made here does not get
+     * overwritten every time that person signs in. Null when the provider does not
+     * say anything, which makes a new user a resident.
      */
     val claimedRole: UserRole? = null,
     val claimedScope: ManagerScope? = null,

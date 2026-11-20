@@ -21,13 +21,14 @@ import io.ktor.http.ContentType
 /**
  * The issue table, read and written incrementally.
  *
- * Every write is an upsert keyed on the issue id, because the sync engine
- * replays its outbox: a push that succeeded but whose acknowledgement was lost
- * has to be harmless the second time.
+ * Every write is an upsert keyed on the issue id, because the sync engine replays
+ * its outbox. If a push went through but the acknowledgement got lost, sending it
+ * again has to be harmless.
  *
- * Which rows a caller may actually see or change is decided by the row-level
- * security policies in `schema.sql`, not here -- a resident holding the
- * publishable key gets the public map plus their own reports, whatever this class asks for.
+ * Which rows a caller can actually see or change is decided by the row-level
+ * security policies in `schema.sql`, not here. A resident with the publishable
+ * key gets the public map plus their own reports, no matter what this class asks
+ * for.
  */
 internal class SupabaseIssueBackendApi(
     private val client: SupabaseClient?,
@@ -58,8 +59,8 @@ internal class SupabaseIssueBackendApi(
             val stored = supabase.from(ISSUES)
                 .upsert(issue.toRow()) { select() }
                 .decodeSingle<IssueRow>()
-            // Acknowledge what the table holds, not what was sent: a policy
-            // or trigger may have adjusted it on the way in.
+            // Acknowledge what the table holds and not what was sent, since a
+            // policy or trigger might have changed it on the way in.
             RemoteAck(
                 id = stored.id,
                 remoteVersion = stored.updatedAtMillis.toString(),
@@ -70,18 +71,18 @@ internal class SupabaseIssueBackendApi(
     /**
      * Appends one audit entry, or does nothing if it is already there.
      *
-     * `ignoreDuplicates` makes this an `ON CONFLICT DO NOTHING` rather than an
-     * update, for two reasons that point the same way: the table is append-only
-     * -- rewriting history is the one thing an audit trail must not allow, so
-     * `schema.sql` grants no update policy on it -- and the sync engine re-pushes
-     * entries it has already sent, which a merging upsert would turn into an
-     * update and a permanent, unretryable failure.
+     * `ignoreDuplicates` makes this an `ON CONFLICT DO NOTHING` instead of an
+     * update, and there are two reasons for that. First, the table is append-only.
+     * Rewriting history is the one thing an audit trail can never allow, so
+     * `schema.sql` has no update policy on it. Second, the sync engine re-pushes
+     * entries it has already sent, and a merging upsert would turn those into
+     * updates that fail permanently with no way to retry.
      */
     override suspend fun pushStatusChange(change: IssueStatusChange): RemoteResult<RemoteAck> =
         remote(client) { supabase ->
             supabase.from(STATUS_CHANGES).upsert(change.toRow()) { ignoreDuplicates = true }
-            // Nothing comes back from an ignored duplicate, so the ack is built
-            // from what was sent. An append has no version to carry.
+            // Nothing comes back from an ignored duplicate, so the ack gets built
+            // from what was sent. An append does not have a version.
             RemoteAck(
                 id = change.id,
                 remoteVersion = null,
@@ -95,8 +96,8 @@ internal class SupabaseIssueBackendApi(
         }
 
     /**
-     * `ignoreDuplicates` for the same reason as [pushStatusChange]: the table
-     * is insert-only, and the (issue, user) key is what keeps a user to one star.
+     * `ignoreDuplicates` for the same reason as [pushStatusChange]. The table is
+     * insert-only, and the (issue, user) key is what limits a user to one star.
      */
     override suspend fun pushSupport(support: IssueSupport): RemoteResult<Unit> =
         remote(client) { supabase ->
@@ -120,9 +121,9 @@ internal class SupabaseIssueBackendApi(
 /**
  * Departments and neighborhoods as the backend holds them.
  *
- * A deployment that never edits either can leave both tables empty and let the
- * `CityProfile` stay authoritative: empty lists and
- * [RemoteResult.NotConfigured] are handled the same way upstream.
+ * A deployment that never edits either one can leave both tables empty and let
+ * the `CityProfile` stay in charge, since empty lists and
+ * [RemoteResult.NotConfigured] get handled the same way upstream.
  */
 internal class SupabaseReferenceDataBackendApi(
     private val client: SupabaseClient?,
@@ -142,12 +143,13 @@ internal class SupabaseReferenceDataBackendApi(
 }
 
 /**
- * Issue photos: the bytes in a public Storage bucket, and a row per photo in
- * `issue_photos` so other devices can find them.
+ * Issue photos. The bytes go in a public Storage bucket, and there is a row per
+ * photo in `issue_photos` so other devices can find them.
  *
  * Both writes are keyed by photo id, so a replayed upload overwrites its own
- * object and leaves its row alone instead of littering either with duplicates.
- * The object goes first: a row is only ever written for bytes that are there.
+ * object and leaves its row alone, instead of filling either one up with
+ * duplicates. The object goes first, so a row only ever gets written for bytes
+ * that are actually there.
  */
 internal class SupabasePhotoBackendApi(
     private val client: SupabaseClient?,
@@ -193,8 +195,8 @@ internal class SupabasePhotoBackendApi(
 }
 
 /**
- * The image type named by [bytes]' signature. The bucket accepts only the
- * types listed in `schema.sql`, so a file that is none of them is sent as
+ * The image type based on [bytes]' signature. The bucket only accepts the types
+ * listed in `schema.sql`, so a file that is none of them gets sent as
  * `application/octet-stream` and refused there.
  */
 private fun imageContentType(bytes: ByteArray): ContentType {
@@ -215,12 +217,12 @@ private fun imageContentType(bytes: ByteArray): ContentType {
 }
 
 /**
- * Runs [block] against a configured client, turning the two failures Supabase
- * reports into the two the sync engine knows how to act on.
+ * Runs [block] against a configured client, and turns the two failures Supabase
+ * reports into the two the sync engine knows how to handle.
  *
- * A null client is [RemoteResult.NotConfigured] rather than an error: a build
- * that selected this backend before the project existed should behave like a
- * build with no backend, not like a broken one.
+ * A null client is [RemoteResult.NotConfigured] instead of an error. A build that
+ * picked this backend before the project existed should behave like a build with
+ * no backend, not like a broken one.
  */
 private suspend inline fun <T> remote(
     client: SupabaseClient?,
@@ -230,9 +232,9 @@ private suspend inline fun <T> remote(
     return try {
         RemoteResult.Success(block(client))
     } catch (e: RestException) {
-        // Postgres said no -- a constraint, or a policy that does not allow
-        // this. Retrying sends the identical request, so it stays no.
-        // Not `e.message`: that carries the request headers, session token included.
+        // Postgres said no, because of a constraint or a policy that does not
+        // allow this. Retrying sends the exact same request, so it stays a no.
+        // Not `e.message`, because that includes the request headers (session token too).
         RemoteResult.Failure(e.error, retryable = false, cause = e)
     } catch (e: HttpRequestException) {
         RemoteResult.Failure("Could not reach Supabase.", retryable = true, cause = e)

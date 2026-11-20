@@ -33,7 +33,7 @@ data class ProfileUiState(
     /** A guest has nothing stored, so there is nothing to edit. */
     val canEditProfile: Boolean get() = user?.isGuest == false
 
-    /** Only a manager has areas: an admin reaches everything and a resident nothing. */
+    /** Only a manager has areas. An admin reaches everything, and a resident reaches nothing. */
     val showsAreas: Boolean get() = user?.role == UserRole.MANAGER
 
     val isCitywide: Boolean get() = user?.scope?.citywide == true
@@ -64,8 +64,8 @@ class ProfileViewModel(
     fun exportFileName(): String = "issues-${formatTimestamp(time.nowMillis())}"
 
     /**
-     * Every issue this device holds, which for an admin is every issue there
-     * is as of the last sync. Null for anyone else.
+     * Every issue this device holds, which for an admin is every issue there is as
+     * of the last sync. Null for anyone else.
      */
     suspend fun exportCsv(): String? {
         if (session.currentUser.value?.role?.canManageConfiguration != true) return null

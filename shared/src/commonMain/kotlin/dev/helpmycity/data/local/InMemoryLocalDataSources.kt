@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/** Non-persistent local store: the fake unit tests run against. */
+/** A local store that does not persist anything. This is the fake the unit tests run against. */
 class InMemoryIssueLocalDataSource : IssueLocalDataSource {
     private val issues = MutableStateFlow<Map<String, Issue>>(emptyMap())
     private val history = MutableStateFlow<List<IssueStatusChange>>(emptyList())

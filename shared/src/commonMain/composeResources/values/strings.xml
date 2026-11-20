@@ -25,8 +25,8 @@
     <string name="continue_as_guest">Continue without an account</string>
     <string name="sign_out">Sign out</string>
     <string name="signed_in_as">Signed in as %1$s</string>
-    <string name="demo_logins_notice">This is a public demo. Tap an account below to fill the form — they are shared with everyone, so do not put anything private in them. Reports and photos are cleared once a day.</string>
-    <string name="demo_repo_footer">HelpMyCity is open source — fork it on GitHub</string>
+    <string name="demo_logins_notice">This is a public demo. Tap an account below to fill in the form. They are shared with everyone, so do not put anything private in them. Reports and photos are cleared once a day.</string>
+    <string name="demo_repo_footer">HelpMyCity is open source, so fork it on GitHub!</string>
 
     <!-- Auth errors -->
     <string name="error_invalid_email">Enter a valid email address.</string>
@@ -108,7 +108,7 @@
     <string name="geocode_searching">Looking up this location…</string>
     <string name="geocode_resolved">Matched %1$s</string>
     <string name="geocode_no_match">No match for that location. You can still drop a pin on the map.</string>
-    <string name="geocode_unavailable">Address lookup is unavailable right now. Drop a pin instead — your report sends either way.</string>
+    <string name="geocode_unavailable">Address lookup is unavailable right now. Drop a pin instead, and your report will still send either way.</string>
 
     <!-- Photos -->
     <string name="photo_add">Add photos</string>

@@ -31,17 +31,17 @@ import org.koin.core.annotation.KoinViewModel
 data class IssueDetailUiState(
     val issue: Issue? = null,
     val department: Department? = null,
-    /** Resolved from the stable id stored on the issue; null if that id is gone. */
+    /** Looked up from the stable id stored on the issue. Null if that id is gone. */
     val neighborhoodName: String? = null,
     val photos: List<IssuePhoto> = emptyList(),
     val history: List<IssueStatusChange> = emptyList(),
-    /** This viewer manages the area: they can triage, approve and reject. */
+    /** This viewer manages the area, so they can triage, approve, and reject. */
     val canReview: Boolean = false,
     /** This viewer filed it, which is why they can see it before it is approved. */
     val isSubmitter: Boolean = false,
-    /** This viewer has starred it; a second star would not count. */
+    /** This viewer has starred it, and a second star would not count. */
     val hasSupported: Boolean = false,
-    /** Signed in, as anyone -- a star has to belong to someone. */
+    /** Signed in as anyone, since a star has to belong to someone. */
     val canSupport: Boolean = false,
     val isLoaded: Boolean = false,
 )
@@ -97,8 +97,8 @@ class IssueDetailViewModel(
     }
 
     /**
-     * Who is looking is part of the state, not a one-off read: a sign-in while
-     * this screen is open has to add the review controls, and a sign-out has to
+     * Who is looking is part of the state and not a one-off read. Signing in while
+     * this screen is open has to add the review controls, and signing out has to
      * take them away.
      */
     val uiState: StateFlow<IssueDetailUiState> = combine(
@@ -118,7 +118,7 @@ class IssueDetailViewModel(
     private val _rejection = MutableStateFlow(RejectionState())
     val rejection: StateFlow<RejectionState> = _rejection.asStateFlow()
 
-    /** Set when a review action was refused; cleared on the next attempt. */
+    /** Set when a review action gets refused, and cleared on the next attempt. */
     private val _reviewError = MutableStateFlow<ReviewOutcome?>(null)
     val reviewError: StateFlow<ReviewOutcome?> = _reviewError.asStateFlow()
 
@@ -199,9 +199,9 @@ class IssueDetailViewModel(
         _rejection.update { it.copy(reason = value, showReasonRequired = false) }
 
     /**
-     * Rejects with the typed reason. A blank one never reaches the repository --
-     * and the repository refuses it anyway, because "a manager cannot reject
-     * without a reason" is a rule about the data, not about this screen.
+     * Rejects with the typed reason. A blank one never makes it to the repository,
+     * and the repository would refuse it anyway, because "a manager can't reject
+     * without a reason" is a rule about the data and not about this screen.
      */
     fun confirmRejection() {
         val reason = _rejection.value.reason

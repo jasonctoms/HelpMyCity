@@ -30,15 +30,15 @@ fun PriorityChip(priority: IssuePriority, modifier: Modifier = Modifier) {
         background = colors.container,
         foreground = colors.content,
         modifier = modifier,
-        // A screen reader should hear "Priority: High", not a bare "High".
+        // A screen reader should hear "Priority: High", and not just "High".
         semanticLabel = "${stringResource(Res.string.field_priority)}: $text",
     )
 }
 
 /**
- * Marks an issue a manager has corrected. Shown to everyone, so a resident
- * reading their own report can tell it was changed. Neutral colors: an edit is
- * housekeeping, not a warning.
+ * Marks an issue that a manager has fixed up. Everyone sees it, so a resident
+ * reading their own report can tell it was changed. The colors are neutral,
+ * because an edit is housekeeping and not a warning.
  */
 @Composable
 fun EditedChip(modifier: Modifier = Modifier) {

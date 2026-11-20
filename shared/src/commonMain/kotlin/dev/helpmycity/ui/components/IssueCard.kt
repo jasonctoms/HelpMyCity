@@ -32,9 +32,9 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * How many residents have said they have this problem too.
  *
- * A star and a number, because on a card this competes with the title for a
- * glance. The sentence it replaces is the row's accessibility label, where the
- * shorthand would leave a reader guessing.
+ * Just a star and a number, because on a card this is competing with the title
+ * for attention. The full sentence is still the row's accessibility label, where
+ * the shorthand would leave a screen reader user guessing.
  */
 @Composable
 private fun SupportCount(count: Int) {
@@ -84,7 +84,7 @@ fun IssueCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            // Wraps instead of clipping: the chips do not all fit on a narrow phone in Spanish.
+            // Wraps instead of clipping, since the chips do not all fit on a narrow phone in Spanish.
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),

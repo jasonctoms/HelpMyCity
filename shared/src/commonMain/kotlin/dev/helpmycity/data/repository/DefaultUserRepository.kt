@@ -25,9 +25,9 @@ class DefaultUserRepository(
 
     override suspend fun register(account: Account): User {
         local.getById(account.id)?.let { return it }
-        // Matched on the address as well as the id, so a provider that mints a
-        // new id every run -- the mock does -- still lands on the record it
-        // opened last time, and with it the role and areas it was given.
+        // Match on the address as well as the id, so a provider that hands out a
+        // new id every run (like the mock does) still ends up on the record from
+        // last time, along with the role and areas it was given.
         val email = account.email?.trim().orEmpty()
         local.getByEmail(email)?.let { return it }
 
@@ -55,8 +55,8 @@ class DefaultUserRepository(
             return AssignmentOutcome.OwnRoleUnchangeable
         }
 
-        // Only a manager carries areas: an admin already reaches everything, and
-        // a resident reaching anything would be a bug waiting to be read back.
+        // Only a manager has areas. An admin already reaches everything, and a
+        // resident with areas would just be a bug waiting to happen.
         val updated = existing.copy(
             role = role,
             scope = if (role == UserRole.MANAGER) scope else ManagerScope.None,

@@ -7,9 +7,9 @@ import kotlinx.coroutines.launch
 import org.koin.core.annotation.Single
 
 /**
- * One-time startup work: seed reference data, then start the sync engine.
- * Idempotent, because every platform entry point may run it and Android will run
- * it again after process death.
+ * One-time startup work. Seed the reference data, then start the sync engine.
+ * This is idempotent, because every platform entry point might run it, and
+ * Android runs it again after process death.
  */
 @Single
 class AppBootstrapper(
@@ -22,7 +22,7 @@ class AppBootstrapper(
         if (started) return
         started = true
         scope.launch {
-            // Seed first: the sync engine's watcher should see a populated store.
+            // Seed first, so the sync engine's watcher sees a populated store.
             seeder.seed()
             syncEngine.start(scope)
         }

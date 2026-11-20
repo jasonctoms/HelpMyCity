@@ -3,12 +3,12 @@ package dev.helpmycity.domain.model
 import kotlinx.serialization.Serializable
 
 /**
- * A field a manager may correct on a filed report.
+ * A field a manager is allowed to fix on a filed report.
  *
- * What is absent matters as much: [Issue.reporter] is the submitter's own
- * contact details, [Issue.status] and [Issue.review] have their own audited
- * paths, and [Issue.supportCount] belongs to the residents who pressed the
- * button.
+ * What is missing from this list matters just as much. [Issue.reporter] is the
+ * submitter's own contact details, [Issue.status] and [Issue.review] have their
+ * own audited paths, and [Issue.supportCount] belongs to the residents who pressed
+ * the button.
  */
 @Serializable
 enum class EditableField(val storageKey: String) {
@@ -31,17 +31,18 @@ enum class EditableField(val storageKey: String) {
 }
 
 /**
- * That an issue has been edited since it was filed, by whom, and what changed.
+ * Records that an issue has been edited since it was filed, who edited it, and
+ * what changed.
  *
- * Null until the first edit: an untouched report carries no marker, so the
- * marker means something when it does appear.
+ * This stays null until the first edit. An untouched report has no marker, so
+ * when the marker does show up, it actually means something.
  *
- * This is deliberately *not* private to managers. A resident reading their own
- * report -- or anyone reading the public list -- is shown that the text they are
- * reading is not exactly what was submitted, and who changed it. An edit that
- * only the editor can see is how a record stops being trustworthy.
+ * This is _not_ private to managers, on purpose. A resident reading their own
+ * report (or anyone reading the public list) gets told that the text in front of
+ * them is not exactly what was submitted, and who changed it. An edit that only
+ * the editor can see is how a record stops being trustworthy.
  *
- * [fields] describes the most recent edit only; [revision] counts them all.
+ * [fields] only describes the most recent edit, and [revision] counts all of them.
  */
 @Serializable
 data class IssueEdit(
@@ -50,14 +51,14 @@ data class IssueEdit(
     val editedAtMillis: Long,
     /** Number of edits so far. 1 for the first. */
     val revision: Int,
-    /** What the most recent edit touched. Never empty -- an edit that changed nothing is not recorded. */
+    /** What the most recent edit touched. Never empty, since an edit that changed nothing does not get recorded. */
     val fields: Set<EditableField>,
 )
 
 /**
- * The fields an edit form submits. Kept separate from [Issue] the same way
- * [IssueDraft] is: the screen supplies what a person typed, and the repository
- * owns identity, timestamps, sync state and the audit record.
+ * The fields an edit form submits. This is kept separate from [Issue] the same way
+ * [IssueDraft] is. The screen supplies what a person typed, and the repository
+ * owns identity, timestamps, sync state, and the audit record.
  */
 data class IssueEditDraft(
     val title: String,
@@ -67,7 +68,7 @@ data class IssueEditDraft(
     val priority: IssuePriority,
     val locationDescription: String,
     val point: GeoPoint?,
-    /** What geocoding made of the location. Derived, so it is not an audited edit. */
+    /** What geocoding made of the location. It is derived, so it does not count as an audited edit. */
     val geocodedAddress: String?,
     val neighborhood: String?,
     val departmentId: String?,

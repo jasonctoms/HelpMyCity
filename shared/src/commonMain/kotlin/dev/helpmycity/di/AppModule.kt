@@ -22,11 +22,11 @@ import org.koin.core.annotation.Single
 /**
  * The common object graph.
  *
- * Repositories, view models, the sync engine and the seeder are picked up by
- * [ComponentScan] from their annotations, so adding a class does not mean
- * editing this file. What is left is the fork seam: every binding below reads
- * out of [Deployment], so choosing a city or a backend is a change at the
- * platform entry point rather than here.
+ * Repositories, view models, the sync engine, and the seeder get picked up by
+ * [ComponentScan] from their annotations, so adding a class does not mean editing
+ * this file. What is left here is the fork seam. Every binding below reads out of
+ * [Deployment], so picking a city or a backend happens at the platform entry point
+ * and not in here.
  */
 @Module
 @ComponentScan("dev.helpmycity")
@@ -39,11 +39,10 @@ class AppModule {
     fun timeProvider(): TimeProvider = SystemTimeProvider
 
     /**
-     * Lives as long as the process, for the singletons that have to keep
-     * watching something -- see
-     * [dev.helpmycity.data.session.DefaultUserSession]. Not a screen's
-     * scope: a session that stopped tracking who was signed in when a screen
-     * went away would be worse than not tracking it at all.
+     * Lives as long as the process does, for the singletons that need to keep
+     * watching something (like [dev.helpmycity.data.session.DefaultUserSession]).
+     * This is not a screen's scope. A session that stopped tracking who was signed
+     * in whenever a screen went away would be worse than not tracking it at all.
      */
     @Single
     fun applicationScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

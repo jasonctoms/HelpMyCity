@@ -26,13 +26,13 @@ abstract class HelpMyCityDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 
     companion object {
-        /** Bump on any schema change; `shared/schemas` holds the exported schema. */
+        /** Bump this on any schema change. `shared/schemas` holds the exported schema. */
         const val VERSION: Int = 7
         const val FILE_NAME: String = "helpmycity.db"
     }
 }
 
-/** Room generates the `actual` per target, which keeps `@Database` in commonMain. */
+/** Room generates the `actual` for each target, which is what keeps `@Database` in commonMain. */
 @Suppress("KotlinNoActualForExpect", "NO_ACTUAL_FOR_EXPECT", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect object HelpMyCityDatabaseConstructor : RoomDatabaseConstructor<HelpMyCityDatabase> {
     override fun initialize(): HelpMyCityDatabase

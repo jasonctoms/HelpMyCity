@@ -63,7 +63,7 @@ import helpmycity.shared.generated.resources.new_issue_submit
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
-/** The public submission form. No account required, three mandatory fields. */
+/** The public submission form. No account needed, and three required fields. */
 @Composable
 fun NewIssueScreen(
     viewModel: NewIssueViewModel,
@@ -73,7 +73,7 @@ fun NewIssueScreen(
     val form by viewModel.form.collectAsStateWithLifecycle()
     val options by viewModel.options.collectAsStateWithLifecycle()
     val duplicateCount by viewModel.possibleDuplicateCount.collectAsStateWithLifecycle()
-    // Reading the picked files is suspending, so the picker callback hands off here.
+    // Reading the picked files suspends, so the picker callback hands off to this.
     val scope = rememberCoroutineScope()
 
     Column(
@@ -127,8 +127,8 @@ fun NewIssueScreen(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        // Pin drop, collapsed by default: it is optional, and an always-open map
-        // would push the rest of the form off a phone screen.
+        // Pin drop, collapsed by default. It is optional, and a map that is always
+        // open would push the rest of the form off a phone screen.
         TextButton(onClick = viewModel::onTogglePointPicker) {
             Text(
                 stringResource(

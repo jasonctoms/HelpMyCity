@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
 
-/** What an admin can hand out: the four independent halves of a [ManagerScope]. */
+/** What an admin can hand out, which is the four independent parts of a [ManagerScope]. */
 data class AdminUserOptions(
     val districts: List<String> = emptyList(),
     val neighborhoods: List<Neighborhood> = emptyList(),
@@ -45,7 +45,7 @@ data class AdminUserFormState(
 ) {
     val showsAreas: Boolean get() = role == UserRole.MANAGER
 
-    /** Citywide already covers everything, so the narrower pickers stop taking taps. */
+    /** Citywide already covers everything, so the narrower pickers stop responding to taps. */
     val areasEnabled: Boolean get() = !citywide
 
     val scope: ManagerScope
@@ -59,16 +59,16 @@ data class AdminUserFormState(
             )
         }
 
-    /** A manager nobody can reach: worth saying out loud before it is saved. */
+    /** A manager with no areas, which is worth pointing out before it gets saved. */
     val warnsEmptyScope: Boolean get() = showsAreas && scope.isEmpty
 }
 
 /**
  * One person's role and areas.
  *
- * The role picker refuses to change your own role and the repository refuses it
- * again, because an admin who demotes themselves takes this screen away from the
- * deployment with no way back.
+ * The role picker will not change your own role, and the repository refuses it
+ * again just in case, because an admin who demotes themselves takes this screen
+ * away from the deployment with no way back.
  */
 @KoinViewModel
 class AdminUserViewModel(
@@ -82,7 +82,7 @@ class AdminUserViewModel(
     private val _form = MutableStateFlow(AdminUserFormState())
     val form: StateFlow<AdminUserFormState> = _form.asStateFlow()
 
-    /** Set when a save was refused; cleared on the next attempt. */
+    /** Set when a save gets refused, and cleared on the next attempt. */
     private val _saveError = MutableStateFlow<AssignmentOutcome?>(null)
     val saveError: StateFlow<AssignmentOutcome?> = _saveError.asStateFlow()
 
@@ -91,8 +91,8 @@ class AdminUserViewModel(
         departmentRepository.observeDepartments(),
     ) { neighborhoods, departments ->
         AdminUserOptions(
-            // The city publishes districts through its neighborhoods rather than
-            // as a list of their own, so this is where they come from.
+            // The city publishes districts through its neighborhoods instead of as
+            // their own list, so this is where they come from.
             districts = neighborhoods.mapNotNull(Neighborhood::councilDistrict).distinct().sorted(),
             neighborhoods = neighborhoods,
             departments = departments,

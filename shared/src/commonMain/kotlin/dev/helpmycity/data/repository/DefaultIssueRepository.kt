@@ -35,16 +35,15 @@ import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.Single
 
 /**
- * Offline-first: every read comes from the local store and every write lands
+ * Offline-first. Every read comes from the local store, and every write lands
  * there first, marked [SyncState.PENDING_UPLOAD] for the sync engine to drain.
- * Nothing here ever waits on the network, so the app behaves identically in a
- * dead zone and on wifi.
+ * Nothing here ever waits on the network, so the app behaves the same in a dead
+ * zone as it does on wifi.
  *
- * It is also where the visibility rules in
- * [dev.helpmycity.domain.access] are applied. Reads are filtered
- * against the signed-in user, so an issue still in triage cannot reach a screen
- * that forgot to ask, and reads re-run when the user changes -- signing in as a
- * manager fills the list in without a reload.
+ * This is also where the visibility rules in [dev.helpmycity.domain.access] get
+ * applied. Reads are filtered against the signed-in user, so an issue that is
+ * still in triage can't reach a screen that forgot to check, and reads re-run when
+ * the user changes. Signing in as a manager fills in the list without a reload.
  */
 @Single(binds = [IssueRepository::class])
 class DefaultIssueRepository(
@@ -98,7 +97,7 @@ class DefaultIssueRepository(
 
     override suspend fun removePhoto(photoId: String) = local.deletePhoto(photoId)
 
-    /** Unfiltered on purpose: the write paths above the repository already have the issue. */
+    /** Unfiltered on purpose, because the write paths above the repository already have the issue. */
     override suspend fun getIssue(id: String): Issue? = local.getById(id)
 
     override suspend fun submitIssue(draft: IssueDraft): String {
@@ -117,8 +116,8 @@ class DefaultIssueRepository(
                 point = draft.point,
                 geocodedAddress = draft.geocodedAddress,
                 neighborhood = draft.neighborhood,
-                // Resolved here rather than on the form, so every path that
-                // creates an issue routes to the right district manager.
+                // This is worked out here instead of on the form, so every path
+                // that creates an issue still routes to the right district manager.
                 councilDistrict = draft.neighborhood?.let { neighborhoods.getById(it)?.councilDistrict },
             ),
             departmentId = draft.departmentId,
@@ -133,7 +132,7 @@ class DefaultIssueRepository(
             sync = SyncMetadata(state = SyncState.PENDING_UPLOAD),
         )
         local.upsert(issue)
-        // Seed the audit log so history starts at submission rather than at the first triage.
+        // Seed the audit log so history starts when it was submitted, not at the first triage.
         local.appendStatusChange(
             IssueStatusChange(
                 id = idGenerator.newId(),
@@ -154,10 +153,10 @@ class DefaultIssueRepository(
     }
 
     /**
-     * More than an upsert in two ways: the permission check is here rather than
-     * in the screen, and an accepted edit records itself on the issue so the
-     * correction is visible to everyone who can see it. An edit that changes
-     * nothing leaves no mark.
+     * This does two things beyond a plain upsert. The permission check happens
+     * here instead of in the screen, and an accepted edit records itself on the
+     * issue so everyone who can see the issue can see the change. An edit that
+     * changes nothing does not leave a mark.
      */
     override suspend fun editIssue(issueId: String, draft: IssueEditDraft): EditOutcome {
         val existing = local.getById(issueId) ?: return EditOutcome.IssueNotFound
@@ -183,7 +182,7 @@ class DefaultIssueRepository(
         return EditOutcome.Recorded
     }
 
-    /** The draft laid over the issue, re-deriving the district if the neighborhood moved. */
+    /** The draft applied over the issue, working out the district again if the neighborhood changed. */
     private suspend fun Issue.applying(draft: IssueEditDraft): Issue = copy(
         title = draft.title.trim(),
         description = draft.description.trim(),
@@ -205,14 +204,14 @@ class DefaultIssueRepository(
         notesSource = draft.notesSource.trim(),
     )
 
-    /** What differs -- recorded on the issue, and named in the UI. */
+    /** What is different. This gets recorded on the issue and named in the UI. */
     private fun Issue.differenceFrom(other: Issue): Set<EditableField> = buildSet {
         if (title != other.title) add(EditableField.TITLE)
         if (description != other.description) add(EditableField.DESCRIPTION)
         if (requestedAction != other.requestedAction) add(EditableField.REQUESTED_ACTION)
         if (category != other.category) add(EditableField.CATEGORY)
         if (priority != other.priority) add(EditableField.PRIORITY)
-        // One field to a reader: the text and the pin are both "where it is".
+        // To a reader this is one field, since the text and the pin are both "where it is".
         if (location.description != other.location.description ||
             location.point != other.location.point
         ) {
@@ -320,9 +319,9 @@ class DefaultIssueRepository(
     }
 
     /**
-     * The guard both review actions share: the issue has to exist and the
-     * signed-in user has to be responsible for it. Checked here and not only in
-     * the UI, because "the button was hidden" is not a rule.
+     * The check both review actions share. The issue has to exist, and the
+     * signed-in user has to be responsible for it. This is checked here and not
+     * just in the UI, because "the button was hidden" is not a rule.
      */
     private suspend fun review(
         issueId: String,
@@ -341,8 +340,8 @@ class DefaultIssueRepository(
         }
 
     /**
-     * A star is its own row rather than an edit to the issue, so starring
-     * never pushes the issue itself -- which a resident is not allowed to change.
+     * A star is its own row instead of an edit to the issue, so starring never
+     * pushes the issue itself (which a resident is not allowed to change).
      */
     override suspend fun addSupport(issueId: String): Boolean {
         val user = session.currentUser.value ?: return false
@@ -355,15 +354,15 @@ class DefaultIssueRepository(
     override suspend fun deleteIssue(id: String) {
         val existing = local.getById(id) ?: return
         if (existing.sync.state == SyncState.PENDING_UPLOAD) {
-            // Never reached the backend, so there is nothing to tell it about.
+            // This never made it to the backend, so there is nothing to tell it.
             local.delete(id)
         } else {
-            // Tombstone: the sync engine has to propagate the delete before the row can go.
+            // Tombstone. The sync engine has to send the delete up before the row can go away.
             local.markSyncState(id, SyncState.PENDING_DELETE)
         }
     }
 
-    /** Any local edit re-enters the outbox, whatever the previous sync state was. */
+    /** Any local edit goes back into the outbox, no matter what the previous sync state was. */
     private fun Issue.touched(nowMillis: Long): Issue = copy(
         updatedAtMillis = nowMillis,
         sync = sync.copy(state = SyncState.PENDING_UPLOAD),

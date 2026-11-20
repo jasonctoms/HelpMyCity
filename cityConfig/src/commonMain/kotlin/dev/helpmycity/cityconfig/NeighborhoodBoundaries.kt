@@ -4,8 +4,8 @@ package dev.helpmycity.cityconfig
  * Oceanside's neighborhood outlines, one GeoJSON geometry per neighborhood in
  * [ConfiguredCityProfile.neighborhoods].
  *
- * From the City of Oceanside GIS "Oceanside Neighborhood" layer, simplified to
- * about 5 m and rounded to five decimal places:
+ * These come from the City of Oceanside GIS "Oceanside Neighborhood" layer,
+ * simplified to about 5 m and rounded to five decimal places:
  *
  * ```
  * https://gis.oceansideca.org/gis/rest/services/WebService/Residential_Neighborhood/MapServer/3/query

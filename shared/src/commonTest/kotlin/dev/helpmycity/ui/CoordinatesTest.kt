@@ -18,7 +18,7 @@ class CoordinatesTest {
         assertEquals("0.0000", formatCoordinate(0.0))
     }
 
-    /** A borrowed leading digit is the easy thing to get wrong building this by hand. */
+    /** A borrowed leading digit is the easy thing to get wrong when building this by hand. */
     @Test
     fun `pads fractions that lose leading zeros`() {
         assertEquals("33.0001", formatCoordinate(33.00009))

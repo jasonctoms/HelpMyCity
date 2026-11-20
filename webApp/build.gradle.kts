@@ -5,11 +5,11 @@ plugins {
 }
 
 kotlin {
-    // Kotlin/JS rather than Kotlin/Wasm: maplibre-compose has no wasmJs artifact, and a
-    // JS build also runs on browsers without WasmGC. See "Why the web target is JS" in
+    // Kotlin/JS instead of Kotlin/Wasm, because maplibre-compose has no wasmJs artifact, and
+    // a JS build also runs on browsers without WasmGC. See "Why the web target is JS" in
     // ARCHITECTURE.md.
-    // ES modules for the same reason `:shared` uses them: maplibre-gl 6 is ESM-only. This is the
-    // module that emits the bundle, so index.html loads it with type="module".
+    // ES modules for the same reason `:shared` uses them, since GL JS 6 is ESM-only. This is
+    // the module that emits the bundle, so index.html loads it with type="module".
     js {
         useEsModules()
         browser()

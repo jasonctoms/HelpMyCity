@@ -16,10 +16,9 @@ import androidx.compose.ui.unit.dp
 /**
  * A labeled row of single-choice chips.
  *
- * Chips rather than a dropdown because the option sets are short and managers
- * are working one-handed on a phone -- everything is visible and reachable
- * without opening a menu, and chips carry a real selected state for screen
- * readers.
+ * Chips instead of a dropdown, because the option sets are short and managers are
+ * often working one-handed on a phone. Everything is visible and reachable
+ * without opening a menu, and chips have a real selected state for screen readers.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -57,10 +56,11 @@ fun <T> OptionPicker(
 /**
  * The same row of chips, choosing any number of them.
  *
- * What a manager's areas are: several districts, several neighborhoods, or none
- * at all. [enabled] is for the case where a wider assignment already covers
- * everything here -- the chips stay readable, so the assignment can be read
- * back, but they cannot be tapped into a state that would not mean anything.
+ * This is what a manager's areas use, since they can be several districts,
+ * several neighborhoods, or none at all. [enabled] is for when a wider assignment
+ * already covers everything here. The chips stay readable so you can still see
+ * the assignment, but they can't be tapped into a state that would not mean
+ * anything.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

@@ -1,8 +1,9 @@
 package dev.helpmycity.domain.model
 
 /**
- * What the submission form collects. Kept separate from [Issue] so the form
- * never has to invent an id, timestamps or sync state -- the repository owns those.
+ * What the submission form collects. This is kept separate from [Issue] so the
+ * form never has to make up an id, timestamps, or sync state; the repository owns
+ * all of those.
  */
 data class IssueDraft(
     val title: String,
@@ -20,7 +21,7 @@ data class IssueDraft(
     val notesSource: String = "",
 )
 
-/** Query shape for the list, board and map screens. */
+/** Query shape for the list, board, and map screens. */
 data class IssueFilter(
     val statuses: Set<IssueStatus> = emptySet(),
     val categories: Set<IssueCategory> = emptySet(),

@@ -8,10 +8,10 @@ import dev.jordond.compass.Place
  * A [Place] as one line a resident would recognise, for
  * [dev.helpmycity.domain.model.IssueLocation.geocodedAddress].
  *
- * Compass hands back the same structured fields whichever geocoder answered, so
- * the wording of a report does not change with the device it was filed from.
- * Null when the geocoder found a point it cannot describe -- worth a pin, not
- * worth writing down.
+ * Compass hands back the same structured fields no matter which geocoder
+ * answered, so the wording of a report does not change based on the device it was
+ * filed from. Null when the geocoder found a point it can't describe, which is
+ * good enough for a pin but not worth writing down.
  */
 fun Place.asAddressLine(): String? = listOfNotNull(
     streetLine(),
@@ -24,7 +24,7 @@ fun Place.asAddressLine(): String? = listOfNotNull(
     .joinToString(", ")
     .ifBlank { null }
 
-/** House number and street where both are known, and whatever names the spot otherwise. */
+/** House number and street when both are known, and otherwise whatever names the spot. */
 private fun Place.streetLine(): String? {
     val road = thoroughfare ?: street
     return when {

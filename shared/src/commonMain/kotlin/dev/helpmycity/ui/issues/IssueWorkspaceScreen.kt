@@ -13,11 +13,11 @@ import dev.helpmycity.ui.map.IssueMapViewModel
 /**
  * The issue list and the map as one screen, for a window with room for both.
  *
- * The panes keep their own filters rather than sharing one: they filter on
- * different things -- a search and a status here, neighborhoods there -- and a
- * merged control would have to invent a meaning for combinations neither screen
- * has had to answer for. Each pane is the same composable it is on a phone, so
- * the narrow layout is a fallback rather than a second implementation.
+ * The panes keep their own filters instead of sharing one. They filter on
+ * different things (a search and a status on one side, neighborhoods on the
+ * other), and a merged control would have to make up a meaning for combinations
+ * neither screen has ever had to deal with. Each pane is the same composable it is
+ * on a phone, so the narrow layout is a fallback and not a second implementation.
  */
 @Composable
 fun IssueWorkspaceScreen(
@@ -30,9 +30,9 @@ fun IssueWorkspaceScreen(
         IssueListScreen(
             viewModel = listViewModel,
             onIssueClick = onIssueClick,
-            // Fixed rather than proportional: the list is a column of cards and
-            // stops reading better past about this, so the map takes the rest of
-            // whatever the window has.
+            // Fixed instead of proportional. The list is a column of cards, and it
+            // stops getting easier to read past about this width, so the map gets
+            // whatever is left of the window.
             modifier = Modifier.width(ListPaneWidth),
             clearsFloatingActionButton = false,
         )

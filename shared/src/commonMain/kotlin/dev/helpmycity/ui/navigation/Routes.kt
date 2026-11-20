@@ -57,17 +57,17 @@ data class IssueDetailRoute(val issueId: String) : Route
 @Serializable
 data object NewIssueRoute : Route
 
-/** Rejected reports, kept out of the tabs. Reached from the profile and the review queue. */
+/** Rejected reports, which are kept out of the tabs. You get here from the profile and the review queue. */
 @Serializable
 data object RejectedIssuesRoute : Route
 
-/** The manager edit form for one issue. Reached from its detail screen. */
+/** The manager edit form for one issue. You get here from its detail screen. */
 @Serializable
 data class EditIssueRoute(val issueId: String) : Route
 
 /**
- * The account hub behind the profile icon: who you are, what that lets you do,
- * the way into user administration and the way out.
+ * The account hub behind the profile icon. It shows who you are and what that
+ * lets you do, and it has the way into user administration and the way out.
  */
 @Serializable
 data object ProfileRoute : Route
@@ -75,7 +75,7 @@ data object ProfileRoute : Route
 @Serializable
 data object EditProfileRoute : Route
 
-/** Admin only. Reached from [ProfileRoute], not from a tab: it is rarely used. */
+/** Admin only. You get here from [ProfileRoute] and not from a tab, since it is rarely used. */
 @Serializable
 data object AdminUsersRoute : Route
 
@@ -85,13 +85,13 @@ data class AdminUserRoute(val userId: String) : Route
 /**
  * The tabs, for one signed-in user in one window.
  *
- * The review queue is a manager's tab: a resident has nothing to triage, so
- * showing them an empty fourth tab would only raise a question the app then has
+ * The review queue is a manager's tab. A resident has nothing to triage, so
+ * showing them an empty fourth tab would just raise a question the app then has
  * to answer. Everything else is the same for everyone.
  *
  * [listAndMapCombined] drops the map tab, because on a window that wide
- * [IssueListRoute] already draws the map beside the list -- a tab that switches
- * to what you are already looking at is worse than no tab.
+ * [IssueListRoute] already draws the map next to the list. A tab that switches to
+ * what you are already looking at is worse than having no tab.
  */
 fun topLevelRoutesFor(
     canReview: Boolean,
@@ -104,11 +104,11 @@ fun topLevelRoutesFor(
 }
 
 /**
- * Navigation 3 persists the back stack through `SavedState`, which on non-Android
- * targets needs an explicit polymorphic serializer registration for every
- * [NavKey]; the web build's browser history stores back stacks the same way.
- * Forgetting to add a route here fails at runtime on the first save/restore, so
- * keep this list in step with the routes above.
+ * Navigation 3 saves the back stack through `SavedState`, and outside of Android
+ * that needs a polymorphic serializer registered for every [NavKey]. The web
+ * build's browser history stores back stacks the same way. If you forget to add a
+ * route here, it fails at runtime on the first save or restore, so keep this list
+ * in sync with the routes above.
  */
 val routeSerializersModule: SerializersModule = SerializersModule {
     polymorphic(NavKey::class) {

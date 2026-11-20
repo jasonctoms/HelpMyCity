@@ -31,10 +31,12 @@ import helpmycity.shared.generated.resources.review_queue_no_scope_title
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * A manager's inbox: reports filed in their areas that nobody has triaged yet.
+ * A manager's inbox, with reports filed in their areas that nobody has triaged
+ * yet.
  *
- * A list that opens the issue detail, with no per-card approve: a one-tap
- * decision on a report nobody opened is how review turns into a rubber stamp.
+ * It is a list that opens the issue detail, with no approve button on each card.
+ * A one-tap decision on a report nobody even opened is how review turns into a
+ * rubber stamp.
  */
 @Composable
 fun ReviewQueueScreen(

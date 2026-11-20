@@ -13,13 +13,13 @@ import dev.helpmycity.domain.util.UuidIdGenerator
 /**
  * Where a deployment's data and identities live.
  *
- * The other half of the fork seam (see [CityProfile]). Nothing above
- * `data/remote` knows which cloud is behind this, which is the point: a fork
- * picks a city and a backend independently, and neither choice reaches the UI.
+ * This is the other half of the fork seam ([CityProfile] is the first half).
+ * Nothing above `data/remote` knows which cloud is behind it, and that is kind of
+ * the point. A fork picks a city and a backend separately, and neither choice ever
+ * reaches the UI.
  *
- * The `supabase` package in `:cityConfig` is the worked example. Implementing this
- * interface plus the four APIs it exposes is the entire cost of moving to
- * another provider.
+ * The `supabase` package in `:cityConfig` is the worked example. Moving to another
+ * provider only means implementing this interface and the four APIs it exposes.
  */
 interface BackendProvider {
     val issues: IssueBackendApi
@@ -31,9 +31,9 @@ interface BackendProvider {
 /**
  * The default: nothing is hosted anywhere.
  *
- * Reads and writes stay in the local Room database, the sync queue builds
- * without draining, and sign-in is [MockAuthService]. A genuine mode rather
- * than a broken one: the offline-first path runs end to end without a server.
+ * Reads and writes stay in the local Room database, the sync queue builds up
+ * without ever draining, and sign-in is [MockAuthService]. This is a real mode and
+ * not a broken one; the offline-first path runs end to end without a server.
  */
 object LocalOnlyBackend : BackendProvider {
     override val issues: IssueBackendApi = NoopIssueBackendApi()

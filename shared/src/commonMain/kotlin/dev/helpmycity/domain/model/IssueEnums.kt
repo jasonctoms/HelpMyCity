@@ -5,13 +5,13 @@ import kotlinx.serialization.Serializable
 /**
  * The stages an issue moves through, and the columns of the triage board.
  *
- * [IN_REVIEW] and [REJECTED] follow [IssueReview]: an issue is in review until
- * a manager decides, and rejected if they turn it down. The other three are the
- * city's work. A rejected issue is kept, for its submitter and its managers, but
- * off the list, board and map.
+ * [IN_REVIEW] and [REJECTED] follow [IssueReview]. An issue is in review until a
+ * manager decides, and rejected if they turn it down. The other three are the
+ * city's work. A rejected issue is kept around for its submitter and its
+ * managers, but it stays off the list, board, and map.
  *
- * [storageKey] is the stable string persisted locally and remotely -- never
- * persist [Enum.name] or the ordinal, so renaming a constant stays a safe
+ * [storageKey] is the stable string that gets saved locally and remotely. Never
+ * save [Enum.name] or the ordinal; that way renaming a constant is still a safe
  * refactor and exported CSVs stay stable.
  */
 @Serializable
@@ -73,8 +73,9 @@ enum class IssueCategory(val storageKey: String) {
 }
 
 /**
- * Offline-first bookkeeping. Every locally-written row starts [PENDING_UPLOAD]
- * and the sync engine moves it to [SYNCED] once the backend acknowledges it.
+ * Offline-first bookkeeping. Every row written locally starts out as
+ * [PENDING_UPLOAD], and the sync engine moves it to [SYNCED] once the backend
+ * acknowledges it.
  */
 @Serializable
 enum class SyncState(val storageKey: String) {
@@ -84,7 +85,7 @@ enum class SyncState(val storageKey: String) {
     PENDING_DELETE("pending_delete"),
     /** Local and backend agree as of [SyncMetadata.lastSyncedAtMillis]. */
     SYNCED("synced"),
-    /** Upload was rejected; needs a human or a retry with backoff. */
+    /** The upload was rejected, so it needs a human or a retry with backoff. */
     FAILED("failed"),
     ;
 

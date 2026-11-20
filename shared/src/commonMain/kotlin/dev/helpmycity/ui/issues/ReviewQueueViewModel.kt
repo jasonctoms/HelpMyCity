@@ -12,12 +12,12 @@ import kotlinx.coroutines.flow.stateIn
 import org.koin.core.annotation.KoinViewModel
 
 data class ReviewQueueUiState(
-    /** Oldest first: the report that has been waiting longest is the one to read next. */
+    /** Oldest first, since the report that has been waiting longest is the one to read next. */
     val waiting: List<Issue> = emptyList(),
     /**
-     * True when the signed-in manager has no district, neighborhood or
-     * department yet. An empty queue then means "nobody can reach you", which is
-     * a different problem from "you are caught up" and deserves different words.
+     * True when the signed-in manager has no district, neighborhood, or department
+     * yet. In that case an empty queue means "nobody can reach you", which is a
+     * different problem from "you are all caught up" and deserves different words.
      */
     val hasNoScope: Boolean = false,
 )
@@ -25,8 +25,8 @@ data class ReviewQueueUiState(
 /**
  * Backs [ReviewQueueScreen].
  *
- * Thin by design: the repository already decides which issues are this user's to
- * review, so there is nothing to filter here.
+ * This is thin on purpose. The repository already decides which issues are this
+ * user's to review, so there is nothing to filter here.
  */
 @KoinViewModel
 class ReviewQueueViewModel(

@@ -28,8 +28,8 @@ import org.koin.core.annotation.KoinViewModel
 /**
  * An image picked but not yet stored.
  *
- * Carries an id so a resident can remove one before submitting; comparing raw
- * `ByteArray`s would compare by identity and could not tell two picks apart.
+ * This has an id so a resident can remove one before submitting. Comparing raw
+ * `ByteArray`s would compare by identity, which can't tell two picks apart.
  */
 data class PendingPhoto(val id: String, val bytes: ByteArray) {
     override fun equals(other: Any?): Boolean = other is PendingPhoto && other.id == id
@@ -43,7 +43,7 @@ data class NewIssueFormState(
     val locationDescription: String = "",
     /** Dropped by hand on the map, or geocoded from [locationDescription]. */
     val point: GeoPoint? = null,
-    /** True while [point] came from the address rather than from a finger. */
+    /** True while [point] came from the address instead of from a finger. */
     val isPointApproximate: Boolean = false,
     /** What geocoding made of the location, stored on the issue either way. */
     val geocodedAddress: String? = null,
@@ -82,7 +82,7 @@ class NewIssueViewModel(
     private val idGenerator: IdGenerator,
 ) : ViewModel() {
 
-    /** Where the pin picker opens; see [dev.helpmycity.ui.map.LocationPickerMap]. */
+    /** Where the pin picker opens (see [dev.helpmycity.ui.map.LocationPickerMap]). */
     val mapSettings: MapSettings = city.map
 
     /** "Where is it?" and the pin, and the geocoding that keeps them in step. */
@@ -90,7 +90,7 @@ class NewIssueViewModel(
 
     private val _form = MutableStateFlow(NewIssueFormState())
 
-    // Eager, because submit() reads .value whether or not a screen is watching.
+    // Eager, because submit() reads .value whether or not a screen is watching it.
     val form: StateFlow<NewIssueFormState> =
         combine(_form, location.state) { form, place -> form.withLocation(place) }
             .stateIn(viewModelScope, SharingStarted.Eagerly, NewIssueFormState())
@@ -102,8 +102,8 @@ class NewIssueViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NewIssueOptions())
 
     /**
-     * Near-duplicate detection: same category, similar location text. A nudge
-     * rather than a block -- nobody is stopped from filing.
+     * Near-duplicate detection, based on the same category and similar location
+     * text. It is a nudge and not a block, so nobody gets stopped from filing.
      */
     val possibleDuplicateCount: StateFlow<Int> = combine(
         form,
@@ -137,7 +137,7 @@ class NewIssueViewModel(
     }
     fun onTogglePointPicker() = _form.update { it.copy(isPickingPoint = !it.isPickingPoint) }
     fun onCategoryChange(value: IssueCategory) = _form.update { current ->
-        // Pre-select the department that usually owns this category; the user can override.
+        // Pre-select the department that usually owns this category. The user can change it.
         val suggested = options.value.departments
             .firstOrNull { value in it.handlesCategories }
             ?.id
@@ -194,7 +194,7 @@ class NewIssueViewModel(
     }
 }
 
-/** The location the [LocationField] is holding, laid over the rest of the form. */
+/** The location the [LocationField] is holding, applied over the rest of the form. */
 internal fun NewIssueFormState.withLocation(location: LocationFieldState): NewIssueFormState = copy(
     locationDescription = location.description,
     point = location.point,

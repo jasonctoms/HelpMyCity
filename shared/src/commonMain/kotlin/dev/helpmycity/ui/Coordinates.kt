@@ -11,9 +11,9 @@ private const val COORDINATE_SCALE = 10_000.0
 /**
  * A latitude or longitude, trimmed to something a person can read.
  *
- * Four decimal places is about 11 m: enough to identify a street corner, and
- * an honest claim about the precision of a finger on a phone map. Done by hand
- * because Kotlin has no common-code number formatter.
+ * Four decimal places is about 11 m. That is enough to pick out a street corner,
+ * and it is honest about how precise a finger on a phone map really is. This is
+ * done by hand because Kotlin does not have a common-code number formatter.
  */
 fun formatCoordinate(value: Double): String {
     val scaled = round(abs(value) * COORDINATE_SCALE).toLong()

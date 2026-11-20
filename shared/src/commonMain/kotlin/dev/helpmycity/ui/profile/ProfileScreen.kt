@@ -52,10 +52,11 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Who you are here, and what that lets you do.
  *
- * The hub the profile icon opens: who you are, the areas a manager
- * answers for, user administration and CSV export for an admin, and the way out.
- * A resident sees the first and the last of those, which is the point of showing
- * the role in plain words rather than only in the tabs that happen to appear.
+ * This is the hub the profile icon opens. It has who you are, the areas a manager
+ * is responsible for, user administration and CSV export for an admin, and the way
+ * out. A resident only sees the first and last of those, which is the whole point
+ * of spelling out the role in plain words instead of leaving people to guess from
+ * whichever tabs happen to show up.
  */
 @Composable
 fun ProfileScreen(

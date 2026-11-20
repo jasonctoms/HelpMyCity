@@ -19,18 +19,18 @@ import kotlinx.coroutines.flow.stateIn
 import org.koin.core.annotation.Single
 
 /**
- * Joins the account that authenticated to the user record this deployment keeps
- * for it.
+ * Joins the account that signed in to the user record this deployment keeps for
+ * it.
  *
- * The join is a subscription, not a lookup, so a role or an area assigned while
- * someone is signed in reaches them without a sign-out -- including an admin
- * editing themselves. An account signing in for the first time is registered as
- * a user on the way through.
+ * The join is a subscription and not a lookup, so if someone gets a new role or
+ * area while they are signed in, it reaches them without signing out (and that
+ * includes an admin editing themselves). An account signing in for the first time
+ * gets registered as a user along the way.
  *
- * Eagerly started on the application scope: `currentUser.value` is read
- * synchronously by [dev.helpmycity.data.repository.DefaultIssueRepository]
- * when a report is filed, and nothing downstream is reachable until the app has
- * a user anyway.
+ * This starts eagerly on the application scope.
+ * [dev.helpmycity.data.repository.DefaultIssueRepository] reads
+ * `currentUser.value` synchronously when a report is filed, and nothing
+ * downstream is reachable until the app has a user anyway.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Single(binds = [UserSession::class])
@@ -47,8 +47,8 @@ class DefaultUserSession(
     private fun userFor(account: Account?): Flow<User?> = when {
         account == null -> flowOf(null)
 
-        // Nothing to register and nothing to assign, so the account is the whole
-        // of what we know about them.
+        // Nothing to register and nothing to assign, so the account is all we
+        // know about them.
         account.isGuest -> flowOf(
             User(
                 id = account.id,
@@ -60,8 +60,8 @@ class DefaultUserSession(
 
         else -> flow {
             val registered = users.register(account)
-            // Falls back to the registered record if the row is ever missing, so
-            // a signed-in account never reads back as signed out.
+            // Fall back to the registered record if the row ever goes missing, so
+            // a signed-in account never looks signed out.
             emitAll(users.observeUser(registered.id).map { it ?: registered })
         }
     }

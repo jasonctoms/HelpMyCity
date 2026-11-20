@@ -26,33 +26,34 @@ import kotlinx.serialization.json.Json
  * [Nominatim](https://nominatim.org/), OpenStreetMap's own geocoder, as a
  * Compass [PlatformGeocoder].
  *
- * Compass ships device geocoders for Android and iOS and keyed HTTP ones for
- * Google, Mapbox and OpenCage; it has nothing that works on the web without an
- * account. This fills that hole, and it is the counterpart to the
+ * Compass ships device geocoders for Android and iOS, plus keyed HTTP ones for
+ * Google, Mapbox, and OpenCage, but nothing that works on the web without an
+ * account. This fills that gap. It goes along with the
  * [OpenFreeMap][dev.helpmycity.deployment.MapSettings.Companion.OPEN_FREE_MAP_LIBERTY]
- * basemap default: a fork geocodes real addresses on first run, in a browser,
- * without registering with anyone, off the same OpenStreetMap data the map
- * already draws.
+ * basemap default, so a fork can geocode real addresses on its first run, in a
+ * browser, without registering with anybody, using the same OpenStreetMap data
+ * the map is already drawing.
  *
- * Weigh the same caveat before a real deployment leans on it. The public
- * instance is donated capacity governed by a
+ * The same caveat applies before a real deployment relies on it, though. The
+ * public instance is donated capacity, and it has a
  * [usage policy](https://operations.osmfoundation.org/policies/nominatim/): one
- * request a second, no bulk work, and an app that identifies itself. The rate
- * limit is honored here; [userAgent] and [contactEmail] are the identification,
- * so fill them in with something a Nominatim admin could write to. A city with
- * real traffic should run its own instance and pass [baseUrl], or drop in one of
- * Compass's keyed backends.
+ * request per second, no bulk work, and the app has to identify itself. The rate
+ * limit is handled here. [userAgent] and [contactEmail] are the identification,
+ * so fill them in with something a Nominatim admin could actually write to. A city
+ * with real traffic should run its own instance and pass [baseUrl], or plug in one
+ * of Compass's keyed backends.
  *
- * Errors are thrown rather than swallowed: Compass's `Geocoder` wrapper turns
- * them into `GeocoderResult.GeocodeFailed`, and an empty list into `NotFound`.
+ * Errors get thrown instead of swallowed. Compass's `Geocoder` wrapper turns them
+ * into `GeocoderResult.GeocodeFailed`, and an empty list into `NotFound`.
  *
- * @param userAgent sent as `User-Agent`, which the policy asks for. A browser
- *   will not let a page set that header, so [contactEmail] is what identifies
- *   the web build.
- * @param contactEmail Nominatim's `email` parameter, its documented alternative
- *   for identifying the caller. The deployment's address, not a resident's.
- * @param viewBox confines results to the city. Without it, "Main St" resolves to
- *   whichever Main Street the planet finds more important.
+ * @param userAgent sent as `User-Agent`, which the policy asks for. Browsers do
+ *   not let a page set that header, so [contactEmail] is what identifies the web
+ *   build.
+ * @param contactEmail Nominatim's `email` parameter, which is its documented
+ *   alternative for identifying the caller. This should be the deployment's
+ *   address, not a resident's.
+ * @param viewBox keeps results inside the city. Without it, "Main St" resolves to
+ *   whichever Main Street the planet thinks is more important.
  * @param baseUrl the Nominatim instance. Defaults to [PUBLIC_INSTANCE].
  */
 class NominatimPlatformGeocoder(
@@ -73,11 +74,11 @@ class NominatimPlatformGeocoder(
     /**
      * The place behind the last [forward] answer.
      *
-     * [PlatformGeocoder.forward] has room only for coordinates, but Nominatim's
-     * search response already carries the address, and a caller that wants to
-     * know what it matched must reverse those same coordinates straight back.
-     * Holding the one answer saves that round trip and a second wait on the rate
-     * limit. A miss only costs the request it would have cost anyway.
+     * [PlatformGeocoder.forward] only has room for coordinates, but Nominatim's
+     * search response already includes the address, and a caller that wants to
+     * know what matched would have to reverse those same coordinates right back.
+     * Hanging on to the one answer saves that round trip, plus a second wait on the
+     * rate limit. A miss only costs the request it would have made anyway.
      */
     private var lastForwardMatch: Pair<Coordinates, Place>? = null
 
@@ -97,8 +98,8 @@ class NominatimPlatformGeocoder(
             parameter("lon", longitude)
             parameter("zoom", REVERSE_DETAIL_ZOOM)
         }
-        // Nominatim answers "nothing here" with an `error` field rather than a
-        // status code, so a response without coordinates is the no-match signal.
+        // Nominatim says "nothing here" with an `error` field instead of a status
+        // code, so a response without coordinates means no match.
         return listOfNotNull(json.decodeOrNull<NominatimPlace>(body)?.toPlace())
     }
 
@@ -139,10 +140,10 @@ class NominatimPlatformGeocoder(
     companion object {
         const val PUBLIC_INSTANCE: String = "https://nominatim.openstreetmap.org"
 
-        /** One: the form places a single pin, and every extra result is billed to a donated server. */
+        /** Just one. The form only places a single pin, and every extra result costs a donated server. */
         private const val SEARCH_RESULTS = 1
 
-        /** House-number detail. Lower numbers answer with a suburb or a city. */
+        /** House-number detail. Lower numbers come back with a suburb or a city. */
         private const val REVERSE_DETAIL_ZOOM = 18
 
         private val MIN_REQUEST_INTERVAL = 1.seconds
@@ -160,7 +161,7 @@ data class GeoBoundingBox(val southWest: GeoPoint, val northEast: GeoPoint) {
     ).joinToString(",")
 }
 
-/** Malformed JSON reads as no result; Compass reports the empty list as `NotFound`. */
+/** Malformed JSON counts as no result, and Compass reports the empty list as `NotFound`. */
 private inline fun <reified T> Json.decodeOrNull(body: String): T? =
     try {
         decodeFromString<T>(body)

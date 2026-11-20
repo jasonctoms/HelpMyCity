@@ -29,9 +29,9 @@ import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
 
 /**
- * The manager edit form: the submission form's fields, minus the submitter's
- * contact details. Status, triage and the city reference number are edited on
- * the detail screen, where each has its own audited path.
+ * The manager edit form. It has the submission form's fields, minus the
+ * submitter's contact details. Status, triage, and the city reference number get
+ * edited on the detail screen, where each one has its own audited path.
  */
 data class EditIssueFormState(
     val title: String = "",
@@ -39,7 +39,7 @@ data class EditIssueFormState(
     val requestedAction: String = "",
     val locationDescription: String = "",
     val point: GeoPoint? = null,
-    /** True while [point] came from the address rather than from a finger. */
+    /** True while [point] came from the address instead of from a finger. */
     val isPointApproximate: Boolean = false,
     /** What geocoding made of the location, saved on the issue either way. */
     val geocodedAddress: String? = null,
@@ -52,7 +52,7 @@ data class EditIssueFormState(
     val notesSource: String = "",
     val showErrors: Boolean = false,
     val isSaving: Boolean = false,
-    /** False until the issue has been read, so the form never starts blank over real data. */
+    /** False until the issue has been read, so the form never starts out blank over real data. */
     val isLoaded: Boolean = false,
     /** The viewer stopped managing this issue while the form was open. */
     val isPermitted: Boolean = true,
@@ -61,7 +61,7 @@ data class EditIssueFormState(
     val descriptionError: Boolean get() = showErrors && description.isBlank()
     val locationError: Boolean get() = showErrors && locationDescription.isBlank()
 
-    /** The same three fields the submission form requires; an edit cannot empty them. */
+    /** The same three fields the submission form requires, and an edit can't empty them. */
     val isValid: Boolean
         get() = title.isNotBlank() && description.isNotBlank() && locationDescription.isNotBlank()
 }
@@ -77,7 +77,7 @@ class EditIssueViewModel(
     geocoder: Geocoder,
 ) : ViewModel() {
 
-    /** Where the pin picker opens; see [dev.helpmycity.ui.map.LocationPickerMap]. */
+    /** Where the pin picker opens (see [dev.helpmycity.ui.map.LocationPickerMap]). */
     val mapSettings: MapSettings = city.map
 
     /** The same lookup the report form uses, under the same two rules. */
@@ -85,12 +85,12 @@ class EditIssueViewModel(
 
     private val _form = MutableStateFlow(EditIssueFormState())
 
-    // Eager, because save() reads .value whether or not a screen is watching.
+    // Eager, because save() reads .value whether or not a screen is watching it.
     val form: StateFlow<EditIssueFormState> =
         combine(_form, location.state) { form, place -> form.withLocation(place) }
             .stateIn(viewModelScope, SharingStarted.Eagerly, EditIssueFormState())
 
-    /** Set when a save was refused; cleared on the next attempt. */
+    /** Set when a save gets refused, and cleared on the next attempt. */
     private val _saveError = MutableStateFlow<EditOutcome?>(null)
     val saveError: StateFlow<EditOutcome?> = _saveError.asStateFlow()
 
@@ -103,8 +103,8 @@ class EditIssueViewModel(
 
     init {
         viewModelScope.launch {
-            // Read once, not observed: a form that rewrote itself on every sync
-            // would lose what the manager typed.
+            // Read once instead of observed, because a form that rewrote itself on
+            // every sync would lose whatever the manager typed.
             val issue = issueRepository.getIssue(issueId)
             if (issue == null) {
                 _form.update { it.copy(isLoaded = true, isPermitted = false) }
@@ -112,7 +112,7 @@ class EditIssueViewModel(
                 return@launch
             }
             val draft = IssueEditDraft.of(issue)
-            // Seeded, not typed: opening a form must not geocode what is already there.
+            // Seeded instead of typed, because opening a form should not geocode what is already there.
             location.start(
                 description = draft.locationDescription,
                 point = draft.point,
@@ -128,8 +128,8 @@ class EditIssueViewModel(
                 departmentId = draft.departmentId,
                 notesSource = draft.notesSource,
                 isLoaded = true,
-                // Checked again by the repository on save; here only so the
-                // form does not invite work that will be refused.
+                // The repository checks this again on save. It is only here so the
+                // form does not invite work that is just going to get refused.
                 isPermitted = session.currentUser.value.manages(issue),
             )
         }
@@ -183,7 +183,7 @@ class EditIssueViewModel(
     }
 }
 
-/** The location the [LocationField] is holding, laid over the rest of the form. */
+/** The location the [LocationField] is holding, applied over the rest of the form. */
 private fun EditIssueFormState.withLocation(location: LocationFieldState): EditIssueFormState =
     copy(
         locationDescription = location.description,

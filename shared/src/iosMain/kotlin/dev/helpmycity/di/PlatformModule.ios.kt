@@ -18,7 +18,7 @@ import platform.Foundation.NSUserDomainMask
 actual fun platformModule(): Module = module {
     single<LocalStore> {
         RoomLocalStore(
-            // Dispatchers.IO is JVM-only; Default is the Native equivalent thread pool.
+            // Dispatchers.IO is JVM-only, and Default is the equivalent thread pool on Native.
             getDatabaseBuilder().buildHelpMyCityDatabase(BundledSQLiteDriver(), Dispatchers.Default)
         )
     }
@@ -29,7 +29,7 @@ fun getDatabaseBuilder(): RoomDatabase.Builder<HelpMyCityDatabase> =
         name = "${documentDirectory()}/${HelpMyCityDatabase.FILE_NAME}",
     )
 
-/** Documents, not Caches: issues queued for sync must survive a low-storage purge. */
+/** Documents and not Caches, because issues queued for sync have to survive a low-storage purge. */
 @OptIn(ExperimentalForeignApi::class)
 private fun documentDirectory(): String {
     val documentDirectory = NSFileManager.defaultManager.URLForDirectory(

@@ -10,21 +10,22 @@ import org.koin.core.annotation.KoinApplication as KoinApplicationRoot
 import org.koin.plugin.module.dsl.startKoin
 
 /**
- * Root of the object graph. The Koin compiler plugin validates the whole graph
- * at this entry point at compile time, so a missing binding is a build failure
- * rather than a crash on the screen that needed it.
+ * Root of the object graph. The Koin compiler plugin validates the whole graph at
+ * this entry point at compile time, so a missing binding fails the build instead
+ * of crashing the screen that needed it.
  */
 @KoinApplicationRoot(modules = [AppModule::class])
 class HelpMyCityKoinApplication
 
 /**
  * Called once per platform entry point (Android `Application`, iOS
- * `MainViewController`, web `main`). Safe to call more than once; the second
- * call is ignored so hot reload and Android activity recreation do not blow up.
+ * `MainViewController`, and web `main`). It is safe to call more than once; the
+ * second call gets ignored, so hot reload and Android activity recreation do not
+ * blow up.
  *
  * [city] and [backend] are the whole fork seam. Both default to something that
- * runs with no configuration at all, so a fresh clone of this repo starts
- * without picking anything; `:cityConfig` holds a working implementation of each.
+ * runs with zero configuration, so a fresh clone of this repo starts without
+ * picking anything. `:cityConfig` has a working implementation of each.
  *
  * [configure] runs before the modules are loaded, which is what lets Android
  * pass its `Context` in via `androidContext(...)`.
@@ -36,7 +37,7 @@ fun initKoin(
 ) {
     if (koinStarted) return
     koinStarted = true
-    // Must precede startKoin: AppModule's bindings read out of the holder.
+    // This has to happen before startKoin, because AppModule's bindings read out of the holder.
     Deployment.install(city, backend)
     startKoin<HelpMyCityKoinApplication> {
         configure()

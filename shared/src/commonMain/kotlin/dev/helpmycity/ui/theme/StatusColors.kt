@@ -10,22 +10,22 @@ import dev.helpmycity.domain.model.IssueStatus
 /**
  * Container/content pairs for priority chips.
  *
- * Color is never the only signal -- every chip carries its label as text too.
- * Each pair here clears WCAG AA (4.5:1) for body text in both the light and
- * dark scheme.
+ * Color is never the only signal, since every chip has its label as text too.
+ * Each pair here passes WCAG AA (4.5:1) for body text in both the light and dark
+ * schemes.
  */
 data class ChipColors(val container: Color, val content: Color)
 
 /**
- * Fill color for an issue's marker on the map, and for the dot beside its
- * status everywhere else, so a status is the same color on both.
+ * Fill color for an issue's marker on the map, and for the dot next to its status
+ * everywhere else, so a status is the same color in both places.
  *
- * Deliberately not theme-aware: the markers sit on basemap tiles rather than on
- * an app surface, so these are picked to hold up against both light and dark
- * cartography and are drawn with a white stroke for separation. Each one also
- * carries a white glyph (`StatusGlyphPainter`), so every color here must hold
- * at least 3:1 against white, and `IssueMapScreen` still prints a labeled
- * legend -- color is never the only signal here either.
+ * These ignore the theme on purpose. The markers sit on basemap tiles and not on
+ * an app surface, so these colors were picked to hold up on both light and dark
+ * maps, and they get drawn with a white stroke to separate them. Each one also has
+ * a white glyph on it (`StatusGlyphPainter`), so every color here needs at least
+ * 3:1 contrast against white. `IssueMapScreen` still shows a labeled legend too,
+ * because color is never the only signal here either.
  */
 fun markerColorFor(status: IssueStatus): Color = when (status) {
     IssueStatus.IN_REVIEW -> Color(0xFF5F6B76)

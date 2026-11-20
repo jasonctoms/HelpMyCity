@@ -27,11 +27,11 @@ sealed interface GeocodingStatus {
 data class LocationFieldState(
     val description: String = "",
     val point: GeoPoint? = null,
-    /** True while [point] came from the address rather than from a finger. */
+    /** True while [point] came from the address instead of from a finger. */
     val isPointApproximate: Boolean = false,
     /** What geocoding made of the location, stored on the issue either way. */
     val geocodedAddress: String? = null,
-    /** [description] is a geocoder's words, so it may be overwritten. */
+    /** [description] is the geocoder's words, so it is fine to overwrite it. */
     val isDescriptionFromGeocoder: Boolean = false,
     val status: GeocodingStatus = GeocodingStatus.Idle,
 )
@@ -39,22 +39,22 @@ data class LocationFieldState(
 /**
  * "Where is it?" and the map pin, kept in step by geocoding.
  *
- * One object because the report form and the manager edit form ask the same
- * question and must answer it the same way. Two rules do the work, and both are
- * about not overruling a person:
+ * This is one object because the report form and the manager edit form ask the
+ * same question and have to answer it the same way. Two rules do most of the
+ * work, and both of them are about not overruling a person:
  *
- * - A dropped pin fills the location field only when it is empty or still holds
- *   a previous lookup's words. What a resident wrote outranks what a geocoder
- *   would call the place, and the geocoder's version is kept alongside it on
- *   [LocationFieldState.geocodedAddress] rather than instead of it.
- * - Typing never moves a pin that was dropped by hand. A finger on the map is
- *   the more precise answer, and the more deliberate one.
+ * - A dropped pin only fills in the location field when it is empty or still has
+ *   a previous lookup's words in it. What a resident wrote beats whatever a
+ *   geocoder would call the place, and the geocoder's version gets kept next to it
+ *   on [LocationFieldState.geocodedAddress] instead of replacing it.
+ * - Typing never moves a pin that was dropped by hand. A finger on the map is the
+ *   more precise answer, and the more deliberate one.
  *
- * Every lookup ends at an address: a forward match yields coordinates, which are
- * described straight back. Compass's `PlatformGeocoder` has no room to return
- * both at once, and asking twice is cheap -- free on a device geocoder, and
- * answered from memory by
- * [dev.helpmycity.data.remote.geocoding.NominatimPlatformGeocoder].
+ * Every lookup ends at an address. A forward match gives back coordinates, which
+ * then get described right back. Compass's `PlatformGeocoder` has no room to
+ * return both at once, and asking twice is cheap; it is free on a device geocoder,
+ * and [dev.helpmycity.data.remote.geocoding.NominatimPlatformGeocoder] answers it
+ * from memory.
  */
 class LocationField(
     private val geocoder: Geocoder,
@@ -65,9 +65,9 @@ class LocationField(
     val state: StateFlow<LocationFieldState> = _state.asStateFlow()
 
     /**
-     * Only typing lands here, never a reverse-geocoded fill -- otherwise an
-     * address written into the field would search for itself and move the pin
-     * that produced it.
+     * Only typing ends up here, never a reverse-geocoded fill. Otherwise an
+     * address written into the field would search for itself and move the pin that
+     * produced it.
      */
     private val typed = MutableStateFlow("")
     private var pinLookup: Job? = null
@@ -75,8 +75,8 @@ class LocationField(
     init {
         if (geocoder.isAvailable()) {
             scope.launch {
-                // collectLatest is the debounce: a new keystroke cancels the
-                // wait, and cancels a request already in flight.
+                // collectLatest is the debounce. A new keystroke cancels the wait,
+                // and also cancels a request that is already in flight.
                 typed.collectLatest { address ->
                     delay(TYPING_SETTLE_MILLIS)
                     placePinFor(address)
@@ -104,8 +104,8 @@ class LocationField(
     }
 
     /**
-     * Loads what an issue already says, without treating it as something a
-     * person just typed -- an edit form opening must not geocode itself.
+     * Loads what an issue already says, without treating it like something a
+     * person just typed, because an edit form should not geocode itself on open.
      */
     fun start(description: String, point: GeoPoint?, geocodedAddress: String?) {
         pinLookup?.cancel()
@@ -114,9 +114,9 @@ class LocationField(
             point = point,
             geocodedAddress = geocodedAddress,
         )
-        // [typed] is deliberately left empty. Seeding it here would hand the
-        // stored location to the debounce as though someone had just written it,
-        // and an edit form would move -- or invent -- a pin nobody asked it to.
+        // [typed] is left empty on purpose. Seeding it here would hand the stored
+        // location to the debounce as if someone had just written it, and then an
+        // edit form would move (or make up) a pin nobody asked for.
     }
 
     /** Back to empty, for a form that has just been submitted. */
@@ -150,7 +150,7 @@ class LocationField(
             _state.update { it.copy(status = GeocodingStatus.Idle) }
             return
         }
-        // A pin dropped by hand is the truth about where this is; leave it alone.
+        // A pin dropped by hand is the truth about where this is, so leave it alone.
         val current = _state.value
         if (current.point != null && !current.isPointApproximate) return
 
@@ -163,8 +163,8 @@ class LocationField(
         }
 
         val point = match.toGeoPoint()
-        // Best effort: the pin is worth placing whether or not the geocoder can
-        // also name the spot, and the map labels it approximate either way.
+        // Best effort. The pin is worth placing whether or not the geocoder can
+        // also name the spot, and the map labels it as approximate either way.
         val named = geocoder.reverse(match).getFirstOrNull()?.asAddressLine()
         _state.update {
             it.copy(
@@ -177,7 +177,7 @@ class LocationField(
     }
 
     private companion object {
-        /** Long enough to be an address rather than the start of one. */
+        /** Long enough to be an address and not just the start of one. */
         const val MIN_QUERY_LENGTH = 5
 
         /** A pause in typing, not a pause in thinking. */
@@ -185,11 +185,11 @@ class LocationField(
     }
 }
 
-/** Compass's unhappy outcomes, in the terms the form speaks. */
+/** Compass's unhappy outcomes, translated into the form's terms. */
 private fun GeocoderResult<*>.statusWhenNothingUsable(): GeocodingStatus = when (this) {
     GeocoderResult.NotFound -> GeocodingStatus.NoMatch
-    // No geocoder on this device and no fallback configured. Say nothing rather
-    // than blame the network for a feature this build does not have.
+    // No geocoder on this device and no fallback configured. Say nothing instead
+    // of blaming the network for a feature this build does not have.
     GeocoderResult.NotSupported -> GeocodingStatus.Idle
     else -> GeocodingStatus.Unavailable
 }

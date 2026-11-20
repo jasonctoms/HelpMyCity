@@ -19,11 +19,11 @@ actual fun platformModule(): Module = module {
 }
 
 /**
- * The database name is an OPFS path rather than a filesystem path -- the worker
- * opens it with SQLite's `OpfsDb`, so it persists across reloads like it does on
+ * The database name is an OPFS path, not a filesystem path. The worker opens it
+ * with SQLite's `OpfsDb`, so it persists across reloads just like it does on
  * Android and iOS.
  *
- * No query coroutine context is set: the web driver is asynchronous already and
+ * There is no query coroutine context set. The web driver is already async and
  * the browser is single-threaded, so Room's default is the right one here.
  */
 fun getDatabaseBuilder(): RoomDatabase.Builder<HelpMyCityDatabase> =

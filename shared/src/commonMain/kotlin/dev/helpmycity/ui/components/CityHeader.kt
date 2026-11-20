@@ -57,8 +57,8 @@ private val EdgePadding = 16.dp
 private val LogoHeight = 30.dp
 
 /**
- * Dark enough all the way across for the buttons, the mark, and the tabs to
- * read over whatever the photograph has in it.
+ * Dark enough all the way across that the buttons, the logo, and the tabs are
+ * readable over whatever is in the photo.
  */
 private val HeaderScrim = Brush.verticalGradient(
     0f to Color.Black.copy(alpha = 0.5f),
@@ -66,21 +66,21 @@ private val HeaderScrim = Brush.verticalGradient(
 )
 
 /**
- * The band across the top of every screen: the city's photograph, its mark, and
- * -- where there is room for them -- the top-level tabs and the report button.
+ * The band across the top of every screen. It has the city's photo, its logo,
+ * and (when there is room for them) the top-level tabs and the report button.
  *
- * This replaces `TopAppBar` rather than configuring one, so a city looks like
- * itself on a laptop and not like a phone app stretched to fit. It stays one
- * bar tall so the map beneath it keeps the room; the tabs add a second row only
+ * This replaces `TopAppBar` instead of configuring one, so a city looks like
+ * itself on a laptop and not like a phone app stretched to fit. It stays one bar
+ * tall so the map under it keeps the space, and the tabs only add a second row
  * when they are drawn here.
  *
  * @param tabs the top-level destinations, drawn inside the header when
  *   [showTabs] is true and left to the bottom bar when it is not.
  * @param showTabs also shows the tagline, since both need a wide window.
- * @param onBack non-null on a pushed screen, which gets its own title in place
- *   of the city's mark.
- * @param action the primary call to action, drawn beside the profile button on
- *   a wide window. Null leaves it to the floating action button.
+ * @param onBack non-null on a pushed screen, which gets its own title in place of
+ *   the city's logo.
+ * @param action the primary call to action, drawn next to the profile button on a
+ *   wide window. Null leaves it to the floating action button.
  * @param status a small indicator drawn first among the header's buttons.
  */
 @Composable
@@ -98,7 +98,7 @@ fun CityHeader(
     action: (@Composable () -> Unit)? = null,
     status: (@Composable () -> Unit)? = null,
 ) {
-    // The photograph runs under the status bar; only the content is inset.
+    // The photo runs under the status bar, and only the content is inset.
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     Box(modifier.fillMaxWidth()) {
         CityPhotoBackground(
@@ -114,8 +114,8 @@ fun CityHeader(
                     .padding(horizontal = EdgePadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Keyed on the title alone, so the leaving side still draws
-                // whatever it showed while the new one fades in over it.
+                // Keyed on just the title, so the side that is leaving keeps
+                // drawing what it showed while the new one fades in over it.
                 val currentOnBack by rememberUpdatedState(onBack)
                 AnimatedContent(
                     targetState = if (onBack != null) screenTitle else null,
@@ -164,8 +164,9 @@ fun CityHeader(
                     Spacer(Modifier.width(8.dp))
                     status()
                 }
-                // Keyed on presence alone, so the leaving side keeps the button
-                // it had while it fades, and a new lambda is not a new button.
+                // Keyed on just whether it is there, so the side that is leaving
+                // keeps its button while it fades, and a new lambda does not count
+                // as a new button.
                 AnimatedContent(
                     targetState = action,
                     contentKey = { it != null },
@@ -215,7 +216,7 @@ private val HeaderFade = fadeIn(tween(220, delayMillis = 60)) togetherWith fadeO
 
 /**
  * The top-level destinations as a row of tabs along the bottom of the header,
- * the way a site puts its sections under its masthead.
+ * the same way a website puts its sections under its masthead.
  */
 @Composable
 private fun HeaderTabs(
@@ -230,7 +231,7 @@ private fun HeaderTabs(
             Column(
                 modifier = Modifier
                     // So the underline below measures against this tab's label
-                    // rather than against the width of the whole header.
+                    // and not the width of the whole header.
                     .width(IntrinsicSize.Max)
                     .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                     .clickable { onClick(route) },
@@ -268,7 +269,7 @@ private fun HeaderTabs(
     }
 }
 
-/** An icon button legible over the photograph rather than over a surface. */
+/** An icon button that is readable on top of the photo instead of on a surface. */
 @Composable
 private fun HeaderIconButton(
     icon: DrawableResource,

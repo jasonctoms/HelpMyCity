@@ -34,13 +34,13 @@ class SignInViewModel(
     city: CityProfile,
 ) : ViewModel() {
 
-    /** Named so the sign-in copy reads as this deployment's, not a template's. */
+    /** The city's name, so the sign-in copy sounds like this deployment and not a template. */
     val cityName: String = city.displayName
 
     /**
-     * Shared sign-ins to publish on the screen, empty for a real deployment.
-     * These are genuine accounts on the configured identity provider, so the
-     * notice naming them is an invitation rather than a disclaimer.
+     * Shared sign-ins to show on the screen, which is empty for a real deployment.
+     * These are real accounts on the configured identity provider, so the notice
+     * that names them is an invitation and not a disclaimer.
      */
     val demoLogins: List<DemoLogin> = city.demoLogins
 
@@ -54,8 +54,8 @@ class SignInViewModel(
     /**
      * Fills the form from a published demo account.
      *
-     * Switches back to sign-in as well: the accounts already exist, so leaving
-     * the form in sign-up mode would fail on an address that is taken.
+     * This switches back to sign-in too. The accounts already exist, so leaving
+     * the form in sign-up mode would fail on an address that is already taken.
      */
     fun useDemoLogin(login: DemoLogin) = _uiState.update {
         it.copy(
@@ -84,8 +84,8 @@ class SignInViewModel(
                 SignInMode.SIGN_UP ->
                     authService.signUp(state.displayName.trim(), state.email.trim(), state.password)
             }
-            // On success the session flow flips and the app navigates away, so
-            // only the failure path needs to touch this state.
+            // On success the session flow flips and the app navigates away, so only
+            // the failure path has to touch this state.
             _uiState.update {
                 it.copy(
                     isSubmitting = false,

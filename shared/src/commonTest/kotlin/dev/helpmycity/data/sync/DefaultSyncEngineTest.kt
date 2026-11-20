@@ -59,16 +59,16 @@ class DefaultSyncEngineTest {
     )
 
     /**
-     * A fresh install has nothing queued, and the outbox watcher only fires
-     * when something is. Without a pull at startup the store would stay empty
-     * against a backend that already has rows -- which is exactly what a public
-     * demo looks like to every first-time visitor.
+     * A fresh install has nothing queued, and the outbox watcher only fires when
+     * something is. Without a pull at startup, the store would stay empty against
+     * a backend that already has rows, which is exactly what a public demo looks
+     * like to every first-time visitor.
      */
     @Test
     fun startingWithAnEmptyStorePullsWhatTheBackendAlreadyHas() = runTest {
         val local = InMemoryIssueLocalDataSource()
-        // A pulled row arrives already agreed with the backend, the way every
-        // real implementation rebuilds it. Handing back a PENDING_UPLOAD row
+        // A pulled row shows up already agreeing with the backend, the same way
+        // every real implementation rebuilds it. Handing back a PENDING_UPLOAD row
         // instead would make the store look dirty and kick off a second sync.
         val onTheBackend = issue("already-there")
             .copy(sync = SyncMetadata(state = SyncState.SYNCED))
@@ -126,8 +126,8 @@ class DefaultSyncEngineTest {
         val status = engine.syncNow()
 
         assertEquals(SyncStatus.NoBackend, status)
-        // The whole point: nothing is silently dropped just because there is
-        // nowhere to send it yet.
+        // This is the whole point. Nothing gets quietly dropped just because there
+        // is nowhere to send it yet.
         assertEquals(1, local.pendingSync().size)
     }
 
@@ -190,7 +190,7 @@ class DefaultSyncEngineTest {
         val stored = local.observePhotos("a").first().single()
         assertEquals(SyncState.SYNCED, stored.sync.state)
         assertEquals("https://photos.example/a/p", stored.remoteUrl)
-        // The backend's own copy comes back without bytes; this device's stays.
+        // The backend's copy comes back without bytes, and this device's copy stays.
         assertTrue(stored.bytes.contentEquals(byteArrayOf(1, 2, 3)))
     }
 
@@ -200,7 +200,7 @@ class DefaultSyncEngineTest {
         val onTheBackend = issue("a").copy(sync = SyncMetadata(state = SyncState.SYNCED))
         val photos = AcceptingPhotoBackend(
             IssuePhoto(id = "p", issueId = "a", remoteUrl = "https://photos.example/a/p"),
-            // Its issue is not readable here, so there is nowhere to put it.
+            // Its issue can't be read here, so there is nowhere to put it.
             IssuePhoto(id = "q", issueId = "hidden", remoteUrl = "https://photos.example/hidden/q"),
         )
         val engine = DefaultSyncEngine(local, PopulatedBackend(onTheBackend), photos, time, session)

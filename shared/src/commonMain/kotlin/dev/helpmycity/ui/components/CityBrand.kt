@@ -30,27 +30,27 @@ import coil3.compose.AsyncImage
 import dev.helpmycity.deployment.CityBranding
 
 /**
- * The city's photograph and the city's mark, for the two places the app wears
- * them: the header on every screen, and the sign-in page behind the form.
+ * The city's photo and the city's logo, for the two places the app shows them:
+ * the header on every screen, and the sign-in page behind the form.
  *
- * Both sit on the same photograph, so both draw their text in white over a
- * scrim rather than in scheme colors -- see [OnCityPhoto].
+ * Both sit on the same photo, so both draw their text in white over a scrim
+ * instead of in scheme colors (see [OnCityPhoto]).
  */
 
-/** Text and icons sit on a photograph, so they are light in both schemes. */
+/** Text and icons sit on a photo, so they are light in both schemes. */
 internal val OnCityPhoto = Color.White
 internal val OnCityPhotoMuted = Color.White.copy(alpha = 0.78f)
 
 private val DefaultLogoHeight = 44.dp
 
 /**
- * The city's photograph under a scrim, filling whatever it is given.
+ * The city's photo under a scrim, filling whatever space it is given.
  *
- * The scrim is what makes white text safe over an image nobody vetted, so it is
- * the caller's to choose: a header darkens only the band its wordmark sits in,
- * while sign-in darkens the whole page. Until the photo arrives -- and forever,
- * for a city that supplied none -- the scrim falls on the theme's primary,
- * which white also reads against.
+ * The scrim is what makes white text safe on top of an image nobody checked, so
+ * the caller gets to pick it. A header only darkens the band its wordmark sits
+ * in, while sign-in darkens the whole page. Until the photo loads (or forever, for
+ * a city that did not supply one), the scrim sits on the theme's primary color,
+ * which white text also reads fine against.
  */
 @Composable
 fun CityPhotoBackground(imageUrl: String?, scrim: Brush, modifier: Modifier = Modifier) {
@@ -68,13 +68,14 @@ fun CityPhotoBackground(imageUrl: String?, scrim: Brush, modifier: Modifier = Mo
 }
 
 /**
- * The city's mark where it has one, its name set in type where it does not.
+ * The city's logo if it has one, and its name in plain type if it does not.
  *
- * Never both: a logo almost always spells the city out already, and setting the
- * name beside it reads as a placeholder someone forgot to remove. The name is
- * what a screen reader announces either way, and it is also the fallback when
- * the logo will not load -- a city's own CMS is exactly the sort of host that
- * refuses one request in three, and a header must not end up nameless.
+ * Never both, though. A logo almost always spells out the city already, and
+ * putting the name next to it looks like a placeholder somebody forgot to remove.
+ * A screen reader announces the name either way, and the name is also the
+ * fallback when the logo will not load. A city's own CMS is exactly the kind of
+ * host that refuses one request out of three, and a header should never end up
+ * with no name at all.
  */
 @Composable
 fun CityMark(
@@ -92,8 +93,8 @@ fun CityMark(
             text = cityName,
             style = nameStyle,
             fontWeight = FontWeight.Bold,
-            // Tighter than Material's default, which is set for a title sitting
-            // on a flat surface rather than a name sitting on a photograph.
+            // Tighter than Material's default, which is meant for a title on a
+            // flat surface and not a name on top of a photo.
             letterSpacing = (-1).sp,
             color = OnCityPhoto,
             modifier = modifier,
@@ -133,8 +134,8 @@ private fun CityLogo(
     if (singleColor) {
         logo(modifier)
     } else {
-        // A mark that carries its own colors cannot be recolored, so it gets a
-        // light plate to sit on instead of the photograph.
+        // A logo with its own colors can't be recolored, so it gets a light plate
+        // to sit on instead of the photo.
         Box(
             modifier = modifier
                 .clip(RoundedCornerShape(10.dp))

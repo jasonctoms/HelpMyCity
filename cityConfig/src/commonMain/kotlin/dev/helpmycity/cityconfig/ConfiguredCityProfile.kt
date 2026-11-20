@@ -18,14 +18,14 @@ import dev.helpmycity.domain.model.Neighborhood
 /**
  * The city this build serves. Oceanside, CA, as configured here.
  *
- * This is the whole of what makes HelpMyCity one city's -- a list of
- * departments, a list of neighborhoods, how it looks, where its map opens, and
+ * This is everything that makes HelpMyCity belong to one city: a list of
+ * departments, a list of neighborhoods, how it looks, where its map starts, and
  * the city's own request system. Everything else in the repo is city-agnostic,
- * and the three composition roots name only this object, never the city.
+ * and the three composition roots only name this object, never the city.
  *
- * **Forking:** keep the shape, replace the contents. Ids are stored on issues
- * and merged against on a later backend pull, so pick stable ones up front and
- * do not renumber them afterwards.
+ * **Forking:** keep the shape and replace the contents. Ids get stored on issues
+ * and merged against on later backend pulls, so pick stable ones up front and do
+ * not renumber them later.
  */
 object ConfiguredCityProfile : CityProfile {
 
@@ -34,15 +34,15 @@ object ConfiguredCityProfile : CityProfile {
     override val externalRequestSystem: ExternalRequestGateway = CityRequestGateway
 
     /**
-     * Sunset from the Oceanside pier, by way of Visit Oceanside, under the
-     * city's wordmark -- one flat color on transparency, so the header draws it
-     * in white rather than on a plate.
+     * Sunset from the Oceanside pier (by way of Visit Oceanside) under the city's
+     * wordmark. The wordmark is one flat color on a transparent background, so the
+     * header draws it in white instead of on a plate.
      *
-     * Both are hotlinked, which is fine for a demo and not for a deployment:
-     * host copies you have the rights to. Note the logo is not served from the
-     * city's own site, which sends no CORS headers and so loads on Android and
-     * iOS but not in a browser, where image bytes are fetched from script.
-     * Whatever a fork points at has to allow cross-origin reads.
+     * Both are hotlinked, which is fine for a demo but not for a real deployment,
+     * so host copies you have the rights to. Also note the logo is not served from
+     * the city's own site. That site sends no CORS headers, so the logo would load
+     * on Android and iOS but not in a browser, where image bytes get fetched from
+     * script. Whatever a fork points at has to allow cross-origin reads.
      */
     override val branding: CityBranding = CityBranding(
         headerImageUrl = "https://visitoceanside.org/wp-content/uploads/2023/01/" +
@@ -55,10 +55,10 @@ object ConfiguredCityProfile : CityProfile {
     /**
      * Downtown Oceanside, near the pier.
      *
-     * [MapSettings.styleUrl] is left at the default OpenFreeMap basemap. Before
-     * this is the map residents actually use, read the note on
-     * [MapSettings.Companion.OPEN_FREE_MAP_LIBERTY]: it is donation-funded, and
-     * a city leaning on it should donate or self-host.
+     * [MapSettings.styleUrl] is left on the default OpenFreeMap basemap. Before
+     * this becomes the map residents actually use, read the note on
+     * [MapSettings.Companion.OPEN_FREE_MAP_LIBERTY]. It is funded by donations, and
+     * a city relying on it should donate or self-host.
      */
     override val map: MapSettings = MapSettings(
         center = GeoPoint(latitude = 33.1959, longitude = -117.3795),
@@ -68,15 +68,15 @@ object ConfiguredCityProfile : CityProfile {
 
     /**
      * The phone's own geocoder where there is one, and OpenStreetMap's public
-     * Nominatim in a browser, which has none. The Nominatim half is bounded to
-     * the city limits, so "Mission Ave" resolves to Oceanside's rather than to
-     * one three states away; the device geocoders take no such hint, and are
-     * trusted to know where the phone is.
+     * Nominatim in a browser, which does not have one. The Nominatim half is kept
+     * inside the city limits, so "Mission Ave" resolves to Oceanside's and not one
+     * three states away. The device geocoders do not take a hint like that, so we
+     * just trust them to know where the phone is.
      *
      * Read the note on [NominatimPlatformGeocoder] before this serves real
-     * traffic: the public instance is donated capacity, and the contact details
-     * below are what an admin would use to reach whoever is spending it. Android
-     * and iOS never touch it.
+     * traffic. The public instance is donated capacity, and the contact details
+     * below are how an admin would reach whoever is using it. Android and iOS never
+     * touch it.
      */
     override val geocoder: Geocoder = Geocoder(
         deviceGeocoder() orElse NominatimPlatformGeocoder(
@@ -128,11 +128,11 @@ object ConfiguredCityProfile : CityProfile {
     )
 
     /**
-     * The city's own neighborhood areas; see [NeighborhoodBoundaries] for the
-     * source. A neighborhood names a council district only where at least 85%
-     * of it lies in one, per the city's `Oceanside_37115_Council_Districts`
-     * layer on ArcGIS Online. Guajome, North Valley and San Luis Rey straddle
-     * two or three, so issues there carry no district.
+     * The city's own neighborhood areas (see [NeighborhoodBoundaries] for the
+     * source). A neighborhood only names a council district if at least 85% of it
+     * is inside one, according to the city's `Oceanside_37115_Council_Districts`
+     * layer on ArcGIS Online. Guajome, North Valley, and San Luis Rey straddle two
+     * or three, so issues there do not get a district.
      */
     override val neighborhoods: List<Neighborhood> = listOf(
         Neighborhood(
@@ -242,13 +242,13 @@ object ConfiguredCityProfile : CityProfile {
     /**
      * The three shared sign-ins this demo publishes on its sign-in screen.
      *
-     * Real accounts in the configured Supabase project, created there by hand;
-     * nothing in this repo creates them and nothing treats these passwords as
-     * secrets, because the point is that anyone may use them. Their roles come
-     * from each account's `app_metadata`, not from the address -- step 5 of
-     * `supabase/README.md` is how this demo granted them.
+     * These are real accounts in the configured Supabase project, created there by
+     * hand. Nothing in this repo creates them, and nothing treats these passwords as
+     * secrets, because the whole point is that anyone can use them. Their roles come
+     * from each account's `app_metadata` and not from the address (step 5 of
+     * `supabase/README.md` is how this demo granted them).
      *
-     * A city's own profile has no override: these belong to the demo.
+     * A city's own profile does not override this, since these belong to the demo.
      */
     override val demoLogins: List<DemoLogin> = listOf(
         DemoLogin(label = "Admin", email = "admin@helpmycity.dev", password = "demo-admin-pass"),

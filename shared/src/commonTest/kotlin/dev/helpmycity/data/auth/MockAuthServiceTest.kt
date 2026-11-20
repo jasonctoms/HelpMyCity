@@ -81,8 +81,8 @@ class MockAuthServiceTest {
     }
 
     /**
-     * A demo build's accounts have to keep their ids across a restart: the
-     * accounts live in memory and their user records in the database.
+     * A demo build's accounts have to keep their ids across a restart, because the
+     * accounts live in memory and their user records live in the database.
      */
     @Test
     fun aSeededAccountSignsInAsItselfRatherThanBeingMinted() = runTest {

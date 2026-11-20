@@ -23,7 +23,7 @@ import helpmycity.shared.generated.resources.Res
 import helpmycity.shared.generated.resources.status_field
 import org.jetbrains.compose.resources.stringResource
 
-/** Where an issue stands, set apart from the chips that describe it. */
+/** Where an issue stands, kept separate from the chips that describe it. */
 @Composable
 fun StatusField(status: IssueStatus, modifier: Modifier = Modifier) {
     val text = status.label()

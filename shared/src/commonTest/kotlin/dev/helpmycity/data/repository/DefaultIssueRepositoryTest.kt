@@ -243,8 +243,8 @@ class DefaultIssueRepositoryTest {
     }
 
     /**
-     * A resident may not change someone else's issue, so a star must travel as
-     * its own row -- pushing the issue would be refused by the backend.
+     * A resident can't change someone else's issue, so a star has to travel as its
+     * own row. The backend would refuse a push of the issue itself.
      */
     @Test
     fun aStarCountsOncePerUserAndLeavesTheIssueOutOfTheOutbox() = runTest {
@@ -293,7 +293,7 @@ class DefaultIssueRepositoryTest {
         assertEquals(SyncState.PENDING_UPLOAD, photo.sync.state)
     }
 
-    /** Photos left the Issue aggregate so that listing issues never loads image bytes. */
+    /** Photos are not part of the Issue aggregate, so listing issues never loads image bytes. */
     @Test
     fun photosAreNotReturnedWithTheIssueItself() = runTest {
         val (repository, _) = repository()
@@ -350,7 +350,7 @@ class DefaultIssueRepositoryTest {
         session.signedInAs(resident)
         val id = repository.submitIssue(libbyLakeDraft)
 
-        // The person who filed it keeps sight of it.
+        // The person who filed it can still see it.
         assertEquals(1, repository.observeIssues().first().size)
 
         session.signedInAs(otherResident)
@@ -528,7 +528,7 @@ class DefaultIssueRepositoryTest {
         assertEquals(5_000L, edit.editedAtMillis)
         assertEquals(1, edit.revision)
         assertEquals(setOf(EditableField.TITLE, EditableField.CATEGORY), edit.fields)
-        // The correction is a local write like any other, so it re-enters the outbox.
+        // The edit is a local write like any other, so it goes back into the outbox.
         assertEquals(SyncState.PENDING_UPLOAD, edited.sync.state)
     }
 
@@ -590,8 +590,8 @@ class DefaultIssueRepositoryTest {
         val issue = assertNotNull(repository.getIssue(id))
         val draft = IssueEditDraft.of(issue).copy(title = "Rewritten")
 
-        // The person who filed it cannot rewrite it either: editing is a
-        // manager's completeness pass, not an author's second draft.
+        // The person who filed it can't rewrite it either. Editing is a manager's
+        // cleanup pass, not the author's second draft.
         assertEquals(EditOutcome.NotPermitted, repository.editIssue(id, draft))
 
         session.signedInAs(districtTwoManager)

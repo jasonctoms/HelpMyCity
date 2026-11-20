@@ -1,6 +1,6 @@
 // SQLite's WASM build stores the database in the Origin Private File System,
-// which requires the page to be cross-origin isolated. Without these two
-// headers the worker fails to open the database at startup.
+// which only works if the page is cross-origin isolated. Without these two
+// headers, the worker fails to open the database at startup.
 //
 // Whatever hosts the built app in production has to send the same two headers.
 ;(function (config) {

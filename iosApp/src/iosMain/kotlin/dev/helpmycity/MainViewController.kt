@@ -6,8 +6,8 @@ import dev.helpmycity.cityconfig.ConfiguredBackend
 import dev.helpmycity.cityconfig.ConfiguredCityProfile
 
 fun MainViewController() = ComposeUIViewController {
-    // Where this build picks its city and backend. initKoin() is idempotent,
-    // so SwiftUI creating the controller more than once is safe.
+    // This is where the build picks its city and backend. initKoin() is
+    // idempotent, so it is fine if SwiftUI creates the controller more than once.
     initKoin(city = ConfiguredCityProfile, backend = ConfiguredBackend)
     App()
 }

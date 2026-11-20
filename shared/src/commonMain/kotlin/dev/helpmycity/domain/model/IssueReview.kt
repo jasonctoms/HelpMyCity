@@ -5,14 +5,14 @@ import kotlinx.serialization.Serializable
 /**
  * Where an issue sits in triage.
  *
- * A resident's report is not public the moment it is filed: a manager
- * responsible for that area reads it first. Until then only the submitter and
- * those managers can see it, which is what keeps the public map trustworthy
- * without making residents jump through hoops to report something.
+ * A resident's report does not go public the moment it is filed. A manager
+ * responsible for that area reads it first, and until then only the submitter and
+ * those managers can see it. That keeps the public map trustworthy without making
+ * residents jump through a bunch of hoops just to report something.
  *
- * [PENDING] is [IssueStatus.IN_REVIEW] and [REJECTED] is
- * [IssueStatus.REJECTED]. The review still lives here rather than in the
- * status, because a status cannot carry who decided or why.
+ * [PENDING] is [IssueStatus.IN_REVIEW] and [REJECTED] is [IssueStatus.REJECTED].
+ * The review still lives here instead of in the status, because a status has no
+ * way to say who decided or why.
  */
 @Serializable
 enum class ReviewState(val storageKey: String) {
@@ -35,10 +35,10 @@ enum class ReviewState(val storageKey: String) {
 /**
  * The triage decision on one issue, and who made it.
  *
- * [rejectionReason] is the point of the whole record: a manager cannot reject
- * without saying why, because the submitter is shown the reason and a bare "no"
- * teaches a resident nothing except not to bother next time. The constructor
- * enforces the pairing rather than trusting callers -- see [rejected].
+ * [rejectionReason] is really the point of this whole record. A manager can't
+ * reject a report without saying why, because the submitter gets shown the reason,
+ * and a plain "no" teaches a resident nothing except not to bother next time. The
+ * constructor enforces that instead of trusting whoever calls it (see [rejected]).
  */
 @Serializable
 data class IssueReview(
@@ -55,7 +55,7 @@ data class IssueReview(
         }
     }
 
-    /** Only approved issues are public; everything else is scoped to a few people. */
+    /** Only approved issues are public. Everything else is limited to a few people. */
     val isPublic: Boolean get() = state == ReviewState.APPROVED
 
     val isPending: Boolean get() = state == ReviewState.PENDING

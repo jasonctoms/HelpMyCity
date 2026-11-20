@@ -8,13 +8,13 @@ import dev.helpmycity.domain.model.IssueSupport
 import dev.helpmycity.domain.model.Neighborhood
 
 /**
- * The default backend: none.
+ * The default backend, which is no backend at all.
  *
- * Not a throwing stub: returning [RemoteResult.NotConfigured] keeps the
- * offline-first path -- local write, queued for sync, sync reports nothing to
- * do -- running end to end with no backend configured.
+ * This does not throw. Returning [RemoteResult.NotConfigured] keeps the whole
+ * offline-first path (write locally, queue it for sync, sync says there is
+ * nothing to do) running end to end with no backend configured.
  *
- * Gathered into [dev.helpmycity.deployment.LocalOnlyBackend].
+ * [dev.helpmycity.deployment.LocalOnlyBackend] bundles these together.
  */
 class NoopIssueBackendApi : IssueBackendApi {
     override suspend fun fetchIssuesChangedSince(sinceMillis: Long?): RemoteResult<List<Issue>> =

@@ -4,21 +4,21 @@ import dev.helpmycity.domain.model.Account
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Authentication, abstracted away from whoever provides it.
+ * Authentication, without caring who provides it.
  *
- * Deals only in [Account]s -- credentials and identity. What the signed-in
- * person may actually do is
- * [dev.helpmycity.data.session.UserSession]'s answer, which is where
- * screens and repositories read from.
+ * This only deals with [Account]s, meaning credentials and identity. What the
+ * signed-in person is actually allowed to do is up to
+ * [dev.helpmycity.data.session.UserSession], and that is what screens and
+ * repositories read from.
  *
  * [MockAuthService] backs the app until a deployment supplies something else
- * through [dev.helpmycity.deployment.BackendProvider]. A hosted
- * identity provider drops in behind this interface without the UI changing;
- * the `supabase` package in `:cityConfig` is a worked example.
+ * through [dev.helpmycity.deployment.BackendProvider]. A hosted identity provider
+ * plugs in behind this interface without the UI changing at all, and the
+ * `supabase` package in `:cityConfig` is a worked example.
  *
- * Submitting an issue deliberately does *not* require an account. Sign-in
- * exists so managers and admins can triage, and so a resident who has an
- * account can follow their own report through review.
+ * Submitting an issue does _not_ need an account, on purpose. Sign-in is there so
+ * managers and admins can triage, and so a resident with an account can follow
+ * their own report through review.
  */
 interface AuthService {
     val currentAccount: StateFlow<Account?>

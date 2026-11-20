@@ -30,10 +30,10 @@ import helpmycity.shared.generated.resources.board_column_empty
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Kanban by status, the view managers work from.
+ * Kanban by status, which is the view managers work from.
  *
- * Read-only: columns show where everything sits, and status changes happen on
- * the detail screen.
+ * This is read-only. The columns show where everything sits, and status changes
+ * happen on the detail screen.
  */
 @Composable
 fun IssueBoardScreen(

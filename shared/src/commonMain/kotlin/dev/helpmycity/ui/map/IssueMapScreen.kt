@@ -87,7 +87,7 @@ private const val PROP_NEIGHBORHOOD_ID = "neighborhoodId"
 /** The property every marker carries, so a tap resolves back to a row. */
 private const val PROP_ISSUE_ID = "issueId"
 
-/** Drives the per-status marker color; holds an [IssueStatus.storageKey]. */
+/** Drives the marker color for each status. It holds an [IssueStatus.storageKey]. */
 private const val PROP_STATUS = "status"
 
 private const val BOUNDARY_HIT_LAYER_ID = "neighborhood-hit-areas"
@@ -97,8 +97,9 @@ private const val MARKER_LAYER_ID = "issue-markers"
 private const val GLYPH_LAYER_ID = "issue-marker-glyphs"
 
 /**
- * Fixed rather than themed: the basemap is light in both themes, and dark
- * theme's primary all but vanishes on it. Purple, because no status uses it.
+ * Fixed instead of themed. The basemap is light in both themes, and the dark
+ * theme's primary color pretty much disappears on it. It is purple because no
+ * status uses purple.
  */
 private val BOUNDARY_COLOR = Color(0xFF6A3FB5)
 
@@ -116,18 +117,18 @@ private val FAB_INSET = 180.dp
 /**
  * Every located issue, plotted.
  *
- * Issues go to MapLibre as one GeoJSON source rather than as per-issue
- * composables, so redrawing after a sync is a single `setData` however many
- * rows moved, and color and glyph come from style expressions over the feature's
- * status property so the renderer restyles without recomposition.
+ * Issues go to MapLibre as one GeoJSON source instead of as a composable per
+ * issue, so redrawing after a sync is a single `setData` no matter how many rows
+ * changed. Color and glyph come from style expressions on the feature's status
+ * property, so the renderer can restyle without recomposing.
  *
- * Rows with no point are reported as a count rather than hidden: an empty map
- * and a map of a city with no reports look identical otherwise.
+ * Rows without a point get reported as a count instead of hidden. Otherwise an
+ * empty map and a map of a city with no reports would look exactly the same.
  *
- * @param clearsFloatingActionButton whether the legend has to stay out from
- *   under the Scaffold's report button. False where there is none -- the wide
- *   layout moves that action into the header. See
- *   [dev.helpmycity.ui.issues.IssueWorkspaceScreen].
+ * @param clearsFloatingActionButton whether the legend has to stay out from under
+ *   the Scaffold's report button. False when there is no button, since the wide
+ *   layout moves that action into the header (see
+ *   [dev.helpmycity.ui.issues.IssueWorkspaceScreen]).
  */
 @Composable
 fun IssueMapScreen(
@@ -171,9 +172,9 @@ fun IssueMapScreen(
 /**
  * The map's neighborhood filter.
  *
- * Multi-select with nothing-means-everything, so "show me the whole city" stays
- * one tap away. Neighborhoods come from the city profile via the repository, so
- * this composable never names one.
+ * Multi-select, where selecting nothing means everything, so "show me the whole
+ * city" is always one tap away. Neighborhoods come from the city profile through
+ * the repository, so this composable never names one.
  */
 @Composable
 private fun NeighborhoodFilterRow(
@@ -246,8 +247,8 @@ private fun IssueMap(
             zoom = if (settings.center != null) settings.defaultZoom else WORLD_ZOOM,
         ),
     ) {
-        // Declared first so it draws under the markers, which also puts it
-        // after them for clicks: a tap on a marker opens the issue instead.
+        // Declared first so it draws under the markers, which also puts it after
+        // them for clicks, so a tap on a marker opens the issue instead.
         val boundarySource = rememberGeoJsonSource(data = GeoJsonData.Features(boundaries))
         FillLayer(
             id = BOUNDARY_HIT_LAYER_ID,
@@ -294,8 +295,8 @@ private fun IssueMap(
                 }
             },
         )
-        // Always drawn, even where markers pile up: a hidden glyph would leave
-        // that marker distinguishable by color alone.
+        // Always drawn, even where markers pile up, because a hidden glyph would
+        // leave that marker only distinguishable by color.
         SymbolLayer(
             id = GLYPH_LAYER_ID,
             source = source,
@@ -305,11 +306,11 @@ private fun IssueMap(
         )
     }
 
-    // Frame the selection once there is something to frame, then leave the
-    // camera alone until the selection changes: re-framing on every sync would
-    // yank the map away from whoever is panning it. A selection frames its
-    // whole area, and no selection the whole city, not just the issues, which
-    // may be a few pins a block apart or none at all.
+    // Frame the selection once there is something to frame, and then leave the
+    // camera alone until the selection changes. Re-framing on every sync would
+    // yank the map away from whoever is panning it. A selection frames its whole
+    // area, and no selection frames the whole city instead of just the issues
+    // (which might be a few pins a block apart, or nothing at all).
     val framedArea = if (selectedNeighborhoods.isEmpty()) boundaries else selectedBoundaries
     var hasFramed by remember(selectedNeighborhoods) { mutableStateOf(false) }
     LaunchedEffect(issues, framedArea) {
@@ -330,9 +331,9 @@ private fun IssueMap(
 /**
  * How many issues made it onto the map, and what the marker colors mean.
  *
- * Each swatch repeats its marker's color and glyph, and the status is spelled
- * out in text too -- the rule the chip colors in `ui/theme/StatusColors.kt`
- * follow as well.
+ * Each swatch repeats its marker's color and glyph, and the status is spelled out
+ * in text too, which is the same rule the chip colors in
+ * `ui/theme/StatusColors.kt` follow.
  */
 @Composable
 private fun MapLegend(
@@ -356,10 +357,10 @@ private fun MapLegend(
 
                     plottedCount == 0 -> stringResource(Res.string.map_no_located_issues)
 
-                    // Filtered, the denominator that matters is the selection,
-                    // not the city: "2 of 3 in Libby Lake", not "2 of 12".
-                    // Quantified on the denominator, which is what names
-                    // the noun: "1 of 1 issue", "1 of 12 issues".
+                    // When filtered, the number that matters is the selection and
+                    // not the city, so "2 of 3 in Libby Lake" and not "2 of 12".
+                    // The plural follows the second number, since that is what
+                    // names the noun: "1 of 1 issue", "1 of 12 issues".
                     isFiltered -> pluralStringResource(
                         Res.plurals.map_located_count_filtered,
                         matchingCount,
@@ -377,8 +378,8 @@ private fun MapLegend(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            // Inset on the end where there is a FAB: it floats over this corner
-            // and nothing here scrolls out from under it.
+            // Inset on the end when there is a FAB, since it floats over this
+            // corner and nothing here scrolls out from under it.
             FlowRow(
                 modifier = Modifier
                     .padding(end = if (clearsFloatingActionButton) FAB_INSET else 0.dp)
@@ -431,7 +432,7 @@ private fun Feature<*, JsonObject?>.issueId(): String? =
 private fun Feature<*, JsonObject?>.neighborhoodId(): String? =
     properties?.get(PROP_NEIGHBORHOOD_ID)?.jsonPrimitive?.contentOrNull
 
-/** One point feature per issue, carrying only what the style and a tap need. */
+/** One point feature per issue, with only what the style and a tap need. */
 private fun List<Issue>.toFeatureCollection(): FeatureCollection<Point, JsonObject> =
     FeatureCollection(
         mapNotNull { issue ->
@@ -449,8 +450,8 @@ private fun List<Issue>.toFeatureCollection(): FeatureCollection<Point, JsonObje
     )
 
 /**
- * Every neighborhood with a boundary, as one feature each. A boundary that
- * does not parse as GeoJSON is left off rather than failing the map.
+ * Every neighborhood with a boundary, as one feature each. A boundary that does
+ * not parse as GeoJSON gets left off instead of breaking the map.
  */
 private fun List<Neighborhood>.toBoundaryFeatures(): FeatureCollection<Geometry, JsonObject?> =
     FeatureCollection(
@@ -466,7 +467,7 @@ private fun List<Neighborhood>.toBoundaryFeatures(): FeatureCollection<Geometry,
         }
     )
 
-/** Every vertex on the outside of each polygon; the holes are inside anyway. */
+/** Every vertex on the outside of each polygon. The holes are inside anyway. */
 private fun FeatureCollection<Geometry, *>.outerRings(): List<Position> = features.flatMap { feature ->
     when (val geometry = feature.geometry) {
         is Polygon -> geometry.coordinates.firstOrNull().orEmpty()

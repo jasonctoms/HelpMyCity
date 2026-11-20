@@ -1,17 +1,16 @@
 package dev.helpmycity.deployment
 
 /**
- * Holds the two choices a fork makes, for the object graph to read back.
+ * Holds the two choices a fork makes, so the object graph can read them back.
  *
- * `di/AppModule.kt` binds [CityProfile], [BackendProvider] and everything they
- * expose out of this holder. The indirection is necessary because the Koin
- * compiler plugin validates the graph inside `:shared` at compile time, so
- * every binding has to be declared there -- while the values come from modules
- * `:shared` must not depend on.
+ * `di/AppModule.kt` binds [CityProfile], [BackendProvider], and everything they
+ * expose out of this holder. The extra step is needed because the Koin compiler
+ * plugin validates the graph inside `:shared` at compile time, so every binding
+ * has to be declared there, but the values come from modules that `:shared` is not
+ * allowed to depend on.
  *
- * Set once, at the platform entry point, by
- * [dev.helpmycity.di.initKoin]. App code injects [CityProfile] or
- * [BackendProvider] rather than reading this.
+ * It gets set once, at the platform entry point, by [dev.helpmycity.di.initKoin].
+ * App code should inject [CityProfile] or [BackendProvider] instead of reading this.
  */
 object Deployment {
 

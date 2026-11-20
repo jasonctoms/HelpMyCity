@@ -9,10 +9,10 @@ import androidx.room3.PrimaryKey
 /**
  * Storage shape for [dev.helpmycity.domain.model.Issue].
  *
- * Every column is a SQLite primitive and enums are stored by their stable
- * `storageKey` rather than through a type converter: the schema stays readable
- * in a plain `sqlite3` shell, export stays trivial, and renaming a Kotlin enum
- * constant is never a migration.
+ * Every column is a SQLite primitive, and enums are stored by their stable
+ * `storageKey` instead of through a type converter. That keeps the schema readable
+ * in a plain `sqlite3` shell, keeps export simple, and means renaming a Kotlin
+ * enum constant never needs a migration.
  */
 @Entity(
     tableName = "issues",
@@ -56,7 +56,7 @@ data class IssueEntity(
     @ColumnInfo(name = "reviewed_by_user_id") val reviewedByUserId: String?,
     @ColumnInfo(name = "reviewed_by_display_name") val reviewedByDisplayName: String?,
     @ColumnInfo(name = "reviewed_at") val reviewedAtMillis: Long?,
-    /** Set exactly when `review_state` is `rejected`; shown to the submitter. */
+    /** Set exactly when `review_state` is `rejected`, and shown to the submitter. */
     @ColumnInfo(name = "rejection_reason") val rejectionReason: String?,
 
     /**
@@ -91,9 +91,9 @@ data class IssueEntity(
 /**
  * Storage shape for [dev.helpmycity.domain.model.IssuePhoto].
  *
- * A child table rather than a column on `issues`: the list screen reads every
- * issue row on every render, and image bytes in that row would make scrolling
- * read megabytes.
+ * This is a child table instead of a column on `issues`. The list screen reads
+ * every issue row on every render, and image bytes in that row would mean reading
+ * megabytes just to scroll.
  */
 @Entity(
     tableName = "issue_photos",
@@ -121,9 +121,9 @@ class IssuePhotoEntity(
 )
 
 /**
- * Storage shape for [dev.helpmycity.domain.model.IssueSupport]. No foreign key:
- * a pulled star can arrive before the issue it belongs to, and a star on an
- * issue that is gone is harmless.
+ * Storage shape for [dev.helpmycity.domain.model.IssueSupport]. There is no
+ * foreign key, because a pulled star can show up before the issue it belongs to,
+ * and a star on an issue that is gone does not hurt anything.
  */
 @Entity(
     tableName = "issue_supports",
@@ -189,20 +189,20 @@ data class NeighborhoodEntity(
 )
 
 /**
- * Storage shape for [dev.helpmycity.domain.model.User] -- who this
- * deployment knows and what each of them may do.
+ * Storage shape for [dev.helpmycity.domain.model.User], meaning who this
+ * deployment knows and what each of them is allowed to do.
  *
- * The only table with no sync columns. In a real deployment roles and manager
- * scopes belong to the identity provider rather than to this app's data, so
- * there is nothing here to queue for upload; the table exists because the mock
- * provider has nothing to read them from, and it retires behind
- * [dev.helpmycity.domain.repository.UserRepository] the day one does.
+ * This is the only table without sync columns. In a real deployment, roles and
+ * manager scopes belong to the identity provider and not to this app's data, so
+ * there is nothing here to queue for upload. The table only exists because the
+ * mock provider has nowhere else to read them from, and it can go away behind
+ * [dev.helpmycity.domain.repository.UserRepository] once a provider does.
  */
 @Entity(tableName = "users", indices = [Index("email")])
 data class UserEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "display_name") val displayName: String,
-    /** Never null in practice: a guest is never written here. */
+    /** Never null in practice, since a guest never gets written here. */
     val email: String?,
     /** [dev.helpmycity.domain.model.UserRole.storageKey]. */
     val role: String,

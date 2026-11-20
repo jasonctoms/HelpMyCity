@@ -27,12 +27,13 @@ import org.jetbrains.compose.resources.stringResource
 private val THUMBNAIL_SIZE = 96.dp
 
 /**
- * What Coil should load for a photo: the uploaded copy when there is one, the
- * local bytes otherwise.
+ * What Coil should load for a photo. That is the uploaded copy if there is one,
+ * and the local bytes if not.
  *
- * Preferring the URL lets Coil cache the response on disk and in memory, so a
- * synced device need not read the bytes out of SQLite at all. `ByteArray` is a
- * first-class Coil model, so the fallback needs no per-platform decoding.
+ * Using the URL first lets Coil cache the response on disk and in memory, so a
+ * synced device does not have to read the bytes out of SQLite at all. `ByteArray`
+ * is a first-class Coil model, so the fallback does not need any per-platform
+ * decoding.
  */
 private val IssuePhoto.imageModel: Any?
     get() = remoteUrl ?: bytes
@@ -40,9 +41,9 @@ private val IssuePhoto.imageModel: Any?
 /**
  * A horizontal strip of an issue's photos.
  *
- * [onRemove] is null wherever photos are read-only -- the issue detail screen --
- * and supplied on the submission form, where a resident can still change their
- * mind.
+ * [onRemove] is null wherever photos are read-only (the issue detail screen), and
+ * it gets supplied on the submission form, where a resident can still change
+ * their mind.
  */
 @Composable
 fun IssuePhotoStrip(
@@ -68,8 +69,8 @@ fun IssuePhotoStrip(
 /**
  * One thumbnail.
  *
- * [model] is deliberately `Any?` rather than an `IssuePhoto`: the submission form
- * shows images that have no database row yet, so it passes the picked bytes
+ * [model] is `Any?` instead of an `IssuePhoto` on purpose. The submission form
+ * shows images that do not have a database row yet, so it passes the picked bytes
  * straight through.
  */
 @Composable
@@ -79,8 +80,8 @@ fun PhotoThumbnail(
     caption: String? = null,
     onRemove: (() -> Unit)? = null,
 ) {
-    // The remove action sits below the image rather than over it: a label on top
-    // of an arbitrary photo has no contrast guarantee at all.
+    // The remove action sits below the image instead of on top of it, because a
+    // label on top of a random photo has no contrast guarantee at all.
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -91,8 +92,8 @@ fun PhotoThumbnail(
         ) {
             AsyncImage(
                 model = model,
-                // The caption when there is one; otherwise a screen reader gets at
-                // least "photo of the reported problem" rather than nothing.
+                // The caption if there is one. Otherwise a screen reader at least
+                // gets "photo of the reported problem" instead of nothing.
                 contentDescription = caption ?: stringResource(Res.string.photo_alt),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(THUMBNAIL_SIZE),

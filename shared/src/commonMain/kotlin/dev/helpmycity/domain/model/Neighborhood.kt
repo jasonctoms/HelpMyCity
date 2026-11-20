@@ -5,15 +5,15 @@ import kotlinx.serialization.Serializable
 /**
  * A neighborhood a manager is assigned to.
  *
- * [boundaryGeoJson] is a GeoJSON `Polygon` or `MultiPolygon` geometry in
- * WGS 84, drawn as an outline on the issue map. It is optional: issues are
- * tagged with a neighborhood by hand, not by where their pin falls. A
- * neighborhood does not map 1:1 to a council district, precinct or census
- * tract, so those stay independent fields on [IssueLocation] rather than being
+ * [boundaryGeoJson] is a GeoJSON `Polygon` or `MultiPolygon` geometry in WGS 84,
+ * and it gets drawn as an outline on the issue map. It is optional, since issues
+ * are tagged with a neighborhood by hand and not by where their pin lands. A
+ * neighborhood does not line up 1:1 with a council district, precinct, or census
+ * tract, so those stay as separate fields on [IssueLocation] instead of being
  * derived from this record.
  *
- * The set of neighborhoods is per-deployment: see
- * [dev.helpmycity.deployment.CityProfile.neighborhoods].
+ * Each deployment has its own set of neighborhoods (see
+ * [dev.helpmycity.deployment.CityProfile.neighborhoods]).
  */
 @Serializable
 data class Neighborhood(

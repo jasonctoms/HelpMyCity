@@ -50,11 +50,11 @@ import helpmycity.shared.generated.resources.edit_cancel
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * One person's role, and the slice of the city a manager answers for.
+ * One person's role, and the part of the city a manager is responsible for.
  *
- * The four area pickers are independent because cities delegate in all four
- * ways at once -- see [dev.helpmycity.domain.model.ManagerScope] --
- * and any one of them matching is enough to put a report in someone's queue.
+ * The four area pickers are independent, because cities delegate in all four
+ * ways at once (see [dev.helpmycity.domain.model.ManagerScope]), and matching any
+ * one of them is enough to put a report in someone's queue.
  */
 @Composable
 fun AdminUserScreen(
@@ -212,7 +212,7 @@ fun AdminUserScreen(
     }
 }
 
-/** Says why the role picker will not move, or what the chosen role already implies. */
+/** Explains why the role picker is locked, or what the chosen role already covers. */
 @Composable
 private fun RoleNote(isSelf: Boolean, role: UserRole) {
     val note = when {
@@ -231,6 +231,6 @@ private fun RoleNote(isSelf: Boolean, role: UserRole) {
 private fun AssignmentOutcome.messageResource() = when (this) {
     AssignmentOutcome.OwnRoleUnchangeable -> Res.string.admin_user_role_locked
     AssignmentOutcome.UserNotFound -> Res.string.admin_user_not_found
-    // Saved and NoChanges never reach here: both leave the screen.
+    // Saved and NoChanges never get here, since both leave the screen.
     else -> Res.string.admin_users_not_permitted
 }

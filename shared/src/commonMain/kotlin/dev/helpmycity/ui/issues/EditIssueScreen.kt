@@ -50,11 +50,12 @@ import helpmycity.shared.generated.resources.review_issue_gone
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * A manager's completeness pass over a filed report: fix the category, name the
- * right department, tidy a description typed at a bus stop.
+ * A manager's cleanup pass over a filed report. Fix the category, pick the right
+ * department, tidy up a description someone typed at a bus stop.
  *
- * The notice at the top earns its place -- every save is stamped on the issue
- * and shown to everyone, and the manager should know that before typing.
+ * The notice at the top is there for a reason. Every save gets stamped on the
+ * issue and shown to everyone, and the manager should know that before they start
+ * typing.
  */
 @Composable
 fun EditIssueScreen(
@@ -138,8 +139,8 @@ fun EditIssueScreen(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        // Collapsed by default: an always-open map would push the rest of the
-        // form off a phone screen.
+        // Collapsed by default, because a map that is always open would push the
+        // rest of the form off a phone screen.
         TextButton(onClick = viewModel::onTogglePointPicker) {
             Text(
                 stringResource(
@@ -206,8 +207,8 @@ fun EditIssueScreen(
             )
         }
 
-        // A manager's own note -- "walk audit", "ownership unclear" -- which is
-        // why it is not on the resident's form.
+        // A manager's own note ("walk audit", "ownership unclear"), which is why
+        // it is not on the resident's form.
         OutlinedTextField(
             value = form.notesSource,
             onValueChange = viewModel::onNotesSourceChange,

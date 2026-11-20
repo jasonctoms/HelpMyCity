@@ -19,8 +19,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * The two rules the report form and the edit form share: a pin does not
- * overwrite a person's words, and typing does not move a pin they placed.
+ * The two rules the report form and the edit form share. A pin does not overwrite
+ * a person's words, and typing does not move a pin they placed.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class LocationFieldTest {
@@ -43,7 +43,7 @@ class LocationFieldTest {
         subThoroughfare = null,
     )
 
-    /** Answers with [answer] whatever it is asked, so a moved pin shows up in the state. */
+    /** Answers with [answer] no matter what it is asked, so a moved pin shows up in the state. */
     private inner class FixedGeocoder(private val answer: GeoPoint?) : PlatformGeocoder {
         override fun isAvailable(): Boolean = true
         override suspend fun forward(address: String): List<Coordinates> =
@@ -54,11 +54,11 @@ class LocationFieldTest {
     }
 
     /**
-     * The test scheduler has to reach all the way down: Compass runs lookups on
-     * `Dispatchers.Default` unless told otherwise, and virtual time cannot
-     * advance a real thread pool. The field's own scope is a plain one on the
-     * same scheduler rather than `backgroundScope`, whose coroutines
-     * `advanceUntilIdle` does not run.
+     * The test scheduler has to reach all the way down. Compass runs lookups on
+     * `Dispatchers.Default` unless you tell it otherwise, and virtual time can't
+     * advance a real thread pool. The field's own scope is a plain one on the same
+     * scheduler instead of `backgroundScope`, because `advanceUntilIdle` does not
+     * run `backgroundScope`'s coroutines.
      */
     private fun TestScope.locationField(platform: PlatformGeocoder): LocationField {
         val dispatcher = StandardTestDispatcher(testScheduler)
@@ -88,7 +88,7 @@ class LocationFieldTest {
         advanceUntilIdle()
 
         assertEquals("Libby Lake Park frontage", field.state.value.description)
-        // Still recorded: the issue carries both what they wrote and where it is.
+        // Still recorded, since the issue keeps both what they wrote and where it is.
         assertEquals(pierAddress, field.state.value.geocodedAddress)
     }
 
@@ -173,8 +173,8 @@ class LocationFieldTest {
         )
         advanceUntilIdle()
 
-        // The manager has typed nothing, so nothing was looked up and no pin
-        // appeared under an issue that never had one.
+        // The manager has not typed anything, so nothing got looked up and no pin
+        // showed up on an issue that never had one.
         assertNull(field.state.value.point)
         assertEquals("N. River Rd (Montecito -> Redondo)", field.state.value.description)
         assertEquals(GeocodingStatus.Idle, field.state.value.status)

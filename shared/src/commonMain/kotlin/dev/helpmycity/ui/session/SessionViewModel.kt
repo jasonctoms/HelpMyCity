@@ -13,11 +13,12 @@ import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 
 /**
- * App-wide session state: who is signed in, and whether their data has left the
- * device. Owned above the navigation host so it survives moving between screens.
+ * App-wide session state, meaning who is signed in and whether their data has
+ * made it off the device. It lives above the navigation host so it survives
+ * moving between screens.
  *
- * The only place both halves are injected: signing out ends an *account*, and
- * everything on screen is about a *user*.
+ * This is the only place both halves get injected, because signing out ends an
+ * _account_, and everything on screen is about a _user_.
  */
 @KoinViewModel
 class SessionViewModel(

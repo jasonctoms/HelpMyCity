@@ -12,8 +12,8 @@ plugins {
     alias(libs.plugins.room) apply false
 }
 
-// webpack-dev-server 6 floats memfs, and 4.78.0 declares a sub-package that was never
-// published to npm. Pin to the last version that resolves.
+// webpack-dev-server 6 lets memfs float, and 4.78.0 declares a sub-package that never
+// got published to npm. Pin it to the last version that actually resolves.
 plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
     the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().resolution("memfs", "4.68.0")
 }

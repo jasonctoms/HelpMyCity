@@ -13,27 +13,25 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * In-memory stand-in for real authentication.
  *
- * It validates shapes (email looks like an email, password is long enough) so
- * the sign-in screen's error states are real and worth designing against, but it
- * accepts any credential that passes those checks and keeps accounts only for
- * the lifetime of the process. **No credential is ever stored, hashed or
- * transmitted** -- there is nothing here to mistake for a security boundary.
+ * It checks shapes (the email looks like an email, the password is long enough)
+ * so the sign-in screen's error states are real and worth designing for. Beyond
+ * that it accepts any credential that passes, and it only keeps accounts for as
+ * long as the process is running. **No credential is ever stored, hashed, or
+ * sent anywhere**, so please do not mistake any of this for a security boundary.
  *
- * The role it claims comes from the email's local part, so all three can be
- * tried on a fresh install: `admin@…` signs in as an admin, `resident@…` as a
- * resident, and anything else as a citywide manager. It is only a claim -- see
- * [Account.claimedRole] -- so it seeds a new user and never overrules an
- * assignment an admin has already made. Real deployments claim roles and
- * [ManagerScope]s from their identity provider, never from the address someone
- * typed.
+ * The role it claims comes from the part of the email before the @, so you can
+ * try all three on a fresh install. `admin@…` signs in as an admin, `resident@…`
+ * as a resident, and anything else as a citywide manager. It is only a claim (see
+ * [Account.claimedRole]), so it seeds a new user and never overrides something an
+ * admin has already assigned. Real deployments get roles and [ManagerScope]s from
+ * their identity provider, never from whatever address someone typed.
  *
- * Bound by [dev.helpmycity.deployment.LocalOnlyBackend]; a fork that
- * has a real identity provider supplies its own `BackendProvider.auth` instead.
+ * [dev.helpmycity.deployment.LocalOnlyBackend] binds this. A fork with a real
+ * identity provider supplies its own `BackendProvider.auth` instead.
  *
- * @param seededAccounts sign-ins that exist before anyone signs in, with ids
- *   this service does not mint. A demo build passes one per role, which is what
- *   lets those accounts hold the same id across a restart; every other build
- *   passes none.
+ * @param seededAccounts sign-ins that exist before anyone signs in, with ids this
+ *   service did not generate. A demo build passes one per role, which is how those
+ *   accounts keep the same id across a restart. Every other build passes none.
  */
 class MockAuthService(
     private val idGenerator: IdGenerator,
@@ -99,8 +97,8 @@ class MockAuthService(
             displayName = displayName,
             email = email,
             claimedRole = role,
-            // A demo manager looks after the whole city: the mock knows nothing
-            // about which districts this deployment has.
+            // A demo manager looks after the whole city, since the mock has no
+            // idea which districts this deployment has.
             claimedScope = if (role == UserRole.MANAGER) ManagerScope.Citywide else null,
         )
     }
@@ -117,7 +115,7 @@ class MockAuthService(
         const val ADMIN_LOCAL_PART = "admin"
         const val RESIDENT_LOCAL_PART = "resident"
 
-        /** Enough delay that the sign-in button's loading state is actually visible. */
+        /** Just enough delay that you can actually see the sign-in button's loading state. */
         const val FAKE_LATENCY_MILLIS = 400L
     }
 }

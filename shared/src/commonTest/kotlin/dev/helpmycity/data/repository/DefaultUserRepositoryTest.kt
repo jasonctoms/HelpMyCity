@@ -61,7 +61,7 @@ class DefaultUserRepositoryTest {
     fun `a returning account keeps the role and areas an admin gave it`() = runTest {
         seed(manager.copy(scope = ManagerScope(districts = setOf("District 2"))))
 
-        // A new session, so the mock provider minted a new id and claimed a role.
+        // A new session, so the mock provider handed out a new id and claimed a role.
         val returning = Account(
             id = "fresh-id",
             displayName = "Jane",

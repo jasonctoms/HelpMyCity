@@ -21,16 +21,16 @@ import dev.helpmycity.domain.model.SyncState
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// Rows are `internal`: the column contract is this module's business, and a
-// fork that changes the schema should not break anything that imports it.
+// Rows are `internal`, because the column contract is this module's business, and
+// a fork that changes the schema should not break anything that imports it.
 //
-// Enums travel as their `storageKey`, never `Enum.name` -- renaming a constant
-// has to stay a safe refactor, and these strings are in someone's database.
+// Enums travel as their `storageKey` and never as `Enum.name`. Renaming a constant
+// has to stay a safe refactor, and these strings live in somebody's database.
 //
-// Value objects with no enums in them (location, reporter, external reference)
-// are reused from the domain as-is and land in `jsonb` columns, which is why
-// their keys are camelCase where the columns around them are snake_case. They
-// are opaque payload; nothing queries inside them.
+// Value objects without enums in them (location, reporter, external reference)
+// get reused from the domain as-is and land in `jsonb` columns. That is why their
+// keys are camelCase while the columns around them are snake_case. They are just
+// opaque payload, and nothing queries inside them.
 
 @Serializable
 internal data class IssueRow(
@@ -88,8 +88,8 @@ internal data class SupportRow(
 )
 
 /**
- * One photo as `issue_photos` holds it. The object path is stored rather than a
- * URL, so the URL can be rebuilt if the project or bucket moves.
+ * One photo the way `issue_photos` holds it. The object path is stored instead of
+ * a URL, so the URL can be rebuilt if the project or bucket ever moves.
  */
 @Serializable
 internal data class PhotoRow(
@@ -130,10 +130,10 @@ internal data class NeighborhoodRow(
 
 // --- domain -> row -------------------------------------------------------
 //
-// `SyncMetadata` is deliberately dropped on the way out. It is local
-// bookkeeping about *this device's* queue; writing it to a shared table would
-// hand every other device a meaningless `pending_upload` and keep the sync
-// engine pushing rows forever.
+// `SyncMetadata` gets dropped on the way out, on purpose. It is local bookkeeping
+// about _this device's_ queue, and writing it to a shared table would hand every
+// other device a meaningless `pending_upload` and keep the sync engine pushing
+// rows forever.
 
 internal fun Issue.toRow(): IssueRow = IssueRow(
     id = id,
@@ -188,9 +188,9 @@ internal fun IssueSupport.toRow(): SupportRow = SupportRow(
 
 // --- row -> domain -------------------------------------------------------
 //
-// A row that came back from the backend is by definition agreed with it, so
-// every one is rebuilt as [SyncState.SYNCED]. `updated_at_millis` doubles as
-// the version: an edit that did not change it did not happen.
+// A row that came back from the backend agrees with it by definition, so every one
+// gets rebuilt as [SyncState.SYNCED]. `updated_at_millis` doubles as the version,
+// so an edit that did not change it did not happen.
 
 internal fun IssueRow.toIssue(): Issue = Issue(
     id = id,
@@ -204,9 +204,8 @@ internal fun IssueRow.toIssue(): Issue = Issue(
     departmentId = departmentId,
     reporter = reporter,
     submittedByUserId = submittedByUserId,
-    // `schema.sql` carries the matching CHECK constraint, so a rejected row
-    // without a reason -- which IssueReview refuses to construct -- cannot
-    // exist to be read back.
+    // `schema.sql` has the matching CHECK constraint, so a rejected row without a
+    // reason (which IssueReview will not construct) can't exist to be read back.
     review = IssueReview(
         state = ReviewState.fromStorageKey(reviewState),
         reviewedByUserId = reviewedByUserId,
@@ -233,7 +232,7 @@ internal fun EditRow.toIssueEdit(): IssueEdit = IssueEdit(
     editedByDisplayName = editedByDisplayName,
     editedAtMillis = editedAtMillis,
     revision = revision,
-    // An unknown key is a row written by a newer build; drop it rather than crash.
+    // An unknown key means a newer build wrote the row, so drop it instead of crashing.
     fields = fields.mapNotNull { EditableField.fromStorageKeyOrNull(it) }.toSet(),
 )
 

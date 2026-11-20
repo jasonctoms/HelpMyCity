@@ -9,9 +9,9 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 /**
- * Unpacks the platform's [LocalStore] into the data sources the
- * repositories inject. Declared once, in common code, for every target -- the
- * platform only decides which [LocalStore] to bind.
+ * Unpacks the platform's [LocalStore] into the data sources the repositories
+ * inject. It is declared once, in common code, for every target, and the platform
+ * only decides which [LocalStore] to bind.
  */
 val dataModule: Module = module {
     single<IssueLocalDataSource> { get<LocalStore>().issues }

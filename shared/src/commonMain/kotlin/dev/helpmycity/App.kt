@@ -115,10 +115,10 @@ import org.koin.core.parameter.parametersOf
 
 @Composable
 fun App() {
-    // Coil ships no network fetcher of its own, so without this every remote
-    // image -- the city's header photo, an issue's uploaded picture -- fails
-    // silently. Ktor rather than OkHttp because it is the one engine set that
-    // covers all three targets, and the project already carries it.
+    // Coil does not ship a network fetcher of its own, so without this every
+    // remote image (the city's header photo, an issue's uploaded picture) fails
+    // silently. This uses Ktor instead of OkHttp because it is the one engine set
+    // that covers all three targets, and the project already depends on it.
     setSingletonImageLoaderFactory { context ->
         ImageLoader.Builder(context)
             .components { add(KtorNetworkFetcherFactory()) }
@@ -128,8 +128,8 @@ fun App() {
         val session: SessionViewModel = koinViewModel()
         val currentUser by session.currentUser.collectAsStateWithLifecycle()
 
-        // Submitting requires no account, but the app opens at sign-in so the
-        // auth flow is reachable.
+        // Submitting does not need an account, but the app opens at sign-in so
+        // the auth flow is reachable.
         val user = currentUser
         if (user == null) {
             BrowserTitle(pageTitle(stringResource(Res.string.sign_in_title)))
@@ -141,13 +141,13 @@ fun App() {
 }
 
 /**
- * The one breakpoint: above it the tabs and the report button move into the
- * header, and the list and the map sit side by side. Staging that across two
- * thresholds would only surprise someone dragging a window edge twice.
+ * The one breakpoint. Above it, the tabs and the report button move into the
+ * header and the list and map sit side by side. Splitting that across two
+ * thresholds would just surprise someone dragging a window edge twice.
  */
 private val WideWindowWidth = 900.dp
 
-/** How wide a pushed screen lets its text run. Forms and prose, not browsing. */
+/** How wide a pushed screen lets its text run. This is for forms and prose, not browsing. */
 private val ReadingMaxWidth = 900.dp
 
 @Composable
@@ -164,8 +164,8 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
     val screenTitle = titleFor(currentRoute)
     BrowserTitle(pageTitle(screenTitle))
 
-    // A role can narrow under the app, and the review queue must not stay on
-    // screen when it does.
+    // A role can get narrowed while the app is open, and the review queue should
+    // not stay on screen when that happens.
     LaunchedEffect(canReview, currentRoute) {
         if (!canReview && currentRoute == ReviewQueueRoute) backStack.switchTopLevelTo(IssueListRoute)
     }
@@ -175,8 +175,8 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
         val inHeader = wide && topLevelRoute != null
         val tabs = topLevelRoutesFor(canReview, listAndMapCombined = wide)
 
-        // The map tab is gone on a wide window because the list draws the map
-        // too, so a back stack left on it would select no tab at all.
+        // There is no map tab on a wide window, because the list draws the map
+        // too, so a back stack left on it would not select any tab at all.
         LaunchedEffect(wide, currentRoute) {
             if (wide && currentRoute == IssueMapRoute) backStack.switchTopLevelTo(IssueListRoute)
         }
@@ -210,8 +210,8 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                 )
             },
             bottomBar = {
-                // Grown and shrunk rather than switched, so the content above it
-                // resizes smoothly instead of jumping on the frame a screen opens.
+                // This grows and shrinks instead of switching, so the content above
+                // it resizes smoothly instead of jumping when a screen opens.
                 AnimatedVisibility(
                     visible = topLevelRoute != null && !inHeader,
                     enter = expandVertically(expandFrom = Alignment.Top),
@@ -289,9 +289,9 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                                 )
                             }
                             entry<IssueMapRoute> {
-                                // Reachable for the frame between a window widening and
-                                // the redirect above, so it draws the workspace too
-                                // rather than flashing a layout on its way out.
+                                // This can be reached for the one frame between a window
+                                // widening and the redirect above, so it draws the
+                                // workspace too instead of flashing a layout on its way out.
                                 if (wide) {
                                     IssueWorkspaceScreen(
                                         listViewModel = koinViewModel(),
@@ -332,8 +332,8 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                                 ReadingPane {
                                     EditIssueScreen(
                                         viewModel = koinViewModel { parametersOf(route.issueId) },
-                                        // Both ways out return to the issue, where the edit
-                                        // shows as recorded.
+                                        // Both ways out go back to the issue, where the edit
+                                        // shows up as recorded.
                                         onSaved = { backStack.removeLastOrNull() },
                                         onCancel = { backStack.removeLastOrNull() },
                                     )
@@ -346,7 +346,7 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                                         onEditProfile = { backStack.add(EditProfileRoute) },
                                         onManageUsers = { backStack.add(AdminUsersRoute) },
                                         onRejectedClick = { backStack.add(RejectedIssuesRoute) },
-                                        // Back to the issue list before the session ends, so
+                                        // Go back to the issue list before the session ends, so
                                         // signing in again does not reopen a stale profile.
                                         onSignOut = {
                                             backStack.switchTopLevelTo(IssueListRoute)
@@ -387,7 +387,7 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
                                         viewModel = koinViewModel(),
                                         onSubmitted = { issueId ->
                                             // Replace the form with the issue it created, so
-                                            // "back" returns to the list rather than a blank form.
+                                            // "back" goes to the list and not a blank form.
                                             backStack.removeLastOrNull()
                                             backStack.add(IssueDetailRoute(issueId))
                                         },
@@ -406,9 +406,9 @@ private fun SignedInApp(session: SessionViewModel, canReview: Boolean) {
 /**
  * A pushed screen, held to [ReadingMaxWidth] and centered.
  *
- * Per entry rather than around the whole `NavDisplay`: a transition has two
- * screens on it at once, so capping the display would narrow the top-level
- * screen sliding out as well.
+ * This is applied per entry instead of around the whole `NavDisplay`. A
+ * transition has two screens on it at once, so capping the display would also
+ * narrow the top-level screen that is sliding out.
  */
 @Composable
 private fun ReadingPane(content: @Composable () -> Unit) {
@@ -426,8 +426,8 @@ private fun ReportButton(onClick: () -> Unit) {
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.White,
-            // Fixed rather than themed: on a photograph in both schemes, a
-            // scheme-dependent label would wash out in one of them.
+            // Fixed instead of themed. It sits on a photo in both schemes, so a
+            // label that followed the scheme would wash out in one of them.
             contentColor = Color(0xFF00344C),
         ),
     ) {
@@ -442,12 +442,12 @@ private fun ReportButton(onClick: () -> Unit) {
 }
 
 /**
- * Tabs replace the stack rather than pushing onto it: with three peer
- * destinations, per-tab history would surprise more than it helps.
+ * Tabs replace the stack instead of pushing onto it. With three peer
+ * destinations, keeping history per tab would surprise people more than it helps.
  */
 /**
- * A tab switch clears the stack, so a destination with nothing behind it is a
- * tab and fades in place; anything else was pushed and slides in.
+ * A tab switch clears the stack, so a destination with nothing behind it is a tab
+ * and fades in place. Anything else was pushed, so it slides in.
  */
 private fun <T : Any> AnimatedContentTransitionScope<Scene<T>>.navigateTransition(): ContentTransform =
     if (targetState.previousEntries.isEmpty()) {
@@ -457,9 +457,9 @@ private fun <T : Any> AnimatedContentTransitionScope<Scene<T>>.navigateTransitio
     }
 
 /**
- * Material's shared-axis pattern: the new screen slides a short way in from the
- * side it belongs on while the old one fades out quickly ahead of it, so the two
- * are never both fully visible at once.
+ * Material's shared-axis pattern. The new screen slides in a short way from the
+ * side it belongs on, while the old one fades out quickly ahead of it, so the two
+ * are never both fully visible at the same time.
  */
 private fun sharedAxisTransition(forward: Boolean): ContentTransform {
     val direction = if (forward) 1 else -1
@@ -485,7 +485,7 @@ private fun NavBackStack<NavKey>.switchTopLevelTo(route: TopLevelRoute) {
     add(route)
 }
 
-/** What the browser tab says: the screen, then the city it belongs to. */
+/** What the browser tab says, which is the screen and then the city it belongs to. */
 @Composable
 private fun pageTitle(screenTitle: String): String {
     val city: CityProfile = koinInject()

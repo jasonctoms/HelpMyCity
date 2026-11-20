@@ -39,7 +39,7 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Your own name and address.
  *
- * Nothing about role or areas is here: those are assigned, not chosen, and
+ * There is nothing about role or areas here. Those get assigned, not chosen, and
  * showing them on a form you can type into would suggest otherwise.
  */
 @Composable
@@ -126,6 +126,6 @@ private fun ProfileOutcome.messageResource() = when (this) {
     ProfileOutcome.NameRequired -> Res.string.error_name_required
     ProfileOutcome.InvalidEmail -> Res.string.error_invalid_email
     ProfileOutcome.EmailTaken -> Res.string.error_email_in_use
-    // Saved and NoChanges never reach here: both leave the screen.
+    // Saved and NoChanges never get here, since both leave the screen.
     else -> Res.string.error_profile_missing
 }

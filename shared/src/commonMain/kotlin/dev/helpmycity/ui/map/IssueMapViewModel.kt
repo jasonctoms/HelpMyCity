@@ -23,7 +23,7 @@ import org.koin.core.annotation.KoinViewModel
 
 /** What the map screen draws, for one set of filter selections. */
 data class IssueMapUiState(
-    /** Issues matching the filter that have coordinates -- the ones with markers. */
+    /** Issues matching the filter that have coordinates, meaning the ones with markers. */
     val plotted: List<Issue> = emptyList(),
     /** Issues matching the filter, with or without coordinates. */
     val matchingCount: Int = 0,
@@ -34,10 +34,10 @@ data class IssueMapUiState(
 /**
  * Backs [IssueMapScreen].
  *
- * Separate from `IssueListViewModel` because the map wants a different slice --
- * only issues that can be plotted -- and its own filter: the list's status
- * chips and search box do not belong over a map, and a neighborhood filter does
- * not belong in a list.
+ * This is separate from `IssueListViewModel` because the map wants a different
+ * slice (only issues that can be plotted) and its own filter. The list's status
+ * chips and search box do not belong on a map, and a neighborhood filter does not
+ * belong in a list.
  */
 @KoinViewModel
 class IssueMapViewModel(
@@ -61,8 +61,8 @@ class IssueMapViewModel(
         _selectedNeighborhoods,
     ) { issues, neighborhoods, selected ->
         IssueMapUiState(
-            // A missing point is not an error: the pin drop is optional, so the
-            // screen reports the shortfall rather than hiding it.
+            // A missing point is not an error. The pin drop is optional, so the
+            // screen reports how many are missing instead of hiding them.
             plotted = issues.filter { it.location.point != null },
             matchingCount = issues.size,
             neighborhoods = neighborhoods,
@@ -72,7 +72,7 @@ class IssueMapViewModel(
 
     /**
      * Nothing selected means every neighborhood, which is why this toggles
-     * rather than selecting one at a time -- "all" needs to stay reachable.
+     * instead of selecting one at a time, because "all" needs to stay reachable.
      */
     fun toggleNeighborhood(id: String) = _selectedNeighborhoods.update { current ->
         if (id in current) current - id else current + id
@@ -82,7 +82,7 @@ class IssueMapViewModel(
         _selectedNeighborhoods.value = emptySet()
     }
 
-    /** Total issues in the city, ignoring the filter -- for "N of M". */
+    /** Total issues in the city, ignoring the filter, for "N of M". */
     val totalIssues: StateFlow<Int> = repository.observeIssues()
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)

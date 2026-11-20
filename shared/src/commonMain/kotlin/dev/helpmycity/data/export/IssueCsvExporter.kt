@@ -6,9 +6,9 @@ import org.koin.core.annotation.Single
 /**
  * CSV export of the full issue table, so a deployment is never locked in.
  *
- * Reads the local database, which after a sync holds every issue the user can
- * see, and needs no backend. Writing the string to a file or a download is
- * platform work; this produces the bytes.
+ * This reads the local database, which holds every issue the user can see after a
+ * sync, so it does not need a backend. Writing the string to a file or a download
+ * is the platform's job; this just produces the bytes.
  */
 @Single
 class IssueCsvExporter {
@@ -57,7 +57,7 @@ class IssueCsvExporter {
         }
     }
 
-    /** RFC 4180: quote when the value contains a comma, quote or newline; double any inner quote. */
+    /** RFC 4180. Quote the value if it has a comma, quote, or newline in it, and double any quotes inside. */
     private fun escape(value: String): String =
         if (value.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
             "\"" + value.replace("\"", "\"\"") + "\""

@@ -16,17 +16,17 @@ data class EditProfileFormState(
     val displayName: String = "",
     val email: String = "",
     val isSaving: Boolean = false,
-    /** False until the user has been read, so the form never starts blank over real data. */
+    /** False until the user has been read, so the form never starts out blank over real data. */
     val isLoaded: Boolean = false,
-    /** A guest, or nobody: there is no directory record behind this form. */
+    /** A guest, or nobody. Either way there is no stored record behind this form. */
     val isEditable: Boolean = true,
 ) {
     val canSave: Boolean get() = isEditable && !isSaving && displayName.isNotBlank()
 }
 
 /**
- * Editing your own name and address, and nobody else's -- roles and areas are
- * the admin screen's business, and this form never shows them.
+ * Editing your own name and address, and nobody else's. Roles and areas are the
+ * admin screen's business, and this form never shows them.
  */
 @KoinViewModel
 class EditProfileViewModel(
@@ -37,13 +37,13 @@ class EditProfileViewModel(
     private val _form = MutableStateFlow(EditProfileFormState())
     val form: StateFlow<EditProfileFormState> = _form.asStateFlow()
 
-    /** Set when a save was refused; cleared on the next attempt. */
+    /** Set when a save gets refused, and cleared on the next attempt. */
     private val _saveError = MutableStateFlow<ProfileOutcome?>(null)
     val saveError: StateFlow<ProfileOutcome?> = _saveError.asStateFlow()
 
     init {
-        // Read once, not observed: a form that rewrote itself would lose what
-        // was typed into it.
+        // Read once instead of observed, because a form that rewrote itself would
+        // lose whatever was typed into it.
         val user = session.currentUser.value
         _form.value = EditProfileFormState(
             displayName = user?.displayName.orEmpty(),

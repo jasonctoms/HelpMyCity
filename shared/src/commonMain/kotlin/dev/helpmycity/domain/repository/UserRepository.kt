@@ -9,18 +9,18 @@ import kotlinx.coroutines.flow.Flow
 /**
  * The people this deployment knows, and what each of them may do.
  *
- * An [Account] proves an identity; a [User] is what we decided about it -- their
- * role, and for a manager the slice of the city they answer for. This is where
- * that decision is read and written. A hosted identity provider eventually owns
- * it (a role and scope claim on the account, in the `:cityConfig` example) and drops in
- * behind this interface; until then the local database holds it, which is what
- * lets the admin screen work with no backend.
+ * An [Account] proves an identity, and a [User] is what we decided about it: their
+ * role, and for a manager, the part of the city they are responsible for. This is
+ * where that decision gets read and written. With a hosted identity provider, the
+ * provider owns it (in the `:cityConfig` example, as a role and scope claim on the
+ * account) and plugs in behind this interface. Without one, the local database
+ * holds it, which is what lets the admin screen work with no backend.
  *
- * The two write paths take the acting [User] rather than reading the session,
- * because [dev.helpmycity.data.session.UserSession] is *built out of*
- * this repository: injecting the session here would close a cycle. The rules are
- * still enforced here rather than in the screens, so a screen that forgets
- * cannot grant anyone anything.
+ * The two write paths take the acting [User] as an argument instead of reading the
+ * session, because [dev.helpmycity.data.session.UserSession] is _built from_ this
+ * repository, and injecting the session here would create a cycle. The rules are
+ * still enforced here and not in the screens, so a screen that forgets can't grant
+ * anybody anything.
  */
 interface UserRepository {
     fun observeUsers(): Flow<List<User>>
@@ -30,17 +30,17 @@ interface UserRepository {
     suspend fun getUser(id: String): User?
 
     /**
-     * The user record for [account], opening one the first time that account is
-     * seen.
+     * The user record for [account], creating one the first time that account
+     * shows up.
      *
-     * An existing record is returned untouched, so an admin's assignment
-     * outlives the session it was made in and is never overwritten by what the
-     * provider claims. Only a brand-new user is seeded from
-     * [Account.claimedRole] and [Account.claimedScope].
+     * An existing record comes back untouched, so an admin's assignment outlasts
+     * the session it was made in and never gets overwritten by whatever the
+     * provider claims. Only a brand-new user gets seeded from [Account.claimedRole]
+     * and [Account.claimedScope].
      */
     suspend fun register(account: Account): User
 
-    /** Admin-only. [scope] is kept only for a [UserRole.MANAGER]; other roles carry none. */
+    /** Admin-only. [scope] is only kept for a [UserRole.MANAGER], since the other roles do not have one. */
     suspend fun assign(
         actor: User?,
         userId: String,
@@ -70,8 +70,9 @@ sealed interface AssignmentOutcome {
     data object NotPermitted : AssignmentOutcome
 
     /**
-     * An admin tried to change their own role. Refused: a deployment whose last
-     * admin demotes themselves has no way back into this screen.
+     * An admin tried to change their own role, which is not allowed. If the last
+     * admin demoted themselves, the deployment would have no way back into this
+     * screen.
      */
     data object OwnRoleUnchangeable : AssignmentOutcome
 }

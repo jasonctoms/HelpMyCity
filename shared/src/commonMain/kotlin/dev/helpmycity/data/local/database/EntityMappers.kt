@@ -69,8 +69,8 @@ internal fun IssueEntity.toDomain(): Issue = Issue(
 )
 
 /**
- * [IssueReview] refuses to hold a rejection with no reason. A row that carries
- * one anyway reads back as awaiting review, rather than throwing and taking the
+ * [IssueReview] will not hold a rejection without a reason. If a row has one
+ * anyway, it reads back as waiting on review, instead of throwing and taking the
  * whole list down with it.
  */
 private fun IssueEntity.toReview(): IssueReview {

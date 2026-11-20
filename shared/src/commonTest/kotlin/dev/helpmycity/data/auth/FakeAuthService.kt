@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * An account session that can be switched at will. [MockAuthService] validates
- * credentials; this one just holds whoever the test says signed in.
+ * An account session you can switch whenever you want. [MockAuthService] checks
+ * credentials, and this one just holds whoever the test says signed in.
  */
 class FakeAuthService(
     initialAccount: Account? = null,

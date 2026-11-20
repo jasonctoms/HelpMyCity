@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 @Composable
 actual fun rememberCsvSaver(onFailed: () -> Unit): CsvSaver {
     val scope = rememberCoroutineScope()
-    // The dialog answers with a file to write to; the text waits here until it does.
+    // The dialog comes back with a file to write to, and the text waits here until it does.
     var pending by remember { mutableStateOf<String?>(null) }
     val launcher = rememberFileSaverLauncher(
         dialogSettings = FileKitDialogSettings.createDefault(),

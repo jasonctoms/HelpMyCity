@@ -74,9 +74,9 @@ import org.koin.compose.viewmodel.koinViewModel
  * Sign-in over whatever [dev.helpmycity.data.auth.AuthService] this
  * deployment configured.
  *
- * Validation, loading and error states are real, so an identity provider drops
- * in without touching this screen. The notice at the bottom publishes the shared
- * sign-ins of a demo deployment, and appears only when
+ * The validation, loading, and error states are all real, so an identity provider
+ * can plug in without touching this screen. The notice at the bottom shows the
+ * shared sign-ins for a demo deployment, and it only appears when
  * [dev.helpmycity.deployment.CityProfile.demoLogins] is not empty.
  */
 @Composable
@@ -86,9 +86,9 @@ fun SignInScreen(viewModel: SignInViewModel = koinViewModel()) {
     val uriHandler = LocalUriHandler.current
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Heavier than the header's scrim, and flat rather than graded: this one
-        // is not a band under a wordmark but a whole page behind a form, and the
-        // photograph's job here is atmosphere rather than detail.
+        // Heavier than the header's scrim, and flat instead of a gradient. This
+        // one is a whole page behind a form instead of a band under a wordmark,
+        // and the photo is only here for atmosphere.
         CityPhotoBackground(
             imageUrl = city.branding.headerImageUrl,
             scrim = Brush.verticalGradient(
@@ -120,8 +120,8 @@ fun SignInScreen(viewModel: SignInViewModel = koinViewModel()) {
                     modifier = Modifier.padding(bottom = 24.dp),
                 )
             }
-            // The form keeps its own surface rather than sitting on the photo:
-            // labels, errors and a disabled button all need scheme colors to
+            // The form keeps its own surface instead of sitting on the photo.
+            // Labels, errors, and a disabled button all need the scheme colors to
             // mean what they usually mean.
             Surface(
                 modifier = Modifier.widthIn(max = 420.dp).fillMaxWidth(),
@@ -222,10 +222,10 @@ fun SignInScreen(viewModel: SignInViewModel = koinViewModel()) {
                         )
                     }
 
-                    // A demo deployment publishes shared accounts and wipes
-                    // its data nightly; letting visitors mint more accounts,
-                    // named or anonymous, would leave real ones behind that the
-                    // reset never clears. The published roles cover a resident.
+                    // A demo deployment publishes shared accounts and wipes its
+                    // data every night. Letting visitors create more accounts
+                    // (named or anonymous) would leave real ones behind that the
+                    // reset never clears. The published roles already cover a resident.
                     if (viewModel.demoLogins.isEmpty()) {
                         TextButton(
                             onClick = viewModel::toggleMode,
@@ -254,8 +254,8 @@ fun SignInScreen(viewModel: SignInViewModel = koinViewModel()) {
                 }
             }
 
-            // Its own card: none of this is part of signing in, and a visitor
-            // should be able to tell which parts of the screen are the product.
+            // This gets its own card. None of it is part of signing in, and a
+            // visitor should be able to tell which parts of the screen are the product.
             if (viewModel.demoLogins.isNotEmpty()) {
                 Surface(
                     modifier = Modifier
@@ -288,8 +288,8 @@ fun SignInScreen(viewModel: SignInViewModel = koinViewModel()) {
                                     style = MaterialTheme.typography.labelLarge,
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                // The tap fills the password in; printing it
-                                // here would only cost a second line.
+                                // Tapping fills in the password, so printing it
+                                // here would just cost a second line.
                                 Text(
                                     text = login.email,
                                     style = MaterialTheme.typography.bodySmall,

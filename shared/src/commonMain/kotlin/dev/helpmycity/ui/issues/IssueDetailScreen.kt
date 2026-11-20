@@ -317,7 +317,7 @@ private fun CompletionForm(completion: CompletionState, viewModel: IssueDetailVi
     }
 }
 
-/** Who last changed this report's text, and what they changed. Shown to everyone. */
+/** Who last changed this report's text, and what they changed. Everyone can see this. */
 @Composable
 private fun EditedNote(edit: IssueEdit) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -330,15 +330,15 @@ private fun EditedNote(edit: IssueEdit) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        // `map` is inline, so the composable label lookup is legal inside it;
-        // joinToString's transform would not be.
+        // `map` is inline, so the composable label lookup is allowed inside it,
+        // but it would not be inside joinToString's transform.
         val changed = edit.fields.sortedBy { it.ordinal }.map { it.label() }
         Text(
             text = stringResource(Res.string.detail_edited_fields, changed.joinToString(", ")),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        // Only worth saying beyond the edit named above.
+        // Only worth saying if there were more edits than the one named above.
         if (edit.revision > 1) {
             Text(
                 text = pluralStringResource(
@@ -354,8 +354,8 @@ private fun EditedNote(edit: IssueEdit) {
 }
 
 /**
- * Triage, from both sides: a manager gets the decision, a submitter gets to know
- * where their report stands and why. Anyone else sees nothing here.
+ * Triage, from both sides. A manager gets to make the decision, and a submitter
+ * gets to know where their report stands and why. Anyone else sees nothing here.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -440,8 +440,8 @@ private fun ReviewSection(state: IssueDetailUiState, viewModel: IssueDetailViewM
                 RejectionForm(rejection = rejection, viewModel = viewModel)
             } else {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Approving is also how a manager reverses their own
-                    // rejection, so it stays available in every state but one.
+                    // Approving is also how a manager undoes their own rejection,
+                    // so it stays available in every state except one.
                     if (!review.isPublic) {
                         Button(onClick = viewModel::approve) {
                             Text(stringResource(Res.string.review_approve))
@@ -467,8 +467,8 @@ private fun ReviewSection(state: IssueDetailUiState, viewModel: IssueDetailViewM
 }
 
 /**
- * The reason box. `Send rejection` stays disabled until something is typed --
- * the rule is enforced in the repository, and this is how it reads on screen.
+ * The reason box. `Send rejection` stays disabled until something gets typed. The
+ * rule is enforced in the repository, and this is just how it shows up on screen.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -513,8 +513,8 @@ private fun ReviewOutcome.messageResource() = when (this) {
 }
 
 /**
- * Hand-off to the city's own request system. Hidden entirely when the
- * deployment has no such system -- see `CityProfile.externalRequestSystem`.
+ * Hand-off to the city's own request system. This is hidden completely when the
+ * deployment does not have one (see `CityProfile.externalRequestSystem`).
  */
 @Composable
 private fun ExternalRequestSection(issue: Issue, viewModel: IssueDetailViewModel) {
@@ -533,8 +533,8 @@ private fun ExternalRequestSection(issue: Issue, viewModel: IssueDetailViewModel
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            // Most city portals have no API, so the manager files there and
-            // pastes the reference back here. See ManualExternalRequestGateway.
+            // Most city portals have no API, so the manager files it there and
+            // pastes the reference number back here. See ManualExternalRequestGateway.
             viewModel.externalSubmissionUrl(issue)?.let { url ->
                 Text(
                     text = url,
@@ -610,12 +610,12 @@ private fun HistoryRow(entry: IssueStatusChange) {
 }
 
 /**
- * Starring an issue: the action and its tally in one control, matching the
+ * Starring an issue. The action and its count are one control, to match the
  * cards.
  *
- * The count shows even at zero -- "nobody else yet" is an answer, and a control
- * that changes shape on its first press is a worse one. A screen reader cannot
- * read a star, so it gets the action spelled out.
+ * The count shows even at zero. "Nobody else yet" is still an answer, and a
+ * control that changes shape the first time you press it is worse. A screen
+ * reader can't read a star, so it gets the action spelled out.
  */
 @Composable
 private fun SupportButton(count: Int, supported: Boolean, enabled: Boolean, onClick: () -> Unit) {
@@ -624,8 +624,8 @@ private fun SupportButton(count: Int, supported: Boolean, enabled: Boolean, onCl
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
-        // Disabled would grey out the one state worth showing off, so a starred
-        // button keeps the accent colour.
+        // Disabling it would grey out the one state that is worth showing off, so
+        // a starred button keeps the accent color.
         colors = if (supported) {
             ButtonDefaults.outlinedButtonColors(
                 disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,

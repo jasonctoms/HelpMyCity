@@ -9,8 +9,9 @@ import kotlinx.datetime.toLocalDateTime
 /**
  * Short date rendering for list rows and history entries.
  *
- * Hand-rolled because Kotlin has no common-code locale formatter, and an
- * unambiguous `2026-08-09 14:32` reads the same in English and Spanish.
+ * This is hand-rolled because Kotlin does not have a common-code locale
+ * formatter, and an unambiguous `2026-08-09 14:32` reads the same in English and
+ * Spanish anyway.
  */
 @OptIn(ExperimentalTime::class)
 fun formatTimestamp(epochMillis: Long, includeTime: Boolean = false): String {

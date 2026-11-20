@@ -42,8 +42,8 @@ import helpmycity.shared.generated.resources.status_rejected
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Every user-visible enum label goes through a string resource, so English and
- * Spanish stay in step and nothing leaks a `storageKey` onto the screen.
+ * Every enum label a user can see goes through a string resource, so English and
+ * Spanish stay in sync and a `storageKey` never leaks onto the screen.
  */
 @Composable
 fun IssueStatus.label(): String = stringResource(
@@ -85,7 +85,7 @@ fun IssueCategory.label(): String = stringResource(
 
 /**
  * Names the fields a manager changed, for the "Changed: ..." line under an
- * edited issue. Reuses the form's own labels so the two never drift apart.
+ * edited issue. It reuses the form's own labels so the two never drift apart.
  */
 @Composable
 fun EditableField.label(): String = stringResource(

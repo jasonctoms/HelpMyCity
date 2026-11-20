@@ -70,7 +70,7 @@ class DefaultUserSessionTest {
 
         val user = signInAndSettle(session)
 
-        // Matched on the address: the account's own id is a fresh one this run.
+        // Matched on the address, since the account's own id is a new one this run.
         assertEquals("user-id", user?.id)
         assertEquals(setOf("District 2"), user?.scope?.districts)
         assertEquals(false, user?.scope?.citywide)
@@ -114,8 +114,8 @@ class DefaultUserSessionTest {
         val session = session()
         signInAndSettle(session)
 
-        // Not a sign-out call on the session: a provider can end an account by
-        // itself -- an expired token -- and that has to end this too.
+        // This is not a sign-out call on the session. A provider can end an account
+        // on its own (like an expired token), and that has to end this too.
         accounts.signedInAs(null)
         runCurrent()
 

@@ -10,11 +10,11 @@ import helpmycity.shared.generated.resources.geocode_unavailable
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The address lookup, reported where the person is already looking -- under
- * "Where is it?", on the report form and the edit form alike.
+ * Status for the address lookup, shown where the person is already looking,
+ * right under "Where is it?" on both the report form and the edit form.
  *
- * Null leaves the field's supporting slot empty rather than reserving space for
- * a line that is usually absent.
+ * Null leaves the field's supporting slot empty instead of saving space for a line
+ * that usually is not there.
  */
 internal fun geocodingSupportingText(status: GeocodingStatus): (@Composable () -> Unit)? =
     when (status) {

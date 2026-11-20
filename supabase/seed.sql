@@ -1,19 +1,19 @@
 -- Oceanside's demo data, and the function that puts it back.
 --
--- Run after `schema.sql`. Running it again is safe: it replaces the demo rows
--- rather than adding to them.
+-- Run this after `schema.sql`. Running it again is safe, since it replaces the
+-- demo rows instead of adding to them.
 --
--- This file is the one source of the demo dataset. The `reset-demo` Edge
--- Function does not carry its own copy -- it empties the photo bucket and then
--- calls `public.reset_demo_data()` defined here, so editing an example issue
--- means editing this file and nothing else.
+-- This file is the only source of the demo dataset. The `reset-demo` Edge
+-- Function does not keep its own copy. It empties the photo bucket and then calls
+-- the `public.reset_demo_data()` defined here, so editing an example issue means
+-- editing this file and nothing else.
 
 -- ---------------------------------------------------------------------------
 -- Reference data, mirroring ConfiguredCityProfile.
 --
 -- The app seeds its own local copy from the CityProfile and never reads these
--- back, but issues carry a foreign key to `departments`, so a department that
--- is missing here makes every push naming it fail. Ids must match the profile.
+-- back. But issues have a foreign key to `departments`, so a department that is
+-- missing here makes every push that names it fail. Ids have to match the profile.
 -- ---------------------------------------------------------------------------
 
 insert into departments (id, name, contact_email, handles_categories) values
@@ -32,7 +32,7 @@ on conflict (id) do update set
     contact_email = excluded.contact_email,
     handles_categories = excluded.handles_categories;
 
--- Rows the profile no longer lists would otherwise outlive it.
+-- Otherwise rows the profile does not list anymore would stick around.
 delete from neighborhoods where id not in (
     'nbhd-airport',
     'nbhd-eastside-capistrano',
@@ -78,13 +78,14 @@ on conflict (id) do update set
 -- ---------------------------------------------------------------------------
 -- The demo issues, and the daily reset.
 --
--- Ids are fixed and prefixed `demo-` so the reset can tell seeded rows from
--- anything a visitor filed -- though it clears both, since a public demo that
--- kept yesterday's submissions would fill up with whatever the internet typed.
+-- Ids are fixed and start with `demo-` so the reset can tell seeded rows apart
+-- from anything a visitor filed. It clears both anyway, though, since a public
+-- demo that kept yesterday's submissions would fill up with whatever the
+-- internet felt like typing.
 --
--- Ages are relative to the reset, not absolute, so "open for 9 days" stays true
--- tomorrow. `location` is jsonb in the shape IssueLocation serializes to:
--- camelCase keys, and anything left at its default is simply absent.
+-- Ages are relative to the reset and not absolute, so "open for 9 days" is still
+-- true tomorrow. `location` is jsonb in the shape IssueLocation serializes to,
+-- with camelCase keys, and anything left at its default is just missing.
 -- ---------------------------------------------------------------------------
 
 create or replace function public.reset_demo_data()
@@ -141,8 +142,8 @@ begin
         3, now_ms - 4 * day_ms, now_ms - 1 * day_ms
     ),
     (
-        -- Left unreviewed on purpose: the manager's review queue should have
-        -- something in it the moment someone signs in as a manager.
+        -- Left unreviewed on purpose, so the manager's review queue has something
+        -- in it as soon as someone signs in as a manager.
         'demo-issue-crosswalk',
         'Crosswalk faded at school crossing',
         'Crosswalk paint is nearly gone where kids cross to the school.',
@@ -180,7 +181,7 @@ begin
     );
 
     -- History, so the detail screen's timeline is not empty. The unreviewed
-    -- sample deliberately has none: nothing has happened to it yet.
+    -- sample has none on purpose, because nothing has happened to it yet.
     insert into public.issue_status_changes (
         id, issue_id, from_status, to_status, note,
         changed_by_display_name, changed_at_millis
@@ -199,10 +200,10 @@ begin
 end;
 $$;
 
--- `security definer` so the scheduled reset runs with the owner's rights rather
--- than the caller's, which is what lets it delete rows the RLS policies would
--- otherwise protect. Nobody but the owner and the reset function should be able
--- to call it.
+-- `security definer` so the scheduled reset runs with the owner's rights instead
+-- of the caller's, which is what lets it delete rows the RLS policies would
+-- otherwise protect. Nobody except the owner and the reset function should be
+-- able to call it.
 revoke execute on function public.reset_demo_data() from public, anon, authenticated;
 
 select public.reset_demo_data();

@@ -11,10 +11,11 @@ import androidx.navigation3.ui.LocalNavAnimatedContentScope
 /**
  * Whether this screen has finished sliding in and has not started sliding out.
  *
- * On the web a map re-renders into the app's canvas every frame it is drawn,
- * which a screen transition turns into every frame of the animation. Right after
- * a page load, with the style and tiles still arriving, that stalls the
- * transition and blacks the map out, so maps sit out transitions entirely.
+ * On the web, a map re-renders into the app's canvas on every frame it gets
+ * drawn, and a screen transition turns that into every frame of the animation.
+ * Right after a page load, while the style and tiles are still coming in, that
+ * stalls the transition and blacks out the map. So maps just sit out transitions
+ * completely.
  */
 @Composable
 internal fun isScreenSettled(): Boolean {
